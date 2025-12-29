@@ -72,6 +72,10 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
     if (type === 'Event' && data.category) {
       return data.category.toUpperCase();
     }
+    // For Circumstance cards, show category (Weather, Economic, etc.)
+    if (type === 'Circumstance' && data.category) {
+      return data.category.toUpperCase();
+    }
     // Default type display
     const typeMap: Record<string, string> = {
       'FaithAction': 'FAITH IN ACTION',
@@ -96,6 +100,7 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
       if (data.category === 'Armageddon') return 'Armageddon';
       return 'Event';
     }
+    if (type === 'Circumstance') return 'Circumstance';
     return null;
   };
 
@@ -104,8 +109,8 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
       <div className={`${baseColor} ${size === 'xl' ? 'h-16 p-4' : 'h-6 p-1.5'} flex justify-between items-center relative`}>
         <span className={`${textSizeTitle} font-bold text-white uppercase opacity-80 truncate`}>{data.type ? getTypeDisplay(data.type, data) : 'CARD'}</span>
         {renderIcon()}
-        {/* Type tag in upper right corner for Prayer and Event cards */}
-        {(data.type === 'Prayer' || data.type === 'Event') && (
+        {/* Type tag in upper right corner for Prayer, Event, and Circumstance cards */}
+        {(data.type === 'Prayer' || data.type === 'Event' || data.type === 'Circumstance') && (
           <div className={`absolute top-0 right-0 ${size === 'xl' ? 'text-[8px] px-2 py-0.5' : 'text-[5px] px-1 py-0.5'} font-bold text-white bg-black/40 backdrop-blur-sm rounded-bl-lg uppercase`}>
             {getTypeTag(data.type, data)}
           </div>

@@ -71,21 +71,21 @@ export const selectEventVariations = () => {
 };
 
 export const CIRCUMSTANCE_POOL = [
-  { title: 'Heavy Rains', type: 'Circumstance', effect: 'Move Cost +1', desc: 'Roads are muddy. Moving costs 2 AP.', multiplier: 1.0 },
-  { title: 'Digital Surveillance', type: 'Circumstance', effect: 'No Trivia Bonus', desc: 'Communication is monitored. Trivia disabled.', multiplier: 1.0 },
-  { title: 'Heatwave', type: 'Circumstance', effect: 'AP Max = 2', desc: 'Exhaustion sets in quickly. Max 2 AP.', multiplier: 1.0 },
-  { title: 'Transportation Strike', type: 'Circumstance', effect: 'Range = 0', desc: 'No public transport. Cannot help from distance.', multiplier: 1.0 },
-  { title: 'Distractions', type: 'Circumstance', effect: 'No Effect', desc: 'Worldly entertainment distracts.', multiplier: 1.0 },
-  { title: 'Economic Hardship', type: 'Circumstance', effect: 'Draw Cost +1', desc: 'Resources are tight. Drawing cards costs 2 AP.', multiplier: 1.0 },
-  { title: 'Social Pressure', type: 'Circumstance', effect: 'Help Cost +1', desc: 'Helping others is discouraged. Help action costs 2 AP.', multiplier: 1.0 },
-  { title: 'Communication Breakdown', type: 'Circumstance', effect: 'No Help Range', desc: 'Communication is cut off. Cannot help others.', multiplier: 1.0 },
-  { title: 'Resource Scarcity', type: 'Circumstance', effect: 'Move Cost +1', desc: 'Fuel and supplies are limited. Moving costs 2 AP.', multiplier: 1.0 },
-  { title: 'Increased Opposition', type: 'Circumstance', effect: 'No Trivia Bonus', desc: 'Hostility rises. Trivia bonuses disabled.', multiplier: 1.2 },
-  { title: 'Severe Persecution', type: 'Circumstance', effect: 'AP Max = 2', desc: 'Danger increases. Max 2 AP per turn.', multiplier: 1.3 },
-  { title: 'Critical Situation', type: 'Circumstance', effect: 'No Effect', desc: 'Pressure mounts.', multiplier: 1.4 },
-  { title: 'Extreme Adversity', type: 'Circumstance', effect: 'All Costs +1', desc: 'Everything is harder. All actions cost +1 AP.', multiplier: 1.5 },
-  { title: 'Maximum Pressure', type: 'Circumstance', effect: 'No Bonuses', desc: 'The situation is dire. All bonuses disabled.', multiplier: 1.8 },
-  { title: 'Ultimate Trial', type: 'Circumstance', effect: 'Double Costs', desc: 'The final test. All action costs doubled.', multiplier: 2.0 },
+  { title: 'Weather', type: 'Circumstance', category: 'Weather', name: 'Heavy Rains', effect: 'Move Cost +1', desc: 'Heavy Rains: Roads are muddy. Moving costs 2 AP.', multiplier: 1.0 },
+  { title: 'Communication', type: 'Circumstance', category: 'Communication', name: 'Digital Surveillance', effect: 'No Trivia Bonus', desc: 'Digital Surveillance: Communication is monitored. Trivia disabled.', multiplier: 1.0 },
+  { title: 'Weather', type: 'Circumstance', category: 'Weather', name: 'Heatwave', effect: 'AP Max = 2', desc: 'Heatwave: Exhaustion sets in quickly. Max 2 AP.', multiplier: 1.0 },
+  { title: 'Communication', type: 'Circumstance', category: 'Communication', name: 'Transportation Strike', effect: 'Range = 0', desc: 'Transportation Strike: No public transport. Cannot help from distance.', multiplier: 1.0 },
+  { title: 'Social', type: 'Circumstance', category: 'Social', name: 'Distractions', effect: 'No Effect', desc: 'Distractions: Worldly entertainment distracts.', multiplier: 1.0 },
+  { title: 'Economic', type: 'Circumstance', category: 'Economic', name: 'Economic Hardship', effect: 'Draw Cost +1', desc: 'Economic Hardship: Resources are tight. Drawing cards costs 2 AP.', multiplier: 1.0 },
+  { title: 'Social', type: 'Circumstance', category: 'Social', name: 'Social Pressure', effect: 'Help Cost +1', desc: 'Social Pressure: Helping others is discouraged. Help action costs 2 AP.', multiplier: 1.0 },
+  { title: 'Communication', type: 'Circumstance', category: 'Communication', name: 'Communication Breakdown', effect: 'No Help Range', desc: 'Communication Breakdown: Communication is cut off. Cannot help others.', multiplier: 1.0 },
+  { title: 'Economic', type: 'Circumstance', category: 'Economic', name: 'Resource Scarcity', effect: 'Move Cost +1', desc: 'Resource Scarcity: Fuel and supplies are limited. Moving costs 2 AP.', multiplier: 1.0 },
+  { title: 'Opposition', type: 'Circumstance', category: 'Opposition', name: 'Increased Opposition', effect: 'No Trivia Bonus', desc: 'Increased Opposition: Hostility rises. Trivia bonuses disabled.', multiplier: 1.2 },
+  { title: 'Opposition', type: 'Circumstance', category: 'Opposition', name: 'Severe Persecution', effect: 'AP Max = 2', desc: 'Severe Persecution: Danger increases. Max 2 AP per turn.', multiplier: 1.3 },
+  { title: 'Crisis', type: 'Circumstance', category: 'Crisis', name: 'Critical Situation', effect: 'No Effect', desc: 'Critical Situation: Pressure mounts.', multiplier: 1.4 },
+  { title: 'Crisis', type: 'Circumstance', category: 'Crisis', name: 'Extreme Adversity', effect: 'All Costs +1', desc: 'Extreme Adversity: Everything is harder. All actions cost +1 AP.', multiplier: 1.5 },
+  { title: 'Crisis', type: 'Circumstance', category: 'Crisis', name: 'Maximum Pressure', effect: 'No Bonuses', desc: 'Maximum Pressure: The situation is dire. All bonuses disabled.', multiplier: 1.8 },
+  { title: 'Crisis', type: 'Circumstance', category: 'Crisis', name: 'Ultimate Trial', effect: 'Double Costs', desc: 'Ultimate Trial: The final test. All action costs doubled.', multiplier: 2.0 },
 ];
 
 export const SUPPLY_POOL = [

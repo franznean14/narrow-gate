@@ -120,7 +120,7 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
         {/* Middle Section: Title and Visual Content (Scripture/Description) */}
         <div className="flex-grow flex flex-col justify-center items-center text-center py-2 min-h-0">
           <p className={`${textSizeTitle} font-bold leading-tight text-zinc-900 mb-2`}>
-            {data.prayerType || data.name || data.title}
+            {data.prayerType || (data.type === 'Circumstance' ? data.title : data.name) || data.title}
           </p>
           
           {/* Large Icon/Graphic in middle for visual appeal */}

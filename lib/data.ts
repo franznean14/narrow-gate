@@ -36,10 +36,8 @@ export const CHALLENGE_POOL = [
   { title: 'Resource Shortage', type: 'Event', category: 'Crisis', req: 12, penalty: 'Discard 2 Cards', desc: 'Supplies run low. Hard choices ahead.' },
   { title: 'Internal Conflict', type: 'Event', category: 'Conflict', req: 8, penalty: 'Unity -2', desc: 'Disagreements arise within the group.' },
   { title: 'External Pressure', type: 'Event', category: 'Opposition', req: 13, penalty: 'AP -1 for 2 Turns', desc: 'Outside forces apply pressure.' },
-  { title: 'Spiritual Warfare', type: 'Event', category: 'Issues', req: 15, penalty: 'Discard 1 Card', desc: 'Dark forces oppose the mission.' },
-  { title: 'Leadership Crisis', type: 'Event', category: 'Congregation', req: 10, penalty: 'Unity -1', desc: 'Leadership is questioned.' },
   { title: 'Communication Breakdown', type: 'Event', category: 'Conflict', req: 9, penalty: 'Cannot Help 1 Turn', desc: 'Misunderstandings block cooperation.' },
-  { title: 'Material Temptation', type: 'Event', category: 'Temptation', req: 11, penalty: 'Unity -1', desc: 'Worldly desires distract from the mission.' },
+  { title: 'Material Temptation', type: 'Event', category: 'Temptation', req: 11, penalty: 'Unity -1', desc: 'Worldly desires distract from the ministry.' },
   { title: 'Persecution Wave', type: 'Event', category: 'Opposition', req: 15, penalty: 'Discard 1 Card', desc: 'Hostility increases dramatically.' },
 ];
 

@@ -120,7 +120,11 @@ export default function CardsView() {
   const groupedCards = useMemo(() => {
     const groups: Record<string, any[]> = {};
     filteredAndSortedCards.forEach(card => {
-      const category = card.category || card.type || 'Other';
+      // All Event cards should be grouped under "Event" regardless of their specific category
+      let category = card.category || card.type || 'Other';
+      if (card.type === 'Event') {
+        category = 'Event';
+      }
       if (!groups[category]) groups[category] = [];
       groups[category].push(card);
     });

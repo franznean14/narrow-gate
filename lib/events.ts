@@ -5,7 +5,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation', 
     type: 'Event', 
-    category: 'GT',
+    category: 'Great Tribulation',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes.',
     icon: AlertTriangle,
@@ -14,7 +14,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Scattering', 
     type: 'Event', 
-    category: 'GT',
+    category: 'Great Tribulation',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Unity -1.',
     icon: AlertTriangle,
@@ -23,7 +23,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Persecution', 
     type: 'Event', 
-    category: 'GT',
+    category: 'Great Tribulation',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. All players lose 1 card.',
     icon: Flame,
@@ -32,7 +32,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Separation', 
     type: 'Event', 
-    category: 'GT',
+    category: 'Great Tribulation',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Help range reduced to 0.',
     icon: Cross,

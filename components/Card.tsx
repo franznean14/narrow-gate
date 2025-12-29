@@ -37,7 +37,7 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
     );
   }
 
-  const isAdversary = data.type === 'Challenge' || data.type === 'Event';
+  const isAdversary = data.type === 'Event';
   const isCircumstance = data.type === 'Circumstance';
   const isTrial = data.type === 'Trial' || data.type === 'Obligation' || data.type === 'BadQuality';
   const isPrayer = data.type === 'Prayer';
@@ -60,10 +60,19 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
       const IconComponent = data.icon;
       return <IconComponent size={iconSize} className="text-white" />;
     }
-    return <Info size={iconSize} className="text-white" />;
+    return null;
   };
 
-  const getTypeDisplay = (type: string) => {
+  const getTypeDisplay = (type: string, data: any) => {
+    // For Prayer cards, show prayerType (Praise, Thanksgiving, etc.)
+    if (type === 'Prayer' && data.prayerType) {
+      return data.prayerType.toUpperCase();
+    }
+    // For Event cards, show category (GT, Armageddon, Crisis, etc.)
+    if (type === 'Event' && data.category) {
+      return data.category.toUpperCase();
+    }
+    // Default type display
     const typeMap: Record<string, string> = {
       'FaithAction': 'FAITH IN ACTION',
       'Challenge': 'CHALLENGE',
@@ -79,11 +88,23 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
     return typeMap[type] || type.toUpperCase();
   };
 
+  const getTypeTag = (type: string) => {
+    if (type === 'Prayer') return 'Prayer';
+    if (type === 'Event') return 'Event';
+    return null;
+  };
+
   return (
     <div onClick={onClick} className={`relative ${width} ${height} rounded-lg shadow-xl flex flex-col overflow-hidden transition-all duration-200 border ${borderColor} ${isSelected ? '-translate-y-2 z-50' : 'hover:-translate-y-1'}`}>
-      <div className={`${baseColor} ${size === 'xl' ? 'h-16 p-4' : 'h-6 p-1.5'} flex justify-between items-center`}>
-        <span className={`${textSizeTitle} font-bold text-white uppercase opacity-80 truncate`}>{data.type ? getTypeDisplay(data.type) : 'CARD'}</span>
+      <div className={`${baseColor} ${size === 'xl' ? 'h-16 p-4' : 'h-6 p-1.5'} flex justify-between items-center relative`}>
+        <span className={`${textSizeTitle} font-bold text-white uppercase opacity-80 truncate`}>{data.type ? getTypeDisplay(data.type, data) : 'CARD'}</span>
         {renderIcon()}
+        {/* Type tag in upper right corner for Prayer and Event cards */}
+        {(data.type === 'Prayer' || data.type === 'Event') && (
+          <div className={`absolute top-0 right-0 ${size === 'xl' ? 'text-[8px] px-2 py-0.5' : 'text-[5px] px-1 py-0.5'} font-bold text-white bg-black/40 backdrop-blur-sm rounded-bl-lg uppercase`}>
+            {getTypeTag(data.type)}
+          </div>
+        )}
       </div>
       <div className="bg-white flex-grow p-2 flex flex-col relative">
         {/* Middle Section: Title and Visual Content (Scripture/Description) */}

@@ -8,7 +8,7 @@ import { GREAT_TRIBULATION_VARIATIONS, ARMAGEDDON_VARIATIONS } from '@/lib/event
 import { ALL_EXPANSIONS, ExpansionPack } from '@/lib/expansions';
 
 type SortOption = 'type' | 'name' | 'points';
-type FilterOption = 'all' | 'Character' | 'Challenge' | 'Event' | 'Circumstance' | 'FaithAction' | 'Prayer' | 'Quality' | 'Trial' | 'Obligation';
+type FilterOption = 'all' | 'Character' | 'Event' | 'Circumstance' | 'FaithAction' | 'Prayer' | 'Quality' | 'Trial' | 'Obligation';
 
 export default function CardsView() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,9 +26,9 @@ export default function CardsView() {
       cards.push({ ...char, type: 'Character', category: 'Character' });
     });
     
-    // Add challenges
-    CHALLENGE_POOL.forEach(challenge => {
-      cards.push({ ...challenge, category: 'Challenge' });
+    // Add events (formerly challenges)
+    CHALLENGE_POOL.forEach(event => {
+      cards.push({ ...event, category: event.category || 'Event' });
     });
     
     // Add all Great Tribulation variations
@@ -72,7 +72,6 @@ export default function CardsView() {
     if (filterBy !== 'all') {
       filtered = filtered.filter(card => {
         if (filterBy === 'Character') return card.type === 'Character';
-        if (filterBy === 'Challenge') return card.type === 'Challenge';
         if (filterBy === 'Event') return card.type === 'Event';
         if (filterBy === 'Quality') return card.type === 'Quality' || card.type === 'BadQuality';
         return card.type === filterBy;
@@ -128,7 +127,7 @@ export default function CardsView() {
     return groups;
   }, [filteredAndSortedCards]);
 
-  const filterOptions: FilterOption[] = ['all', 'Character', 'Challenge', 'Event', 'Circumstance', 'FaithAction', 'Prayer', 'Quality', 'Trial', 'Obligation'];
+  const filterOptions: FilterOption[] = ['all', 'Character', 'Event', 'Circumstance', 'FaithAction', 'Prayer', 'Quality', 'Trial', 'Obligation'];
 
   return (
     <div className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
@@ -277,8 +276,8 @@ export default function CardsView() {
                 // Match main deck category system
                 if (card.type === 'Event') {
                   return { ...card, category: 'Event' };
-                } else if (card.type === 'Challenge') {
-                  return { ...card, category: 'Challenge' };
+                } else if (card.type === 'Event') {
+                  return { ...card, category: card.category || 'Event' };
                 } else if (card.type === 'Circumstance') {
                   return { ...card, category: 'Circumstance' };
                 } else if (card.type === 'Quality' || card.type === 'BadQuality') {

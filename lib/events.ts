@@ -5,6 +5,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation', 
     type: 'Event', 
+    category: 'GT',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes.',
     icon: AlertTriangle,
@@ -13,6 +14,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Scattering', 
     type: 'Event', 
+    category: 'GT',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Unity -1.',
     icon: AlertTriangle,
@@ -21,6 +23,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Persecution', 
     type: 'Event', 
+    category: 'GT',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. All players lose 1 card.',
     icon: Flame,
@@ -29,6 +32,7 @@ export const GREAT_TRIBULATION_VARIATIONS = [
   { 
     title: 'Great Tribulation: The Separation', 
     type: 'Event', 
+    category: 'GT',
     effect: 'SCATTER', 
     desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Help range reduced to 0.',
     icon: Cross,
@@ -41,6 +45,7 @@ export const ARMAGEDDON_VARIATIONS = [
   { 
     title: 'Armageddon', 
     type: 'Event', 
+    category: 'Armageddon',
     req: 40, 
     penalty: 'GAME OVER', 
     desc: 'Activate ALL Characters. Stand Firm!',
@@ -50,6 +55,7 @@ export const ARMAGEDDON_VARIATIONS = [
   { 
     title: 'Armageddon: The Final Battle', 
     type: 'Event', 
+    category: 'Armageddon',
     req: 45, 
     penalty: 'GAME OVER', 
     desc: 'Activate ALL Characters. The ultimate test of faith. Stand Firm!',
@@ -59,6 +65,7 @@ export const ARMAGEDDON_VARIATIONS = [
   { 
     title: 'Armageddon: The Last Stand', 
     type: 'Event', 
+    category: 'Armageddon',
     req: 50, 
     penalty: 'GAME OVER', 
     desc: 'Activate ALL Characters. Maximum faith required. Stand Firm!',
@@ -68,6 +75,7 @@ export const ARMAGEDDON_VARIATIONS = [
   { 
     title: 'Armageddon: The Victory', 
     type: 'Event', 
+    category: 'Armageddon',
     req: 35, 
     penalty: 'GAME OVER', 
     desc: 'Activate ALL Characters. Unity at 5 grants -5 requirement. Stand Firm!',

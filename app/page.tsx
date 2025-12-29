@@ -406,6 +406,15 @@ export default function TacticalGame() {
     setHasMoved(true);
   };
 
+  // Helper function to check if player is immune to an obligation
+  const isImmuneToObligation = (player: any, obligationTitle: string): boolean => {
+    return player.activeCards.some((card: any) => 
+      card.type === 'Quality' && 
+      card.immuneToObligations && 
+      card.immuneToObligations.includes(obligationTitle)
+    );
+  };
+
   const handleDrawCard = () => {
     const drawCost = getActionCost(1, 'draw');
     if (actionPoints < drawCost) {
@@ -424,11 +433,19 @@ export default function TacticalGame() {
       }
       
       if (card.type === 'Obligation') {
-         if (mapNodes.some(n => n.id === card.targetNode)) {
+         const currentPlayer = updatedPlayers[turnIndex];
+         // Check if player is immune to this obligation
+         if (isImmuneToObligation(currentPlayer, card.title)) {
+           showNotification(`${card.title} ignored! Quality protects you.`, "emerald");
+           // Add card to hand instead of teleporting
+           currentPlayer.hand.push(card);
+         } else if (mapNodes.some(n => n.id === card.targetNode)) {
            updatedPlayers[turnIndex].nodeId = card.targetNode;
            showNotification(card.desc, "red");
          } else {
            showNotification("Obligation ignored (Safe)", "zinc");
+           // Add card to hand if node doesn't exist
+           currentPlayer.hand.push(card);
          }
          setSupplyDeck(currentSupply);
          setPlayers(updatedPlayers);
@@ -956,9 +973,17 @@ export default function TacticalGame() {
         const card = currentSupply.shift();
         if (card) {
           if (card.type === 'Obligation') {
-            if (mapNodes.some(n => n.id === card.targetNode)) {
+            // Check if player is immune to this obligation
+            if (isImmuneToObligation(currentPlayerObj, card.title)) {
+              showNotification(`${card.title} ignored! Quality protects you.`, "emerald");
+              // Add card to hand instead of teleporting
+              currentPlayerObj.hand.push(card);
+            } else if (mapNodes.some(n => n.id === card.targetNode)) {
               currentPlayerObj.nodeId = card.targetNode;
               showNotification("Obligation! Teleported.", "red");
+            } else {
+              // Node doesn't exist, add to hand
+              currentPlayerObj.hand.push(card);
             }
           } else if (card.type === 'Trial' || card.type === 'BadQuality') {
             currentPlayerObj.activeCards.push(card);

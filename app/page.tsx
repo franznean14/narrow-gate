@@ -35,6 +35,7 @@ export default function TacticalGame() {
   const [actionPoints, setActionPoints] = useState(3);
   const [maxCharacters, setMaxCharacters] = useState(1);
   const [hasMoved, setHasMoved] = useState(false);
+  const [peterAbilityUsed, setPeterAbilityUsed] = useState(false);
   
   const [mapNodes, setMapNodes] = useState<any[]>([]);
   const [mapConnections, setMapConnections] = useState<any[]>([]);
@@ -61,17 +62,22 @@ export default function TacticalGame() {
   const [peaceDiscardChoice, setPeaceDiscardChoice] = useState<{playerId: number, peaceCard: any} | null>(null);
   
   // Timer settings
-  const [gtTimerMinutes, setGtTimerMinutes] = useState(10);
-  const [armageddonTimerMinutes, setArmageddonTimerMinutes] = useState(20);
+  const [roundTimerMinutes, setRoundTimerMinutes] = useState(3);
+  const [gtTimerMinutes, setGtTimerMinutes] = useState(15);
+  const [armageddonTimerMinutes, setArmageddonTimerMinutes] = useState(30);
+  const [roundTimerActive, setRoundTimerActive] = useState(false);
   const [gtTimerActive, setGtTimerActive] = useState(false);
   const [armageddonTimerActive, setArmageddonTimerActive] = useState(false);
+  const [roundTimerRemaining, setRoundTimerRemaining] = useState(0);
   const [gtTimerRemaining, setGtTimerRemaining] = useState(0);
   const [armageddonTimerRemaining, setArmageddonTimerRemaining] = useState(0);
+  const [timersPaused, setTimersPaused] = useState(false);
   const [gtTriggered, setGtTriggered] = useState(false);
   const [armageddonTriggered, setArmageddonTriggered] = useState(false);
   const [gtGateActive, setGtGateActive] = useState(false); // Gate requiring 7 unity
   
   // Refs to track latest timer state for interval callback
+  const roundTimerActiveRef = useRef(roundTimerActive);
   const gtTimerActiveRef = useRef(gtTimerActive);
   const gtTriggeredRef = useRef(gtTriggered);
   const armageddonTimerActiveRef = useRef(armageddonTimerActive);
@@ -83,11 +89,18 @@ export default function TacticalGame() {
   const isEndingTurnRef = useRef(false);
   // Ref to track current challenge progress for accurate endRound calculation
   const challengeProgressRef = useRef(0);
+  // Ref to track current action points for accurate round completion check
+  const actionPointsRef = useRef(actionPoints);
   
   // Update challengeProgress ref whenever state changes
   useEffect(() => {
     challengeProgressRef.current = challengeProgress;
   }, [challengeProgress]);
+  
+  // Update actionPoints ref whenever state changes
+  useEffect(() => {
+    actionPointsRef.current = actionPoints;
+  }, [actionPoints]);
   
   // Helper function to update challenge progress (both state and ref)
   const updateChallengeProgress = (updater: (prev: number) => number) => {
@@ -100,10 +113,14 @@ export default function TacticalGame() {
   
   // Update refs when state changes
   useEffect(() => {
+    roundTimerActiveRef.current = roundTimerActive;
+  }, [roundTimerActive]);
+
+  useEffect(() => {
     gtTimerActiveRef.current = gtTimerActive;
     gtTriggeredRef.current = gtTriggered;
   }, [gtTimerActive, gtTriggered]);
-  
+
   useEffect(() => {
     armageddonTimerActiveRef.current = armageddonTimerActive;
     armageddonTriggeredRef.current = armageddonTriggered;
@@ -228,6 +245,15 @@ export default function TacticalGame() {
     setActionPoints(getMaxAP());
     setTurnIndex(0);
     setHasMoved(false);
+    setPeterAbilityUsed(false); // Reset Peter's ability at start of round
+    
+    // Start round timer if enabled
+    if (roundTimerMinutes > 0) {
+      setRoundTimerActive(true);
+      setRoundTimerRemaining(roundTimerMinutes * 60);
+    } else {
+      setRoundTimerActive(false);
+    }
   };
 
   useEffect(() => {
@@ -282,11 +308,18 @@ export default function TacticalGame() {
     return effect.includes('No Trivia Bonus') || effect.includes('No Bonuses');
   };
 
-  // Helper function to check if help range is disabled
-  const isHelpRangeDisabled = (): boolean => {
-    if (!currentCircumstance) return false;
+  // Helper function to get help range based on circumstances
+  const getHelpRange = (): number => {
+    if (!currentCircumstance) return 1; // Default range
     const effect = currentCircumstance.effect || '';
-    return effect.includes('Range = 0') || effect.includes('No Help Range');
+    if (effect.includes('Range = 0')) return 0; // Same node only
+    if (effect.includes('No Help Range')) return -1; // Cannot help at all
+    return 1; // Default range
+  };
+  
+  // Helper function to check if help range is completely disabled
+  const isHelpRangeDisabled = (): boolean => {
+    return getHelpRange() === -1;
   };
 
   // UNIFIED NODE CLICK HANDLER
@@ -306,6 +339,25 @@ export default function TacticalGame() {
       }
     }
     
+    // Check if using Peter's ability (2 distance for 1 AP)
+    const hasPeter = currentPlayer.activeCharacters.some((c: any) => c.id === 'peter');
+    // Check if target is 2 distance away by finding path through intermediate nodes
+    let isTwoDistance = false;
+    if (hasPeter && !peterAbilityUsed && actionPoints >= 1 && dist !== 1) {
+      // Find all nodes 1 distance away
+      const oneDistNodes = mapConnections
+        .filter((c: any) => c.start === currentPlayer.nodeId || c.end === currentPlayer.nodeId)
+        .map((c: any) => c.start === currentPlayer.nodeId ? c.end : c.start);
+      // Check if target is 2 distance away through any intermediate node
+      isTwoDistance = oneDistNodes.some((intermediateId: string) => {
+        return mapConnections.some((c: any) => 
+          (c.start === intermediateId && c.end === targetNodeId) ||
+          (c.end === intermediateId && c.start === targetNodeId)
+        );
+      });
+    }
+    const usingPeterAbility = hasPeter && !peterAbilityUsed && isTwoDistance && actionPoints >= 1;
+    
     // Check Traps on Current Node to determine base cost
     let baseCost = 1;
     if (currentNode.type === 'trap') {
@@ -317,22 +369,22 @@ export default function TacticalGame() {
     }
     if (!hasMoved && currentPlayer.activeCharacters.some((c: any) => c.id === 'moses')) baseCost = 0;
     
-    // Apply circumstance effects to movement cost
-    const cost = getActionCost(baseCost, 'move');
+    // If using Peter's ability, cost is always 1 AP regardless of distance
+    const cost = usingPeterAbility ? 1 : getActionCost(baseCost, 'move');
 
-    const isValidMove = (dist === 1 && actionPoints >= cost);
+    const isValidMove = (dist === 1 && actionPoints >= cost) || usingPeterAbility;
 
     const isSpecial = targetNode.type === 'kingdom_hall' || targetNode.type === 'territory' || targetNode.type === 'trap' || targetNode.type === 'inner_room' || targetNode.type === 'start';
     
     if (isSpecial) {
-       setInspectingNode({ ...targetNode, canTravel: isValidMove, travelCost: cost });
+       setInspectingNode({ ...targetNode, canTravel: isValidMove, travelCost: cost, usingPeterAbility: usingPeterAbility });
     } else {
        // Standard node: Just move if valid
-       if (isValidMove) executeMove(targetNodeId, cost);
+       if (isValidMove) executeMove(targetNodeId, cost, usingPeterAbility);
     }
   };
 
-  const executeMove = (targetNodeId: string, cost: number) => {
+  const executeMove = (targetNodeId: string, cost: number, usingPeterAbility: boolean = false) => {
     setInspectingNode(null);
     const currentPlayer = players[turnIndex];
     const updatedPlayers = [...players];
@@ -388,6 +440,12 @@ export default function TacticalGame() {
         }
     }
 
+    // Mark Peter's ability as used if it was used
+    if (usingPeterAbility) {
+      setPeterAbilityUsed(true);
+      showNotification("Peter's Zeal: Moved 2 nodes!", "amber");
+    }
+    
     setPlayers(updatedPlayers);
     setActionPoints(prev => {
       const newAP = prev - cost;
@@ -544,14 +602,14 @@ export default function TacticalGame() {
          return; 
        }
     } else if (card.removeTarget === 'other') {
-       // Check if help range is disabled by circumstance
+       // Check if help range is completely disabled by circumstance
        if (isHelpRangeDisabled()) {
          showNotification("Cannot help others due to circumstances!", "red");
          return;
        }
        
-       let range = 1;
-       if (currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
+       let range = getHelpRange();
+       if (range === 1 && currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
        
        const target = updatedPlayers.find(p => p.id !== currentPlayer.id && p.activeCards.length > 0 && getDistance(currentPlayer.nodeId, p.nodeId, mapConnections) <= range);
        
@@ -690,15 +748,15 @@ export default function TacticalGame() {
           showNotification(`${selectedCard.title} succeeded! No ${removeType === 'BadQuality' ? 'bad qualities' : 'trials'} to remove.`, "zinc");
         }
       } else if (selectedCard.removeTarget === 'other') {
-        // Check if help range is disabled by circumstance
+        // Check if help range is completely disabled by circumstance
         if (isHelpRangeDisabled()) {
           showNotification("Cannot help others due to circumstances!", "red");
           setPlayers(updatedPlayers);
           return;
         }
         
-        let range = 1;
-        if (currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
+        let range = getHelpRange();
+        if (range === 1 && currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
         
         const target = updatedPlayers.find(p => 
           p.id !== currentPlayer.id && 
@@ -851,8 +909,15 @@ export default function TacticalGame() {
     } else if (count === 4) {
       if (choice === 'remove-other') {
         // Remove Trial or Bad Quality from another player
-        let range = 1;
-        if (currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
+        // Check if help range is completely disabled by circumstance
+        if (isHelpRangeDisabled()) {
+          showNotification("Cannot help others due to circumstances!", "red");
+          setPlayers(updatedPlayers);
+          return;
+        }
+        
+        let range = getHelpRange();
+        if (range === 1 && currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
         
         const target = updatedPlayers.find(p => 
           p.id !== currentPlayer.id && 
@@ -1008,20 +1073,40 @@ export default function TacticalGame() {
     setSupplyDeck(currentSupply);
     setPlayers(updatedPlayers);
     
+    // Special handling for GT and Armageddon - they don't end rounds normally
+    const isSpecialEvent = currentChallenge?.category === 'Great Tribulation' || currentChallenge?.category === 'Armageddon';
+    
     if (turnIndex === players.length - 1) {
-      // Delay endRound to ensure all state updates (like challengeProgress changes from moving out of distraction nodes) are processed
+      // Last player's turn ended
+      // Only check if challenge is overcome after all AP is exhausted and all effects are applied
+      // Use a delay to ensure all state updates (like challengeProgress changes) are processed
       setTimeout(() => {
-        endRound();
-      }, 50);
-      // Reset flag after round ends
-      setTimeout(() => {
+        // Read current AP value from ref - round can only be overcome when AP is exhausted (actionPoints <= 0)
+        // Use ref to ensure we have the latest value after all effects have been applied
+        const currentAP = actionPointsRef.current;
+        const baseReq = currentChallenge?.req || 0;
+        const multiplier = currentCircumstance?.multiplier || 1.0;
+        const adjustedReq = Math.ceil(baseReq * multiplier);
+        const finalProgress = challengeProgressRef.current;
+        // Round can only be overcome if AP is exhausted AND progress meets requirement
+        const challengeOvercome = currentAP <= 0 && finalProgress >= adjustedReq;
+        
+        if (challengeOvercome || isSpecialEvent) {
+          // Challenge overcome (only if AP exhausted) or special event - end the round
+          endRound();
+          } else {
+            // Challenge not overcome or AP not exhausted - continue the round, cycle back to first player
+            setTurnIndex(0);
+            setActionPoints(getMaxAP());
+            // Note: hasMoved resets at start of round (for Moses), not when cycling turns
+          }
         isEndingTurnRef.current = false;
-      }, 200);
+      }, 50);
     } else {
-      // Increment turn index - this triggers the rotation animation
+      // Not last player - move to next player
       setTurnIndex(prev => prev + 1);
       setActionPoints(getMaxAP());
-      setHasMoved(false);
+      // Note: hasMoved resets at start of round (for Moses), not turn
       
       // Reset flag after rotation animation completes (1000ms transition + buffer)
       setTimeout(() => {
@@ -1030,7 +1115,10 @@ export default function TacticalGame() {
     }
   };
 
-  const endRound = () => {
+  const endRound = (isTimeout: boolean = false) => {
+    // Stop round timer
+    setRoundTimerActive(false);
+    
     setRoundPhase('END');
     // Apply circumstance multiplier to requirement
     const baseReq = currentChallenge?.req || 0;
@@ -1038,13 +1126,18 @@ export default function TacticalGame() {
     const adjustedReq = Math.ceil(baseReq * multiplier);
     // Use ref value to ensure we have the latest challenge progress after all state updates
     const finalProgress = challengeProgressRef.current;
-    const success = finalProgress >= adjustedReq;
+    const success = !isTimeout && finalProgress >= adjustedReq;
     if (success) {
       showNotification("Overcome!", "emerald");
       setUnity(u => Math.min(10, u + 1));
       setTrialDeck(prev => prev.slice(1));
       setCircumstanceDeck(prev => prev.slice(1));
     } else {
+      if (isTimeout) {
+        showNotification("Time's Up! Challenge Failed!", "red");
+      } else {
+        showNotification("Failed!", "red");
+      }
       // Parse Unity penalty from challenge
       const penalty = currentChallenge?.penalty || '';
       const unityMatch = penalty.match(/Unity\s*-(\d+)/i);
@@ -1145,10 +1238,14 @@ export default function TacticalGame() {
     const current = mapNodes.find(n => n.id === currentPlayer.nodeId);
     if (!current) return [];
     
+    const hasPeter = currentPlayer.activeCharacters.some((c: any) => c.id === 'peter');
+    const canUsePeterAbility = hasPeter && !peterAbilityUsed && actionPoints >= 1;
+    
     // If player is at Kingdom Hall, allow movement to any connected node
     const isAtKingdomHall = current.type === 'kingdom_hall';
     
-    return mapConnections
+    // Get standard 1-distance moves
+    const oneDistanceMoves = mapConnections
       .filter((c: any) => c.start === current.id || c.end === current.id)
       .map((c: any) => c.start === current.id ? c.end : c.start)
       .filter((targetId: string) => {
@@ -1173,7 +1270,45 @@ export default function TacticalGame() {
          // Normal movement: zone restriction applies (can't go backwards)
          return targetNode.zone >= current.zone;
       });
-  }, [currentPlayer, actionPoints, gameState, mapNodes, mapConnections]); 
+    
+    // If Peter's ability is available, add 2-distance moves
+    if (canUsePeterAbility) {
+      const twoDistanceMoves: string[] = [];
+      // Find all nodes 2 distance away
+      oneDistanceMoves.forEach((oneDistId: string) => {
+        mapConnections
+          .filter((c: any) => (c.start === oneDistId || c.end === oneDistId) && 
+                             (c.start !== current.id && c.end !== current.id))
+          .forEach((c: any) => {
+            const twoDistId = c.start === oneDistId ? c.end : c.start;
+            const targetNode = mapNodes.find(n => n.id === twoDistId);
+            if (!targetNode || twoDistanceMoves.includes(twoDistId) || oneDistanceMoves.includes(twoDistId)) return;
+            
+            // Apply same filters as 1-distance moves
+            if (isAtKingdomHall) {
+              if (targetNode.type === 'trap') twoDistanceMoves.push(twoDistId);
+              else if (targetNode.type === 'standard') twoDistanceMoves.push(twoDistId);
+              else if (targetNode.type === 'inner_room') twoDistanceMoves.push(twoDistId);
+              else if (targetNode.type === 'territory' || targetNode.type === 'kingdom_hall') {
+                if (!currentPlayer.visitedSpecials.includes(twoDistId)) {
+                  twoDistanceMoves.push(twoDistId);
+                }
+              } else {
+                twoDistanceMoves.push(twoDistId);
+              }
+            } else {
+              if (targetNode.zone >= current.zone) {
+                twoDistanceMoves.push(twoDistId);
+              }
+            }
+          });
+      });
+      
+      return [...oneDistanceMoves, ...twoDistanceMoves];
+    }
+    
+    return oneDistanceMoves;
+  }, [currentPlayer, actionPoints, gameState, mapNodes, mapConnections, peterAbilityUsed]); 
 
   const tableRotation = -turnIndex * 90;
   
@@ -1227,6 +1362,22 @@ export default function TacticalGame() {
     if (gameState !== 'playing') return;
     
     const interval = setInterval(() => {
+      // Skip countdown if timers are paused
+      if (timersPaused) return;
+      
+      // Round Timer - use refs to get latest values
+      setRoundTimerRemaining(prev => {
+        if (roundTimerActiveRef.current && prev > 0) {
+          if (prev <= 1) {
+            // Time's up - end round as failure
+            endRound(true);
+            return 0;
+          }
+          return prev - 1;
+        }
+        return prev;
+      });
+      
       // GT Timer - use refs to get latest values
       setGtTimerRemaining(prev => {
         if (gtTimerActiveRef.current && prev > 0 && !gtTriggeredRef.current) {
@@ -1323,6 +1474,19 @@ export default function TacticalGame() {
             
             <div className="space-y-3">
               <div>
+                <label className="block text-sm font-bold text-zinc-400 mb-2">Round Timer (minutes) - Prevents stalling</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="60"
+                  value={roundTimerMinutes}
+                  onChange={(e) => setRoundTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
+                  className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
+                />
+                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 3). Round fails if timer expires.</p>
+              </div>
+              
+              <div>
                 <label className="block text-sm font-bold text-zinc-400 mb-2">Great Tribulation Timer (minutes)</label>
                 <input
                   type="number"
@@ -1332,7 +1496,7 @@ export default function TacticalGame() {
                   onChange={(e) => setGtTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
                   className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
                 />
-                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 10)</p>
+                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 15)</p>
               </div>
               
               <div>
@@ -1345,7 +1509,7 @@ export default function TacticalGame() {
                   onChange={(e) => setArmageddonTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
                   className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
                 />
-                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 20)</p>
+                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 30)</p>
               </div>
             </div>
           </div>
@@ -1413,8 +1577,20 @@ export default function TacticalGame() {
         </div>
 
         {/* Timer Display */}
-        {(gtTimerActive || armageddonTimerActive) && (
+        {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
           <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-auto flex gap-4">
+            {roundTimerActive && roundPhase === 'ACTION' && (
+              <div className={`backdrop-blur border-2 px-4 py-2 rounded-lg shadow-xl ${
+                roundTimerRemaining <= 30 ? 'bg-red-900/80 border-red-600' : 
+                roundTimerRemaining <= 60 ? 'bg-orange-900/80 border-orange-600' : 
+                'bg-blue-900/80 border-blue-600'
+              }`}>
+                <div className="text-xs font-bold uppercase text-white">Round Timer</div>
+                <div className="text-xl font-black text-white">
+                  {Math.floor(roundTimerRemaining / 60)}:{(roundTimerRemaining % 60).toString().padStart(2, '0')}
+                </div>
+              </div>
+            )}
             {gtTimerActive && !gtTriggered && (
               <div className="bg-red-900/80 backdrop-blur border-2 border-red-600 px-4 py-2 rounded-lg shadow-xl">
                 <div className="text-xs font-bold text-red-200 uppercase">GT Timer</div>
@@ -1540,6 +1716,53 @@ export default function TacticalGame() {
                  {[1,2,3,4,5,6,7,8,9,10].map(i => <div key={i} className={`w-1.5 h-4 rounded-full transition-all ${i <= unity ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-zinc-800'}`} />)}
                </div>
            </div>
+           
+           {/* Timer Display - Stacked below Unity */}
+           {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
+             <div className="mt-4 flex flex-col items-end gap-2">
+               {roundTimerActive && roundPhase === 'ACTION' && (
+                 <div className={`backdrop-blur border-2 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2 ${
+                   roundTimerRemaining <= 30 ? 'bg-red-900/80 border-red-600' : 
+                   roundTimerRemaining <= 60 ? 'bg-orange-900/80 border-orange-600' : 
+                   'bg-blue-900/80 border-blue-600'
+                 }`}>
+                   <div className="text-[10px] font-bold uppercase text-white">Round</div>
+                   <div className="text-lg font-black text-white">
+                     {Math.floor(roundTimerRemaining / 60)}:{(roundTimerRemaining % 60).toString().padStart(2, '0')}
+                   </div>
+                 </div>
+               )}
+               {gtTimerActive && !gtTriggered && (
+                 <div className="bg-red-900/80 backdrop-blur border-2 border-red-600 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2">
+                   <div className="text-[10px] font-bold text-red-200 uppercase">GT</div>
+                   <div className="text-lg font-black text-white">
+                     {Math.floor(gtTimerRemaining / 60)}:{(gtTimerRemaining % 60).toString().padStart(2, '0')}
+                   </div>
+                 </div>
+               )}
+               {armageddonTimerActive && !armageddonTriggered && gtTriggered && (
+                 <div className="bg-purple-900/80 backdrop-blur border-2 border-purple-600 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2">
+                   <div className="text-[10px] font-bold text-purple-200 uppercase">Armageddon</div>
+                   <div className="text-lg font-black text-white">
+                     {Math.floor(armageddonTimerRemaining / 60)}:{(armageddonTimerRemaining % 60).toString().padStart(2, '0')}
+                   </div>
+                 </div>
+               )}
+               {/* Pause Button */}
+               {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
+                 <button
+                   onClick={() => setTimersPaused(!timersPaused)}
+                   className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
+                     timersPaused 
+                       ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                       : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700'
+                   }`}
+                 >
+                   {timersPaused ? '▶ Resume' : '⏸ Pause'}
+                 </button>
+               )}
+             </div>
+           )}
         </div>
 
         {/* PLAYER STATUS & ACTIVE CARDS (BOTTOM LEFT) */}
@@ -1660,7 +1883,7 @@ export default function TacticalGame() {
             targetTrial={viewingHand.targetTrial}
           />
         )}
-        {inspectingNode && <NodeInspectionModal node={inspectingNode} onClose={() => setInspectingNode(null)} onTravel={() => executeMove(inspectingNode.id, inspectingNode.travelCost)} canTravel={inspectingNode.canTravel} travelCost={inspectingNode.travelCost} />}
+        {inspectingNode && <NodeInspectionModal node={inspectingNode} onClose={() => setInspectingNode(null)} onTravel={() => executeMove(inspectingNode.id, inspectingNode.travelCost, inspectingNode.usingPeterAbility || false)} canTravel={inspectingNode.canTravel} travelCost={inspectingNode.travelCost} />}
         {showTrivia && selectedCard && <TriviaModal card={selectedCard} onResult={handleTriviaResult} />}
         
         {/* Prayer Choice Modal */}

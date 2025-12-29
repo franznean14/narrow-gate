@@ -72,9 +72,13 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
     if (type === 'Event' && data.category) {
       return data.category.toUpperCase();
     }
-    // For Circumstance cards, show category (Weather, Economic, etc.)
+    // For Circumstance cards, show category (Weather, Economic, etc.) instead of "CIRCUMSTANCE"
     if (type === 'Circumstance' && data.category) {
       return data.category.toUpperCase();
+    }
+    // For Character cards, show name (Moses, Ruth, etc.)
+    if (type === 'Character' && data.name) {
+      return data.name.toUpperCase();
     }
     // Default type display
     const typeMap: Record<string, string> = {
@@ -101,16 +105,22 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
       return 'Event';
     }
     if (type === 'Circumstance') return 'Circumstance';
+    if (type === 'Character') return 'Character';
     return null;
   };
 
   return (
     <div onClick={onClick} className={`relative ${width} ${height} rounded-lg shadow-xl flex flex-col overflow-hidden transition-all duration-200 border ${borderColor} ${isSelected ? '-translate-y-2 z-50' : 'hover:-translate-y-1'}`}>
       <div className={`${baseColor} ${size === 'xl' ? 'h-16 p-4' : 'h-6 p-1.5'} flex justify-between items-center relative`}>
-        <span className={`${textSizeTitle} font-bold text-white uppercase opacity-80 truncate`}>{data.type ? getTypeDisplay(data.type, data) : 'CARD'}</span>
+        <div className="flex flex-col">
+          <span className={`${textSizeTitle} font-bold text-white uppercase opacity-80 truncate`}>{data.type ? getTypeDisplay(data.type, data) : 'CARD'}</span>
+          {data.type === 'Character' && data.title && (
+            <span className={`${size === 'xl' ? 'text-xs' : 'text-[6px]'} font-thin text-white opacity-70 truncate`}>{data.title}</span>
+          )}
+        </div>
         {renderIcon()}
-        {/* Type tag in upper right corner for Prayer, Event, and Circumstance cards */}
-        {(data.type === 'Prayer' || data.type === 'Event' || data.type === 'Circumstance') && (
+        {/* Type tag in upper right corner for Prayer, Event, Circumstance, and Character cards */}
+        {(data.type === 'Prayer' || data.type === 'Event' || data.type === 'Circumstance' || data.type === 'Character') && (
           <div className={`absolute top-0 right-0 ${size === 'xl' ? 'text-[8px] px-2 py-0.5' : 'text-[5px] px-1 py-0.5'} font-bold text-white bg-black/40 backdrop-blur-sm rounded-bl-lg uppercase`}>
             {getTypeTag(data.type, data)}
           </div>
@@ -119,9 +129,11 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
       <div className="bg-white flex-grow p-2 flex flex-col relative">
         {/* Middle Section: Title and Visual Content (Scripture/Description) */}
         <div className="flex-grow flex flex-col justify-center items-center text-center py-2 min-h-0">
-          <p className={`${textSizeTitle} font-bold leading-tight text-zinc-900 mb-2`}>
-            {data.prayerType || (data.type === 'Circumstance' ? data.title : data.name) || data.title}
-          </p>
+          {data.type !== 'Character' && (
+            <p className={`${textSizeTitle} font-bold leading-tight text-zinc-900 mb-2`}>
+              {data.prayerType || (data.type === 'Circumstance' ? (data.name || data.title) : null) || data.name || data.title}
+            </p>
+          )}
           
           {/* Large Icon/Graphic in middle for visual appeal */}
           {data.icon && typeof data.icon === 'function' && (
@@ -135,9 +147,13 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
           )}
           
           {/* Scripture or Description (visual/descriptive content) */}
-          {data.scripture ? (
+          {data.type === 'Character' && data.scripture ? (
             <p className={`${textSizeBody} text-zinc-500 italic leading-tight px-1 mt-1`}>{data.scripture}</p>
-          ) : data.desc ? (
+          ) : data.scripture ? (
+            <p className={`${textSizeBody} text-zinc-500 italic leading-tight px-1 mt-1`}>{data.scripture}</p>
+          ) : data.type === 'Character' && data.quote ? (
+            <p className={`${textSizeBody} text-zinc-500 italic leading-tight px-1 mt-1`}>{data.quote}</p>
+          ) : data.desc && data.type !== 'Character' ? (
             <p className={`${textSizeBody} text-zinc-600 leading-tight px-1 mt-1`}>{data.desc}</p>
           ) : data.ability ? (
             <p className={`${textSizeBody} text-zinc-600 leading-tight px-1 italic mt-1`}>{data.ability}</p>
@@ -153,6 +169,10 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
 
         {/* Bottom Section: Game Effects (mechanics) */}
         <div className="mt-auto pt-2 border-t border-zinc-200 space-y-1">
+          {/* Character ability description */}
+          {data.type === 'Character' && data.desc && (
+            <p className={`${textSizeBody} text-zinc-700 leading-tight font-medium`}>{data.desc}</p>
+          )}
           {/* Effect text (game mechanics) */}
           {data.effect && (
             <p className={`${textSizeBody} text-zinc-700 leading-tight font-medium`}>{data.effect}</p>

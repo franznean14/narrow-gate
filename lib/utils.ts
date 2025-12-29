@@ -135,10 +135,26 @@ export const BUILD_DECKS = () => {
   // Select random variations for Great Tribulation and Armageddon
   const { greatTribulation, armageddon } = selectEventVariations();
   
-  let challenges = SHUFFLE([...CHALLENGE_POOL, ...CHALLENGE_POOL]); 
-  const midIndex = Math.floor(challenges.length / 2);
-  challenges.splice(midIndex + Math.floor(Math.random() * 3), 0, greatTribulation);
-  const trialDeck = [...challenges.slice(0, 10), armageddon];
+  // Filter out GT and Armageddon from the pool (they're handled separately)
+  const regularEvents = CHALLENGE_POOL.filter(c => 
+    c.category !== 'Great Tribulation' && c.category !== 'Armageddon'
+  );
+  
+  // Shuffle regular events and take enough for the deck
+  // We need 10 regular events, then GT (second-to-last), then Armageddon (last)
+  let shuffledEvents = SHUFFLE([...regularEvents, ...regularEvents]);
+  
+  // Ensure we have at least 10 events, pad with duplicates if needed
+  while (shuffledEvents.length < 10) {
+    shuffledEvents = [...shuffledEvents, ...SHUFFLE([...regularEvents])];
+  }
+  
+  // Build trial deck: 10 regular events, then GT (second-to-last), then Armageddon (last)
+  const trialDeck = [
+    ...shuffledEvents.slice(0, 10),
+    greatTribulation,  // Second-to-last
+    armageddon         // Last
+  ];
 
   let circumstances: any[] = [];
   for (let i=0; i<3; i++) circumstances = [...circumstances, ...CIRCUMSTANCE_POOL];

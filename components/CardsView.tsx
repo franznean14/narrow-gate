@@ -32,7 +32,7 @@ export default function CardsView() {
     
     // Add circumstances
     CIRCUMSTANCE_POOL.forEach(circumstance => {
-      cards.push({ ...circumstance, category: 'Circumstance' });
+      cards.push({ ...circumstance });
     });
     
     // Add supply cards
@@ -102,9 +102,13 @@ export default function CardsView() {
     const groups: Record<string, any[]> = {};
     filteredAndSortedCards.forEach(card => {
       // All Event cards should be grouped under "Event" regardless of their specific category
+      // All Circumstance cards should be grouped under "Circumstance" regardless of their specific category
       let category = card.category || card.type || 'Other';
       if (card.type === 'Event') {
         category = 'Event';
+      }
+      if (card.type === 'Circumstance') {
+        category = 'Circumstance';
       }
       if (!groups[category]) groups[category] = [];
       groups[category].push(card);

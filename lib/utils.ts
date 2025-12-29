@@ -1,5 +1,4 @@
-import { CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL, CHARACTERS_DB } from './data';
-import { selectEventVariations } from './events';
+import { CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL, CHARACTERS_DB, selectEventVariations } from './data';
 
 export const generateConnections = (nodes: any[]) => {
   const connections: any[] = [];

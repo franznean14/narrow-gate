@@ -7,7 +7,7 @@ import {
   Gift, Home, Compass,
   Mountain, Waves, Sunrise, Rainbow, Bird,
   Scissors, Phone, Calendar, Smile, DollarSign, Ban, UserX,
-  MessageSquare, XCircle, TrendingUp, ZapOff, ShieldOff
+  MessageSquare, XCircle, TrendingUp, ZapOff, ShieldOff, Skull
 } from 'lucide-react';
 
 export const CHARACTERS_DB = [
@@ -41,7 +41,34 @@ export const CHALLENGE_POOL = [
   { title: 'Communication Breakdown', type: 'Event', category: 'Conflict', req: 9, penalty: 'Cannot Help 1 Turn', desc: 'Misunderstandings block cooperation.' },
   { title: 'Material Temptation', type: 'Event', category: 'Temptation', req: 11, penalty: 'Unity -1', desc: 'Worldly desires distract from the ministry.' },
   { title: 'Persecution Wave', type: 'Event', category: 'Opposition', req: 15, penalty: 'Discard 1 Card', desc: 'Hostility increases dramatically.' },
+  
+  // Great Tribulation Variations
+  { title: 'GT', type: 'Event', category: 'Great Tribulation', effect: 'SCATTER', desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes.', icon: AlertTriangle, variant: 'standard' },
+  { title: 'GT', type: 'Event', category: 'Great Tribulation', effect: 'SCATTER', desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Unity -1.', icon: AlertTriangle, variant: 'scattering' },
+  { title: 'GT', type: 'Event', category: 'Great Tribulation', effect: 'SCATTER', desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. All players lose 1 card.', icon: Flame, variant: 'persecution' },
+  { title: 'GT', type: 'Event', category: 'Great Tribulation', effect: 'SCATTER', desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Help range reduced to 0.', icon: Cross, variant: 'separation' },
+  
+  // Armageddon Variations
+  { title: 'Armageddon', type: 'Event', category: 'Armageddon', req: 40, penalty: 'GAME OVER', desc: 'Activate ALL Characters. Stand Firm!', icon: Skull, variant: 'standard' },
+  { title: 'Armageddon', type: 'Event', category: 'Armageddon', req: 45, penalty: 'GAME OVER', desc: 'Activate ALL Characters. The ultimate test of faith. Stand Firm!', icon: Skull, variant: 'battle' },
+  { title: 'Armageddon', type: 'Event', category: 'Armageddon', req: 50, penalty: 'GAME OVER', desc: 'Activate ALL Characters. Maximum faith required. Stand Firm!', icon: Shield, variant: 'stand' },
+  { title: 'Armageddon', type: 'Event', category: 'Armageddon', req: 35, penalty: 'GAME OVER', desc: 'Activate ALL Characters. Unity at 5 grants -5 requirement. Stand Firm!', icon: Crown, variant: 'victory' },
 ];
+
+// Great Tribulation and Armageddon card pools for random selection
+export const GREAT_TRIBULATION_VARIATIONS = CHALLENGE_POOL.filter(c => c.category === 'Great Tribulation');
+export const ARMAGEDDON_VARIATIONS = CHALLENGE_POOL.filter(c => c.category === 'Armageddon');
+
+// Function to randomly select one variation of each
+export const selectEventVariations = () => {
+  const gtIndex = Math.floor(Math.random() * GREAT_TRIBULATION_VARIATIONS.length);
+  const armIndex = Math.floor(Math.random() * ARMAGEDDON_VARIATIONS.length);
+  
+  return {
+    greatTribulation: GREAT_TRIBULATION_VARIATIONS[gtIndex],
+    armageddon: ARMAGEDDON_VARIATIONS[armIndex]
+  };
+};
 
 export const CIRCUMSTANCE_POOL = [
   { title: 'Heavy Rains', type: 'Circumstance', effect: 'Move Cost +1', desc: 'Roads are muddy. Moving costs 2 AP.', multiplier: 1.0 },

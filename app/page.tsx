@@ -8,7 +8,7 @@ import {
 // Import data and utilities
 import { CHARACTERS_DB } from '@/lib/data';
 import { generateMap, generateConnections, SHUFFLE, BUILD_DECKS, getDistance } from '@/lib/utils';
-import { selectEventVariations } from '@/lib/events';
+import { selectEventVariations } from '@/lib/data';
 
 // Import components
 import Card from '@/components/Card';

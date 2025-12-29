@@ -3,8 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Filter, ArrowUpDown, Search, X, AlertTriangle, Skull, ChevronDown, ChevronUp } from 'lucide-react';
 import Card from './Card';
-import { CHARACTERS_DB, CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL } from '@/lib/data';
-import { GREAT_TRIBULATION_VARIATIONS, ARMAGEDDON_VARIATIONS } from '@/lib/events';
+import { CHARACTERS_DB, CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL, GREAT_TRIBULATION_VARIATIONS, ARMAGEDDON_VARIATIONS } from '@/lib/data';
 import { ALL_EXPANSIONS, ExpansionPack } from '@/lib/expansions';
 
 type SortOption = 'type' | 'name' | 'points';

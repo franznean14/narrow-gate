@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Filter, ArrowUpDown, Search, X, AlertTriangle, Skull, ChevronDown, ChevronUp } from 'lucide-react';
 import Card from './Card';
-import { CHARACTERS_DB, CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL, GREAT_TRIBULATION_VARIATIONS, ARMAGEDDON_VARIATIONS } from '@/lib/data';
+import { CHARACTERS_DB, CHALLENGE_POOL, CIRCUMSTANCE_POOL, SUPPLY_POOL } from '@/lib/data';
 import { ALL_EXPANSIONS, ExpansionPack } from '@/lib/expansions';
 
 type SortOption = 'type' | 'name' | 'points';
@@ -25,27 +25,9 @@ export default function CardsView() {
       cards.push({ ...char, type: 'Character', category: 'Character' });
     });
     
-    // Add events (formerly challenges)
+    // Add events (formerly challenges) - includes GT and Armageddon
     CHALLENGE_POOL.forEach(event => {
       cards.push({ ...event, category: event.category || 'Event' });
-    });
-    
-    // Add all Great Tribulation variations
-    GREAT_TRIBULATION_VARIATIONS.forEach(gt => {
-      cards.push({ 
-        ...gt,
-        category: 'Event',
-        req: undefined,
-        penalty: undefined
-      });
-    });
-    
-    // Add all Armageddon variations (as Events)
-    ARMAGEDDON_VARIATIONS.forEach(arm => {
-      cards.push({ 
-        ...arm,
-        category: 'Event'
-      });
     });
     
     // Add circumstances

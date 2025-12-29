@@ -9,7 +9,7 @@ interface TriviaModalProps {
   onResult: (success: boolean, difficulty?: 'easy' | 'medium' | 'hard') => void;
 }
 
-export default function TriviaModal({ card, onClose, onResult }: TriviaModalProps) {
+export default function TriviaModal({ card, onResult }: TriviaModalProps) {
   const [step, setStep] = useState('roll'); 
   const [roll, setRoll] = useState(0);
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);

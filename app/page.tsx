@@ -225,7 +225,7 @@ export default function TacticalGame() {
     }
 
     setRoundPhase('ACTION');
-    setActionPoints(3);
+    setActionPoints(getMaxAP());
     setTurnIndex(0);
     setHasMoved(false);
   };
@@ -235,6 +235,59 @@ export default function TacticalGame() {
       startRound();
     }
   }, [gameState, roundPhase, trialDeck, currentChallenge]);
+
+  // Helper function to calculate action cost with circumstance effects
+  const getActionCost = (baseCost: number, actionType: 'move' | 'draw' | 'help'): number => {
+    if (!currentCircumstance) return baseCost;
+    
+    const effect = currentCircumstance.effect || '';
+    let cost = baseCost;
+    
+    // Check for "All Costs +1" first (applies to all actions)
+    if (effect.includes('All Costs +1')) {
+      cost += 1;
+    }
+    // Check for "Double Costs" (applies to all actions)
+    else if (effect.includes('Double Costs')) {
+      cost *= 2;
+    }
+    // Check for specific cost modifiers (only if not already affected by "All Costs +1")
+    else {
+      if (actionType === 'move' && effect.includes('Move Cost +1')) {
+        cost += 1;
+      }
+      if (actionType === 'draw' && effect.includes('Draw Cost +1')) {
+        cost += 1;
+      }
+      if (actionType === 'help' && effect.includes('Help Cost +1')) {
+        cost += 1;
+      }
+    }
+    
+    return cost;
+  };
+
+  // Helper function to get max AP based on circumstances
+  const getMaxAP = (): number => {
+    if (!currentCircumstance) return 3;
+    const effect = currentCircumstance.effect || '';
+    if (effect.includes('AP Max = 2')) return 2;
+    return 3;
+  };
+
+  // Helper function to check if trivia bonuses are disabled
+  const isTriviaBonusDisabled = (): boolean => {
+    if (!currentCircumstance) return false;
+    const effect = currentCircumstance.effect || '';
+    return effect.includes('No Trivia Bonus') || effect.includes('No Bonuses');
+  };
+
+  // Helper function to check if help range is disabled
+  const isHelpRangeDisabled = (): boolean => {
+    if (!currentCircumstance) return false;
+    const effect = currentCircumstance.effect || '';
+    return effect.includes('Range = 0') || effect.includes('No Help Range');
+  };
 
   // UNIFIED NODE CLICK HANDLER
   const handleNodeInteraction = (targetNodeId: string) => {
@@ -253,16 +306,19 @@ export default function TacticalGame() {
       }
     }
     
-    // Check Traps on Current Node to determine cost
-    let cost = 1;
+    // Check Traps on Current Node to determine base cost
+    let baseCost = 1;
     if (currentNode.type === 'trap') {
        if (currentNode.id === 'trap_recreation' || currentNode.id === 'trap_vacation') {
-         cost = 1;
+         baseCost = 1;
        } else {
-         cost = 2; // Work/School/Market
+         baseCost = 2; // Work/School/Market
        }
     }
-    if (!hasMoved && currentPlayer.activeCharacters.some((c: any) => c.id === 'moses')) cost = 0;
+    if (!hasMoved && currentPlayer.activeCharacters.some((c: any) => c.id === 'moses')) baseCost = 0;
+    
+    // Apply circumstance effects to movement cost
+    const cost = getActionCost(baseCost, 'move');
 
     const isValidMove = (dist === 1 && actionPoints >= cost);
 
@@ -351,7 +407,12 @@ export default function TacticalGame() {
   };
 
   const handleDrawCard = () => {
-    if (actionPoints > 0 && supplyDeck.length > 0) {
+    const drawCost = getActionCost(1, 'draw');
+    if (actionPoints < drawCost) {
+      showNotification(`Not enough AP! Need ${drawCost} AP to draw.`, "yellow");
+      return;
+    }
+    if (supplyDeck.length > 0) {
       const currentSupply = [...supplyDeck];
       const card = currentSupply.shift();
       const updatedPlayers = [...players];
@@ -372,7 +433,7 @@ export default function TacticalGame() {
          setSupplyDeck(currentSupply);
          setPlayers(updatedPlayers);
          setActionPoints(prev => {
-           const newAP = prev - 1;
+           const newAP = prev - drawCost;
            
            if (newAP <= 0 && !freshZealJustActivatedRef.current && !isEndingTurnRef.current) {
              setTimeout(() => {
@@ -398,7 +459,7 @@ export default function TacticalGame() {
       setSupplyDeck(currentSupply);
       setPlayers(updatedPlayers);
       setActionPoints(prev => {
-        const newAP = prev - 1;
+        const newAP = prev - drawCost;
         
         if (newAP <= 0 && !freshZealJustActivatedRef.current && !isEndingTurnRef.current) {
           setTimeout(() => {
@@ -451,7 +512,9 @@ export default function TacticalGame() {
   };
   
   const handleRemovalAction = (card: any) => {
-    if (actionPoints <= 0) { showNotification("Not enough AP!", "yellow"); return; }
+    const helpCost = getActionCost(1, 'help');
+    if (actionPoints < helpCost) { showNotification("Not enough AP!", "yellow"); return; }
+    
     const updatedPlayers = [...players];
     const currentPlayer = updatedPlayers[turnIndex];
     
@@ -464,6 +527,12 @@ export default function TacticalGame() {
          return; 
        }
     } else if (card.removeTarget === 'other') {
+       // Check if help range is disabled by circumstance
+       if (isHelpRangeDisabled()) {
+         showNotification("Cannot help others due to circumstances!", "red");
+         return;
+       }
+       
        let range = 1;
        if (currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
        
@@ -487,7 +556,7 @@ export default function TacticalGame() {
     currentPlayer.hand = currentPlayer.hand.filter((c: any) => c.uniqueId !== card.uniqueId);
     setPlayers(updatedPlayers);
     setActionPoints(prev => {
-      const newAP = prev - 1;
+      const newAP = prev - helpCost;
       
       if (newAP <= 0 && !freshZealJustActivatedRef.current && !isEndingTurnRef.current) {
         setTimeout(() => {
@@ -538,7 +607,7 @@ export default function TacticalGame() {
     
     // Set fresh zeal flag before restoring AP to prevent auto-end turn
     freshZealJustActivatedRef.current = true;
-    setActionPoints(3); 
+    setActionPoints(getMaxAP()); 
     showNotification("Fresh Zeal! AP Restored!", "amber");
     setPlayers(updatedPlayers);
   };
@@ -574,11 +643,14 @@ export default function TacticalGame() {
     
     // Calculate points based on difficulty multiplier
     let points = selectedCard.points || 1; // Base 1 point
-    if (success && difficulty) {
+    if (success && difficulty && !isTriviaBonusDisabled()) {
       const multipliers: Record<string, number> = { easy: 2, medium: 3, hard: 5 };
       points = points * multipliers[difficulty];
     }
-    points += davidBonus;
+    // David bonus only applies if bonuses aren't disabled
+    if (!isTriviaBonusDisabled() && !currentCircumstance?.effect?.includes('No Bonuses')) {
+      points += davidBonus;
+    }
     
     // Apply points to challenge
     if (currentChallenge) {
@@ -601,6 +673,13 @@ export default function TacticalGame() {
           showNotification(`${selectedCard.title} succeeded! No ${removeType === 'BadQuality' ? 'bad qualities' : 'trials'} to remove.`, "zinc");
         }
       } else if (selectedCard.removeTarget === 'other') {
+        // Check if help range is disabled by circumstance
+        if (isHelpRangeDisabled()) {
+          showNotification("Cannot help others due to circumstances!", "red");
+          setPlayers(updatedPlayers);
+          return;
+        }
+        
         let range = 1;
         if (currentPlayer.activeCharacters.some((c: any) => c.id === 'ruth')) range = 3;
         
@@ -916,7 +995,7 @@ export default function TacticalGame() {
     } else {
       // Increment turn index - this triggers the rotation animation
       setTurnIndex(prev => prev + 1);
-      setActionPoints(3);
+      setActionPoints(getMaxAP());
       setHasMoved(false);
       
       // Reset flag after rotation animation completes (1000ms transition + buffer)
@@ -1299,7 +1378,7 @@ export default function TacticalGame() {
                  <div className="absolute top-1 left-1 text-[10px] font-bold text-indigo-400 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded z-10">PROVISIONS</div>
                  <Card data="supply_back" isFaceUp={false} size="lg" onClick={()=>{}} />
                  <div className="absolute -bottom-2 -right-2 bg-indigo-600 text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{supplyDeck.length}</div>
-                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-sm rounded text-[10px] font-bold text-white transition-opacity text-center z-20">DRAW<br/>1 AP</div>
+                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-sm rounded text-[10px] font-bold text-white transition-opacity text-center z-20">DRAW<br/>{getActionCost(1, 'draw')} AP</div>
               </div>
            </div>
            <div className="flex gap-4 mt-2">

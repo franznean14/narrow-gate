@@ -3,38 +3,38 @@ import { AlertTriangle, Skull, Flame, Cross, Shield, Crown } from 'lucide-react'
 // Great Tribulation Variations
 export const GREAT_TRIBULATION_VARIATIONS = [
   { 
-    title: 'Great Tribulation', 
+    title: 'GT', 
     type: 'Event', 
     category: 'Great Tribulation',
     effect: 'SCATTER', 
-    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes.',
+    desc: 'Max Active Characters = 2. Territories become Inner Rooms.',
     icon: AlertTriangle,
     variant: 'standard'
   },
   { 
-    title: 'Great Tribulation: The Scattering', 
+    title: 'GT', 
     type: 'Event', 
     category: 'Great Tribulation',
     effect: 'SCATTER', 
-    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Unity -1.',
+    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Unity -1.',
     icon: AlertTriangle,
     variant: 'scattering'
   },
   { 
-    title: 'Great Tribulation: The Persecution', 
+    title: 'GT', 
     type: 'Event', 
     category: 'Great Tribulation',
     effect: 'SCATTER', 
-    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. All players lose 1 card.',
+    desc: 'Max Active Characters = 2. Territories become Inner Rooms. All players lose 1 card.',
     icon: Flame,
     variant: 'persecution'
   },
   { 
-    title: 'Great Tribulation: The Separation', 
+    title: 'GT', 
     type: 'Event', 
     category: 'Great Tribulation',
     effect: 'SCATTER', 
-    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Map changes. Help range reduced to 0.',
+    desc: 'Max Active Characters = 2. Territories become Inner Rooms. Help range reduced to 0.',
     icon: Cross,
     variant: 'separation'
   },
@@ -48,37 +48,37 @@ export const ARMAGEDDON_VARIATIONS = [
     category: 'Armageddon',
     req: 40, 
     penalty: 'GAME OVER', 
-    desc: 'Activate ALL Characters. Stand Firm!',
+    desc: 'Activate ALL Characters.',
     icon: Skull,
     variant: 'standard'
   },
   { 
-    title: 'Armageddon: The Final Battle', 
+    title: 'Armageddon', 
     type: 'Event', 
     category: 'Armageddon',
     req: 45, 
     penalty: 'GAME OVER', 
-    desc: 'Activate ALL Characters. The ultimate test of faith. Stand Firm!',
+    desc: 'Activate ALL Characters. The ultimate test of faith.',
     icon: Skull,
     variant: 'battle'
   },
   { 
-    title: 'Armageddon: The Last Stand', 
+    title: 'Armageddon', 
     type: 'Event', 
     category: 'Armageddon',
     req: 50, 
     penalty: 'GAME OVER', 
-    desc: 'Activate ALL Characters. Maximum faith required. Stand Firm!',
+    desc: 'Activate ALL Characters. Maximum faith required.',
     icon: Shield,
     variant: 'stand'
   },
   { 
-    title: 'Armageddon: The Victory', 
+    title: 'Armageddon', 
     type: 'Event', 
     category: 'Armageddon',
     req: 35, 
     penalty: 'GAME OVER', 
-    desc: 'Activate ALL Characters. Unity at 5 grants -5 requirement. Stand Firm!',
+    desc: 'Activate ALL Characters. Unity at 5 grants -5 requirement.',
     icon: Crown,
     variant: 'victory'
   },

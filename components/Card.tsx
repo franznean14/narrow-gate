@@ -88,9 +88,14 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
     return typeMap[type] || type.toUpperCase();
   };
 
-  const getTypeTag = (type: string) => {
+  const getTypeTag = (type: string, data: any) => {
     if (type === 'Prayer') return 'Prayer';
-    if (type === 'Event') return 'Event';
+    if (type === 'Event') {
+      // For Great Tribulation and Armageddon, show the category name instead of "Event"
+      if (data.category === 'Great Tribulation') return 'Great Tribulation';
+      if (data.category === 'Armageddon') return 'Armageddon';
+      return 'Event';
+    }
     return null;
   };
 
@@ -102,7 +107,7 @@ export default function Card({ data, isSelected, onClick, isFaceUp = true, size 
         {/* Type tag in upper right corner for Prayer and Event cards */}
         {(data.type === 'Prayer' || data.type === 'Event') && (
           <div className={`absolute top-0 right-0 ${size === 'xl' ? 'text-[8px] px-2 py-0.5' : 'text-[5px] px-1 py-0.5'} font-bold text-white bg-black/40 backdrop-blur-sm rounded-bl-lg uppercase`}>
-            {getTypeTag(data.type)}
+            {getTypeTag(data.type, data)}
           </div>
         )}
       </div>

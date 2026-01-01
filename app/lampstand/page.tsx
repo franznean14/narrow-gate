@@ -887,7 +887,7 @@ export default function LampstandFinal() {
             nextTurn();
           }
         }, 0);
-      }, 1200); // Animation duration
+      }, 4000); // Animation duration: 0.4s flip + 3s delay + 0.8s slide = 4.2s, rounded to 4s
       return () => clearTimeout(timer);
     }
   }, [animatingCard]);
@@ -1708,12 +1708,12 @@ export default function LampstandFinal() {
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              animation: 'cardDrawFlip 0.4s ease-out forwards, cardDrawSlide 0.8s ease-in-out 0.4s forwards'
+              animation: 'cardDrawFlip 0.4s ease-out forwards, cardDrawSlide 0.8s ease-in-out 3s forwards'
             }}
           >
             <Card 
               data={animatingCard.card} 
-              size="md" 
+              size="lg" 
               isPlayable={false}
               onClick={() => {}}
             />

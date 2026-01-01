@@ -1157,11 +1157,14 @@ export default function LampstandFinal() {
       // Vanquish complete or failed
       if (!vanquishFailed && vanquishQueue.length === 0) {
         // Success!
-        setDiscardPile(prev => [...prev, { ...CARD_TYPES.stumble, uid: Math.random() }]);
+        setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
+        setVanquishActive(false);
+        setCurrentQuestion(null);
         setGameState('playing');
         setStumblingPlayerId(null);
         showNotification("VANQUISH SUCCESSFUL! Stumble removed forever!", "emerald");
         nextTurn();
+        return;
       }
       setVanquishActive(false);
       setCurrentQuestion(null);

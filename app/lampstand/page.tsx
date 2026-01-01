@@ -110,7 +110,7 @@ const LOVE_TRAITS = ["Patient", "Kind", "Not Jealous", "Not Bragging", "Not Puff
 
 // --- HELPERS ---
 
-const shuffle = (array) => {
+const shuffle = <T,>(array: T[]): T[] => {
   let currentIndex = array.length, randomIndex;
   const newArray = [...array];
   while (currentIndex !== 0) {
@@ -121,12 +121,12 @@ const shuffle = (array) => {
   return newArray;
 };
 
-const getRandomTrivia = (difficulty) => {
+const getRandomTrivia = (difficulty: 'EASY' | 'HARD') => {
   const pool = TRIVIA_DB[difficulty];
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
-const getDistance = (helperIdx, victimIdx, totalPlayers) => {
+const getDistance = (helperIdx: number, victimIdx: number, totalPlayers: number): number => {
   let dist = (victimIdx - helperIdx + totalPlayers) % totalPlayers;
   if (dist === 0) dist = totalPlayers; 
   return dist;

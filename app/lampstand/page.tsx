@@ -530,9 +530,239 @@ const QuestionCard = ({ question, onAnswer, isActive }) => {
 
 const ManualView = () => (
   <div className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="text-center border-b border-zinc-800 pb-8"><h1 className="text-4xl font-black text-white tracking-tight mb-2 uppercase">Covenant & Kingdom</h1><p className="text-amber-500 font-bold uppercase tracking-widest text-xs">Official Field Guide</p></div>
-      <section><h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2"><BookOpen className="text-indigo-500" /> The Mission</h2><p className="leading-relaxed mb-4 text-sm md:text-base">Stand Firm & Gather Together.</p></section>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="text-center border-b border-zinc-800 pb-8">
+        <h1 className="text-5xl font-black text-white tracking-tight mb-2 uppercase">Lampstand</h1>
+        <p className="text-amber-500 font-bold uppercase tracking-widest text-sm">Overview & Instructions</p>
+        <p className="text-zinc-400 mt-2 text-sm">Armor Up. Stand Firm.</p>
+      </div>
+
+      {/* Objective */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-amber-500/30">
+        <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+          <Flame className="text-amber-500" size={24} /> Objective
+        </h2>
+        <p className="leading-relaxed text-base">
+          Work together to survive until the deck runs out. Draw cards, play actions, equip armor, and help each other avoid The Stumble. 
+          If any player is knocked out, the game continues. If all players are knocked out, you lose.
+        </p>
+      </section>
+
+      {/* Setup */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-indigo-500/30">
+        <h2 className="text-2xl font-bold text-indigo-400 mb-4 flex items-center gap-2">
+          <Gamepad2 className="text-indigo-500" size={24} /> Setup
+        </h2>
+        <ul className="space-y-3 text-base">
+          <li className="flex items-start gap-3">
+            <span className="text-indigo-400 font-bold">1.</span>
+            <span>Choose 2-4 players. Each player starts with 1 Shield of Faith card.</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-indigo-400 font-bold">2.</span>
+            <span>Unity Range starts at (Players - 1). This determines how many players you can help counter-clockwise.</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-indigo-400 font-bold">3.</span>
+            <span>Players take turns clockwise, starting with Player 1.</span>
+          </li>
+        </ul>
+      </section>
+
+      {/* Turn Structure */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-blue-500/30">
+        <h2 className="text-2xl font-bold text-blue-400 mb-4 flex items-center gap-2">
+          <Clock className="text-blue-500" size={24} /> Turn Structure
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-blue-300 mb-2">1. Draw Phase</h3>
+            <p className="text-sm text-zinc-300 ml-4">Click the Draw pile to draw cards. You must draw at least 1 card per turn (unless prevented by burdens).</p>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-blue-300 mb-2">2. Action Phase</h3>
+            <p className="text-sm text-zinc-300 ml-4">Play cards from your hand. You can play action cards and equip 1 active card (armor/character) per turn.</p>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-blue-300 mb-2">3. End Turn</h3>
+            <p className="text-sm text-zinc-300 ml-4">After drawing the required number of cards, your turn ends automatically.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Card Types */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-purple-500/30">
+        <h2 className="text-2xl font-bold text-purple-400 mb-4 flex items-center gap-2">
+          <BookOpen className="text-purple-500" size={24} /> Card Types
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+              <AlertTriangle size={20} /> Hazards
+            </h3>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong className="text-red-400">The Stumble:</strong> If drawn, you must play Faith or be saved by Encouragement, or lose Unity/be knocked out.</li>
+              <li><strong className="text-orange-400">Discord:</strong> Reduces Unity Range by 1 (unless you have Breastplate).</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-400 mb-2 flex items-center gap-2">
+              <Shield size={20} /> Action Cards
+            </h3>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong className="text-emerald-400">Shield of Faith:</strong> Defuse a Stumble (play during stumble phase).</li>
+              <li><strong className="text-amber-400">Encouragement:</strong> Save a friend from Stumble OR remove a burden from yourself/friend.</li>
+              <li><strong className="text-indigo-400">Insight:</strong> See top 3 cards (5 with Belt of Truth).</li>
+              <li><strong className="text-purple-400">Guidance:</strong> Shuffle the deck (peek top card with Sword).</li>
+              <li><strong className="text-blue-400">Patience:</strong> Move top card down 3 spots (5 with Sandals).</li>
+              <li><strong className="text-cyan-400">Modesty:</strong> Skip your turn. Next player draws 2 cards.</li>
+              <li><strong className="text-pink-400">Kindness:</strong> Give a card from your hand to a friend.</li>
+              <li><strong className="text-teal-400">Imitate Faith:</strong> Copy a buff from another player for 1 turn.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-amber-400 mb-2 flex items-center gap-2">
+              <HardHat size={20} /> Armor & Equipment
+            </h3>
+            <p className="text-sm text-zinc-300 ml-6 mb-2">Equip these to your active area for ongoing benefits:</p>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong>Belt of Truth:</strong> Insight reveals 5 cards instead of 3.</li>
+              <li><strong>Breastplate:</strong> Fruit cards heal Unity. Protects from Discord.</li>
+              <li><strong>Sandals:</strong> Patience pushes cards 5 deep instead of 3.</li>
+              <li><strong>Large Shield:</strong> Auto-deflects 1 Stumble, then is discarded.</li>
+              <li><strong>Helmet:</strong> Prevents 1 knockout (discard instead of losing Unity).</li>
+              <li><strong>Sword:</strong> Peek top card when shuffling.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-400 mb-2 flex items-center gap-2">
+              <Star size={20} /> Characters
+            </h3>
+            <p className="text-sm text-zinc-300 ml-6 mb-2">Biblical characters provide special abilities. Max 1 character active (2 during Great Tribulation):</p>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong>Moses:</strong> Immune to Unwise Time.</li>
+              <li><strong>Ruth:</strong> Help range is infinite.</li>
+              <li><strong>David:</strong> Immune to Anxiety.</li>
+              <li><strong>Esther:</strong> Draw 1 extra card.</li>
+              <li><strong>Abraham:</strong> Can use Faith on others.</li>
+              <li><strong>Daniel:</strong> Immune to Materialism.</li>
+              <li><strong>Noah:</strong> Immune to Bad Company & Materialism.</li>
+              <li><strong>Sarah:</strong> Immune to Doubt & Unwise Time.</li>
+              <li><strong>Job:</strong> Can be helped by anyone (ignores Unity range).</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-red-400 mb-2 flex items-center gap-2">
+              <AlertTriangle size={20} /> Burdens (Trials)
+            </h3>
+            <p className="text-sm text-zinc-300 ml-6 mb-2">Negative effects that stay in your active area:</p>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong>Anxiety:</strong> Discards 1 active card. If no active cards, waits until you activate one.</li>
+              <li><strong>Unwise Time:</strong> Skip your next turn (removed when turn starts).</li>
+              <li><strong>Materialism:</strong> Lose 1 Fruit to deck, then removed.</li>
+              <li><strong>Doubt:</strong> Cannot play Faith or Encouragement.</li>
+              <li><strong>Bad Company:</strong> Cannot receive help from others.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-lime-400 mb-2 flex items-center gap-2">
+              <Grape size={20} /> Collection Cards
+            </h3>
+            <ul className="text-sm text-zinc-300 ml-6 space-y-1">
+              <li><strong>Fruitage:</strong> Answer trivia to keep. With Breastplate, heals Unity.</li>
+              <li><strong>Love Is...</strong> Play to heal 1 Unity (max Unity = Players - 1).</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Special Mechanics */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-emerald-500/30">
+        <h2 className="text-2xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+          <Zap className="text-emerald-500" size={24} /> Special Mechanics
+        </h2>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">Unity Range</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Determines how many players you can help counter-clockwise. Range 1 = neighbor only. 
+              Discord reduces Unity. Love cards increase Unity. Unity can't exceed (Players - 1).
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">The Stumble</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              When drawn, you enter the stumble phase. You or a friend must play Faith or Encouragement to save you. 
+              Otherwise, you can lose Unity or be knocked out. Large Shield auto-deflects 1 Stumble.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">Vanquish (Invoke Scripture)</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              During a stumble, players can contribute 3 Love/Fruit cards to vanquish the Stumble forever. 
+              Contributors must answer trivia questions correctly. If anyone fails, the Stumble returns to the deck.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">Great Tribulation</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              When drawn, max active characters becomes 2. Can be ended with Days Cut Short card.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">Trivia</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              When drawing Fruitage or Love cards, answer a Bible trivia question to keep the card. 
+              Wrong answers lose the card back to the deck.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Victory & Defeat */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-amber-500/30">
+        <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+          <Crown className="text-amber-500" size={24} /> Victory & Defeat
+        </h2>
+        <ul className="space-y-3 text-base">
+          <li className="flex items-start gap-3">
+            <span className="text-amber-400 font-bold">✓</span>
+            <span><strong className="text-amber-300">Victory:</strong> Survive until the deck runs out of cards.</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-red-400 font-bold">✗</span>
+            <span><strong className="text-red-300">Defeat:</strong> All players are knocked out.</span>
+          </li>
+        </ul>
+      </section>
+
+      {/* Tips */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-cyan-500/30">
+        <h2 className="text-2xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <Info className="text-cyan-500" size={24} /> Tips
+        </h2>
+        <ul className="space-y-2 text-sm text-zinc-300">
+          <li>• Work together! Help friends in range avoid Stumbles.</li>
+          <li>• Balance equipping armor with keeping action cards for emergencies.</li>
+          <li>• Save Faith cards for Stumbles - they're your primary defense.</li>
+          <li>• Use Encouragement strategically to remove burdens or save friends.</li>
+          <li>• Characters provide powerful immunities - activate them when facing specific threats.</li>
+          <li>• Unity Range is crucial - protect it from Discord.</li>
+          <li>• Vanquish is powerful but risky - coordinate with teammates.</li>
+        </ul>
+      </section>
     </div>
   </div>
 );
@@ -568,8 +798,10 @@ export default function LampstandFinal() {
   const [isGifting, setIsGifting] = useState(false);
   const [isImitating, setIsImitating] = useState(false);
   const [isVanquishing, setIsVanquishing] = useState(false);
-  const [animatingCard, setAnimatingCard] = useState(null); // { card, targetPlayerIndex }
+  const [animatingCard, setAnimatingCard] = useState(null); // { card, targetPlayerIndex, type: 'card' | 'trial', targetType: 'hand' | 'discard' }
   const [skipCardDelay, setSkipCardDelay] = useState(false); // Skip the 3s delay when card is tapped
+  const [skipEntireAnimation, setSkipEntireAnimation] = useState(false); // Skip the entire animation when card is clicked
+  const [isDrawing, setIsDrawing] = useState(false); // Track if a draw is in progress
   
   // Vanquish question queue state
   const [vanquishQueue, setVanquishQueue] = useState([]); // Array of { playerId, questionCount }
@@ -684,6 +916,11 @@ export default function LampstandFinal() {
 
   // ... (Other handlers same as previous) ...
   const nextTurn = (skipReset = false) => {
+    // Don't advance turn if vanquish is active
+    if (vanquishActive) {
+      return;
+    }
+    
     // 1. Cleanup Imitated/Temporary cards
     const updatedPlayers = [...players];
     const currentP = updatedPlayers[turnIndex];
@@ -705,81 +942,119 @@ export default function LampstandFinal() {
        return;
     }
 
-    setTurnIndex(nextIdx);
-    setActivePlayCount(0);
-    if (!skipReset) setDrawsRequired(1);
-    setOpenHandIndex(nextIdx);
-
     const nextPlayer = players[nextIdx];
+    
+    // Check if next player has Unwise Time burden
     if (nextPlayer.activeCards.some(c => c.id === 'trial_time')) {
         const burdenIdx = nextPlayer.activeCards.findIndex(c => c.id === 'trial_time');
         // Check Moses Immunity
         if (nextPlayer.activeCards.some(c => c.id === 'char_moses')) {
              showNotification("Moses is immune to Unwise Time!", "cyan");
+             // Moses is immune, so set turn normally
+             setTurnIndex(nextIdx);
+             setActivePlayCount(0);
+             if (!skipReset) setDrawsRequired(1);
+             setOpenHandIndex(nextIdx);
+             setIsDrawing(false); // Re-enable drawing for the next turn
         } else {
+             // Remove the burden and skip this player's turn
              const updated = [...players];
              updated[nextIdx].activeCards.splice(burdenIdx, 1);
              setPlayers(updated);
              showNotification(`${nextPlayer.name} skipped due to Unwise Time!`, "red");
+             
+             // Skip to the player after the skipped one
+             let skipNextIdx = (nextIdx + 1) % players.length;
+             let skipLoopCount = 0;
+             while (players[skipNextIdx].isOut && skipLoopCount < players.length) {
+                skipNextIdx = (skipNextIdx + 1) % players.length;
+                skipLoopCount++;
+             }
+             
+             if (skipLoopCount >= players.length) {
+                setGameState('lost');
+                return;
+             }
+             
+             setTurnIndex(skipNextIdx);
+             setActivePlayCount(0);
+             if (!skipReset) setDrawsRequired(1);
+             setOpenHandIndex(skipNextIdx);
+             setIsDrawing(false); // Re-enable drawing for the next turn
+             
+             // Check if vanquish is active and the actual next player needs to answer a question
+             const actualNextPlayer = players[skipNextIdx];
+             if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
+               const nextQuestion = vanquishQueue[0];
+               if (nextQuestion.playerId === actualNextPlayer.id) {
+                 showNotification(`${actualNextPlayer.name}, draw a question from the Questions pile!`, "indigo");
+               }
+             }
         }
-    }
-    
-    // Check if vanquish is active and this player needs to answer a question
-    if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
-      const nextQuestion = vanquishQueue[0];
-      if (nextQuestion.playerId === nextPlayer.id) {
-        showNotification(`${nextPlayer.name}, draw a question from the Questions pile!`, "indigo");
-      }
+    } else {
+        // No Unwise Time, proceed normally
+        setTurnIndex(nextIdx);
+        setActivePlayCount(0);
+        if (!skipReset) setDrawsRequired(1);
+        setOpenHandIndex(nextIdx);
+        setIsDrawing(false); // Re-enable drawing for the next turn
+        
+        // Check if vanquish is active and this player needs to answer a question
+        if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
+          const nextQuestion = vanquishQueue[0];
+          if (nextQuestion.playerId === nextPlayer.id) {
+            showNotification(`${nextPlayer.name}, draw a question from the Questions pile!`, "indigo");
+          }
+        }
     }
   };
 
   const checkTurnEnd = useCallback(() => {
+    // Don't advance turn if vanquish is active
+    if (vanquishActive) {
+      setIsDrawing(false); // Re-enable drawing
+      return;
+    }
     if (drawsRequired > 1) {
        setDrawsRequired(prev => prev - 1);
+       setIsDrawing(false); // Re-enable drawing for next draw
        showNotification(`Must draw ${drawsRequired - 1} more!`, "blue");
     } else {
        nextTurn();
     }
-  }, [drawsRequired, nextTurn]);
+  }, [drawsRequired, vanquishActive, nextTurn]);
 
   const handleDraw = (e) => {
     if (e) e.stopPropagation();
     if (gameState !== 'playing') return;
+    if (isDrawing) return; // Prevent multiple draws
     if (vanquishActive) {
-      showNotification("Cannot draw during vanquish! Use Questions pile.", "zinc");
+      showNotification("Cannot draw during vanquish! Use Questions pile.", "red");
+      return;
+    }
+    if (animatingQuestionCard) {
+      showNotification("Question incoming! Please wait.", "zinc");
       return;
     }
     if (deck.length === 0) { setGameState('won'); return; }
+    
+    setIsDrawing(true); // Mark that drawing is in progress
 
     const card = deck[0];
     const newDeck = deck.slice(1);
     setDeck(newDeck);
 
     if (card.id === 'event_gt') {
-       if (!cutShort) {
-          setMaxCharacters(2);
-          setCurrentChallenge(card);
-          showNotification("Great Tribulation! Char Limit = 2", "purple");
-       } else {
-          showNotification("Tribulation Skipped (Cut Short)", "zinc");
-          setDiscardPile(prev => [card, ...prev]);
-       }
-       checkTurnEnd();
+       // Animate event card draw
+       setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'event', targetType: 'discard' });
+       setSkipCardDelay(false); // Reset skip flag when new card starts animating
        return;
     }
     if (card.id === 'event_armageddon') {
-       setMaxCharacters(99);
-       setCurrentChallenge(card);
-       showNotification("ARMAGEDDON! Activate EVERYTHING!", "red");
-       checkTurnEnd();
+       // Animate event card draw
+       setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'event', targetType: 'discard' });
+       setSkipCardDelay(false); // Reset skip flag when new card starts animating
        return;
-    }
-
-    if (players[turnIndex].activeCards.some(c => c.id === 'trial_materialism') && 
-        !players[turnIndex].activeCards.some(c => c.id === 'char_daniel' || c.id === 'char_noah')) {
-        showNotification("Materialism prevents drawing provisions!", "red");
-        checkTurnEnd();
-        return;
     }
 
     if (card.id === 'fruit' || card.id === 'love') {
@@ -789,16 +1064,9 @@ export default function LampstandFinal() {
     }
 
     if (card.id === 'discord') {
-       const hasBreastplate = players[turnIndex].activeCards.some(c => c.id === 'breastplate');
-       if (hasBreastplate) {
-          setDiscardPile(prev => [...prev, card]);
-          showNotification("Breastplate guarded the heart! No Unity lost.", "cyan");
-       } else {
-          setDiscardPile(prev => [...prev, card]);
-          setUnity(prev => Math.max(0, prev - 1));
-          showNotification("Discord! Unity decreased (-1 Range)", "orange");
-       }
-       checkTurnEnd();
+       // Animate discord card draw
+       setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'discord', targetType: 'discard' });
+       setSkipCardDelay(false); // Reset skip flag when new card starts animating
        return;
     }
 
@@ -806,21 +1074,18 @@ export default function LampstandFinal() {
       const victim = players[turnIndex];
       const shieldIndex = victim.activeCards.findIndex(c => c.id === 'shield_equip');
       if (shieldIndex !== -1) {
-         const updatedPlayers = [...players];
-         updatedPlayers[turnIndex].activeCards.splice(shieldIndex, 1);
-         setPlayers(updatedPlayers);
-         setDiscardPile(prev => [...prev, updatedPlayers[turnIndex].activeCards[shieldIndex]]);
-         const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
-         newDeck.splice(insertAt, 0, card);
-         setDeck(newDeck);
-         showNotification("Large Shield deflected the Stumble!", "emerald");
-         checkTurnEnd();
+         // Animate stumble card draw even when deflected
+         setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'stumble_deflected', targetType: 'discard' });
+         setSkipCardDelay(false); // Reset skip flag when new card starts animating
       } else {
          setStumblingPlayerId(players[turnIndex].id);
+         setStumbleDrawerId(players[turnIndex].id); // Track who drew the stumble
          setGameState('stumbling');
-         setOpenHandIndex(turnIndex); 
+         setOpenHandIndex(turnIndex);
+         setIsDrawing(false); // Re-enable drawing (though draw pile won't be visible in stumbling state)
       }
     } else if (card.id.startsWith('trial_')) {
+      // Check if trial will be immune (and thus discarded) or applied
       const victim = players[turnIndex];
       let isImmune = false;
       if (card.id === 'trial_materialism' && (victim.activeCards.some(c => c.id === 'char_daniel') || victim.activeCards.some(c => c.id === 'char_noah'))) isImmune = true;
@@ -829,61 +1094,170 @@ export default function LampstandFinal() {
       if (card.id === 'trial_doubt' && victim.activeCards.some(c => c.id === 'char_sarah')) isImmune = true;
       if (card.id === 'trial_associations' && victim.activeCards.some(c => c.id === 'char_noah')) isImmune = true;
 
-      if (isImmune) {
-         setDiscardPile(prev => [...prev, card]);
-         showNotification("Character Immunity! Trial discarded.", "indigo");
-      } else {
-         const updatedPlayers = [...players];
-         updatedPlayers[turnIndex].activeCards.push(card);
-         
-         if (card.id === 'trial_anxiety') {
-            const positives = updatedPlayers[turnIndex].activeCards.filter(c => !c.id.startsWith('trial_'));
-            if (positives.length > 0) {
-               const targetIdx = updatedPlayers[turnIndex].activeCards.findIndex(c => !c.id.startsWith('trial_'));
-               if (targetIdx !== -1) {
-                  const lost = updatedPlayers[turnIndex].activeCards.splice(targetIdx, 1)[0];
-                  setDiscardPile(prev => [lost, ...prev]);
-                  showNotification(`Anxiety discarded ${lost.title}!`, "red");
-               }
-            }
-         }
-         if (card.id === 'trial_materialism') {
-             const fruitIdx = updatedPlayers[turnIndex].hand.findIndex(c => c.id === 'fruit');
-             if (fruitIdx !== -1) {
-                const lost = updatedPlayers[turnIndex].hand.splice(fruitIdx, 1)[0];
-                const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
-                newDeck.splice(insertAt, 0, lost);
-                setDeck(newDeck); 
-                updatedPlayers[turnIndex].activeCards.pop(); 
-                setDiscardPile(prev => [card, ...prev]);
-                showNotification("Materialism: Fruit lost to the world!", "red");
-             }
-         }
-         setPlayers(updatedPlayers);
-      }
-      checkTurnEnd();
+      // Animate trial card draw - immune cards go to discard, others go to activeCards
+      setAnimatingCard({
+        card,
+        targetPlayerIndex: turnIndex,
+        type: 'trial',
+        targetType: isImmune ? 'discard' : 'hand' // Use 'hand' to represent activeCards area for now
+      });
+      setSkipCardDelay(false); // Reset skip flag when new card starts animating
     } else {
       // Animate card draw for regular cards
-      setAnimatingCard({ card, targetPlayerIndex: turnIndex });
+      setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'card', targetType: 'hand' });
       setSkipCardDelay(false); // Reset skip flag when new card starts animating
       // Card will be added to hand after animation completes
     }
   };
 
-  // Handle animation completion - add card to hand
+  // Handle animation completion - add card to hand or apply trial effects
   useEffect(() => {
     if (animatingCard) {
-      // Calculate delay: if skipCardDelay is true, skip the 3s delay (only 0.4s flip + 0.8s slide = 1.2s)
-      const delay = skipCardDelay ? 1200 : 4000; // 0.4s flip + (skipCardDelay ? 0s : 3s) + 0.8s slide
-      
-      const timer = setTimeout(() => {
-        setPlayers(prevPlayers => {
-          const updatedPlayers = [...prevPlayers];
-          updatedPlayers[animatingCard.targetPlayerIndex].hand.push(animatingCard.card);
-          return updatedPlayers;
-        });
+      // Function to execute the completion logic
+      const executeCompletion = () => {
+        if (animatingCard.type === 'trial') {
+          // Handle trial card effects
+          const card = animatingCard.card;
+          const targetPlayerIndex = animatingCard.targetPlayerIndex;
+          const victim = players[targetPlayerIndex];
+          let isImmune = false;
+          if (card.id === 'trial_materialism' && (victim.activeCards.some(c => c.id === 'char_daniel') || victim.activeCards.some(c => c.id === 'char_noah'))) isImmune = true;
+          if (card.id === 'trial_anxiety' && victim.activeCards.some(c => c.id === 'char_david')) isImmune = true;
+          if (card.id === 'trial_time' && (victim.activeCards.some(c => c.id === 'char_moses') || victim.activeCards.some(c => c.id === 'char_sarah'))) isImmune = true;
+          if (card.id === 'trial_doubt' && victim.activeCards.some(c => c.id === 'char_sarah')) isImmune = true;
+          if (card.id === 'trial_associations' && victim.activeCards.some(c => c.id === 'char_noah')) isImmune = true;
+
+          if (isImmune) {
+             setDiscardPile(prev => [...prev, card]);
+             showNotification("Character Immunity! Trial discarded.", "indigo");
+          } else {
+             setPlayers(prevPlayers => {
+               const updatedPlayers = [...prevPlayers];
+               // Check if this burden card already exists to prevent duplication
+               const alreadyExists = updatedPlayers[targetPlayerIndex].activeCards.some(c => c.uid === card.uid);
+               if (alreadyExists) {
+                 // Card already exists, don't add it again
+                 return updatedPlayers;
+               }
+               
+               updatedPlayers[targetPlayerIndex].activeCards.push(card);
+
+               if (card.id === 'trial_anxiety') {
+                  // Find positive cards (non-trial cards) BEFORE Anxiety was added
+                  // We need to exclude the Anxiety card we just added
+                  const positives = updatedPlayers[targetPlayerIndex].activeCards.filter(c => !c.id.startsWith('trial_'));
+                  if (positives.length > 0) {
+                     // There are active cards, discard ONLY ONE and remove anxiety
+                     const targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => !c.id.startsWith('trial_'));
+                     if (targetIdx !== -1) {
+                        // Remove only ONE positive card
+                        const lost = updatedPlayers[targetPlayerIndex].activeCards.splice(targetIdx, 1)[0];
+                        setDiscardPile(prev => [lost, ...prev]);
+                        showNotification(`Anxiety discarded ${lost.title}!`, "red");
+                        // Remove the anxiety card itself after its effect
+                        const anxietyIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'trial_anxiety' && c.uid === card.uid);
+                        if (anxietyIdx !== -1) {
+                          const anxietyCard = updatedPlayers[targetPlayerIndex].activeCards.splice(anxietyIdx, 1)[0];
+                          setDiscardPile(prev => [anxietyCard, ...prev]);
+                        }
+                     }
+                  }
+                  // If no active cards, anxiety stays - it will trigger when next active card is activated
+               }
+               if (card.id === 'trial_materialism') {
+                   const fruitIdx = updatedPlayers[targetPlayerIndex].hand.findIndex(c => c.id === 'fruit');
+                   if (fruitIdx !== -1) {
+                      const lost = updatedPlayers[targetPlayerIndex].hand.splice(fruitIdx, 1)[0];
+                      setDeck(prevDeck => {
+                        const newDeck = [...prevDeck];
+                        const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
+                        newDeck.splice(insertAt, 0, lost);
+                        return newDeck;
+                      });
+                      // Remove the materialism card we just added (it should be the last one)
+                      const materialismIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'trial_materialism');
+                      if (materialismIdx !== -1) {
+                        updatedPlayers[targetPlayerIndex].activeCards.splice(materialismIdx, 1);
+                      }
+                      setDiscardPile(prev => [card, ...prev]);
+                      showNotification("Materialism: Fruit lost to the world!", "red");
+                   }
+               }
+               return updatedPlayers;
+             });
+          }
+        } else if (animatingCard.type === 'stumble_deflected') {
+          // Handle deflected stumble card
+          const card = animatingCard.card;
+          const targetPlayerIndex = animatingCard.targetPlayerIndex;
+
+          setPlayers(prevPlayers => {
+            const updatedPlayers = [...prevPlayers];
+            const shieldIndex = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'shield_equip');
+            if (shieldIndex !== -1) {
+              const shieldCard = updatedPlayers[targetPlayerIndex].activeCards.splice(shieldIndex, 1)[0];
+              setDiscardPile(prev => [shieldCard, ...prev]);
+            }
+            return updatedPlayers;
+          });
+
+          setDeck(prevDeck => {
+            const newDeck = [...prevDeck];
+            const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
+            newDeck.splice(insertAt, 0, card);
+            return newDeck;
+          });
+
+          showNotification("Large Shield deflected the Stumble!", "emerald");
+        } else if (animatingCard.type === 'discord') {
+          // Handle discord card effects
+          const card = animatingCard.card;
+          const targetPlayerIndex = animatingCard.targetPlayerIndex;
+
+          const hasBreastplate = players[targetPlayerIndex].activeCards.some(c => c.id === 'breastplate');
+          if (hasBreastplate) {
+             setDiscardPile(prev => [...prev, card]);
+             showNotification("Breastplate guarded the heart! No Unity lost.", "cyan");
+          } else {
+             setDiscardPile(prev => [...prev, card]);
+             setUnity(prev => Math.max(0, prev - 1));
+             showNotification("Discord! Unity decreased (-1 Range)", "orange");
+          }
+        } else if (animatingCard.type === 'event') {
+          // Handle event card effects
+          const card = animatingCard.card;
+
+          if (card.id === 'event_gt') {
+             if (!cutShort) {
+                setMaxCharacters(2);
+                setCurrentChallenge(card);
+                showNotification("Great Tribulation! Char Limit = 2", "purple");
+             } else {
+                showNotification("Tribulation Skipped (Cut Short)", "zinc");
+                setDiscardPile(prev => [card, ...prev]);
+             }
+          } else if (card.id === 'event_armageddon') {
+             setMaxCharacters(99);
+             setCurrentChallenge(card);
+             showNotification("ARMAGEDDON! Activate EVERYTHING!", "red");
+          }
+        } else {
+          // Handle regular card - add to hand
+          setPlayers(prevPlayers => {
+            const updatedPlayers = [...prevPlayers];
+            // Check if card already exists in hand to prevent duplication
+            const alreadyExists = updatedPlayers[animatingCard.targetPlayerIndex].hand.some(c => c.uid === animatingCard.card.uid);
+            if (!alreadyExists) {
+              updatedPlayers[animatingCard.targetPlayerIndex].hand.push(animatingCard.card);
+            }
+            return updatedPlayers;
+          });
+        }
+
         setAnimatingCard(null);
         setSkipCardDelay(false); // Reset skip flag
+        setSkipEntireAnimation(false); // Reset skip entire animation flag
+        setIsDrawing(false); // Re-enable drawing
         // Use setTimeout to ensure state updates are complete before checking turn end
         setTimeout(() => {
           // Don't advance turn if vanquish is active
@@ -897,10 +1271,22 @@ export default function LampstandFinal() {
             nextTurn();
           }
         }, 0);
-      }, delay);
-      return () => clearTimeout(timer);
+      };
+
+      // If skipEntireAnimation is true, immediately execute completion logic
+      if (skipEntireAnimation) {
+        executeCompletion();
+      } else {
+        // Calculate delay: if skipCardDelay is true, skip the 3s delay (only 0.4s flip + 0.8s slide = 1.2s)
+        const delay = skipCardDelay ? 1200 : 4000; // 0.4s flip + (skipCardDelay ? 0s : 3s) + 0.8s slide
+
+        const timer = setTimeout(() => {
+          executeCompletion();
+        }, delay);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [animatingCard, skipCardDelay]);
+  }, [animatingCard, skipCardDelay, skipEntireAnimation]);
 
   const handleInspectCard = (card) => { setInspectingCard(card); };
 
@@ -939,6 +1325,8 @@ export default function LampstandFinal() {
           removeCardFromHand(ownerIdx, card.uid);
           returnStumbleToDeck();
           showNotification("Faith Used!", "emerald");
+          // End turn immediately - disable draw pile until next turn
+          setIsDrawing(true); // Disable draw pile
        }
        else if (card.id === 'encouragement') {
           const victimIdx = players.findIndex(p => p.id === stumblingPlayerId);
@@ -951,6 +1339,8 @@ export default function LampstandFinal() {
              removeCardFromHand(ownerIdx, card.uid);
              returnStumbleToDeck();
              showNotification(`Saved by ${players[ownerIdx].name}!`, "amber");
+             // End turn immediately - disable draw pile until next turn
+             setIsDrawing(true); // Disable draw pile
           } else {
              showNotification(`Too far! Needs Unity Range ${dist} (Current: ${unity})`, "red");
           }
@@ -1113,11 +1503,20 @@ export default function LampstandFinal() {
 
   // NEW: CONFIRM VANQUISH
   const handleVanquishConfirm = (selectedCards) => {
-     setIsVanquishing(false);
-     
-     // Store stumble drawer ID before clearing stumblingPlayerId
-     const drawerId = stumblingPlayerId;
-     setStumbleDrawerId(drawerId);
+    setIsVanquishing(false);
+
+    // Validate selected cards
+    if (!selectedCards || selectedCards.length !== 3) {
+      showNotification(`Need exactly 3 cards for vanquish! Got ${selectedCards?.length || 0}`, "red");
+      return;
+    }
+
+    showNotification("Vanquish confirmed! Processing cards...", "blue");
+
+    // Store stumble drawer ID before clearing stumblingPlayerId
+    const drawerId = stumblingPlayerId;
+    setStumbleDrawerId(drawerId);
+
      
      // Remove selected cards from players and track contributors
      const updatedPlayers = [...players];
@@ -1167,9 +1566,10 @@ export default function LampstandFinal() {
        rounds++;
      }
      
-     setVanquishQueue(queue);
-     setVanquishActive(true);
-     setVanquishFailed(false);
+    setVanquishQueue(queue);
+    setVanquishActive(true);
+    setVanquishFailed(false);
+
      
      // Hide stumble modal but keep game in vanquish mode
      setGameState('playing');
@@ -1180,18 +1580,32 @@ export default function LampstandFinal() {
      setTurnIndex(drawerIdx);
      setOpenHandIndex(drawerIdx);
      
-     // Start first question if stumble drawer is a contributor and has questions
-     if (queue.length > 0 && queue[0].playerId === drawerId) {
-       drawNextQuestion();
-     } else {
-       showNotification("Vanquish initiated! Stumble drawer starts.", "indigo");
-     }
+    // Start vanquish flow - move to first player in queue and start questions
+    if (queue.length > 0) {
+      const firstPlayerId = queue[0].playerId;
+      const firstPlayerIdx = players.findIndex(p => p.id === firstPlayerId);
+      setTurnIndex(firstPlayerIdx);
+      setOpenHandIndex(firstPlayerIdx);
+      showNotification(`Vanquish initiated! ${players.find(p => p.id === firstPlayerId)?.name} draws first question.`, "indigo");
+
+      // Start the first question after a short delay to allow state updates to propagate
+      // Pass the queue directly to avoid state timing issues
+      setTimeout(() => {
+        drawNextQuestion(queue);
+      }, 100);
+    } else {
+      // No questions needed (shouldn't happen with 3 cards)
+      showNotification("Vanquish initiated but no questions needed!", "indigo");
+    }
   };
   
-  const drawNextQuestion = () => {
-    if (vanquishQueue.length === 0 || vanquishFailed) {
+  const drawNextQuestion = (queueOverride = null) => {
+    // Use override queue if provided, otherwise use state (for initial call before state updates)
+    const queueToCheck = queueOverride || vanquishQueue;
+    
+    if (queueToCheck.length === 0 || vanquishFailed) {
       // Vanquish complete or failed
-      if (!vanquishFailed && vanquishQueue.length === 0) {
+      if (!vanquishFailed && queueToCheck.length === 0) {
         // Success! Continue from next player after stumble drawer
         setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
         setVanquishActive(false);
@@ -1216,7 +1630,7 @@ export default function LampstandFinal() {
       return;
     }
     
-    const next = vanquishQueue[0];
+    const next = queueToCheck[0];
     if (questionsDeck.length === 0) {
       showNotification("No more questions! Vanquish failed.", "red");
       setVanquishFailed(true);
@@ -1327,7 +1741,24 @@ export default function LampstandFinal() {
           if (cardIdx === -1) return p;
           const newHand = [...p.hand];
           const card = newHand.splice(cardIdx, 1)[0];
-          if (moveToActive) return { ...p, hand: newHand, activeCards: [...p.activeCards, card] };
+          if (moveToActive) {
+             // Check if player has Anxiety burden - if so, discard the newly activated card and remove Anxiety
+             const hasAnxiety = p.activeCards.some(c => c.id === 'trial_anxiety');
+             if (hasAnxiety) {
+                // Don't add card to activeCards - Anxiety will discard it immediately
+                const anxietyIdx = p.activeCards.findIndex(c => c.id === 'trial_anxiety');
+                if (anxietyIdx !== -1) {
+                   const anxietyCard = p.activeCards[anxietyIdx];
+                   // Remove Anxiety from activeCards
+                   const newActiveCards = p.activeCards.filter((c, idx) => idx !== anxietyIdx);
+                   // Discard both the newly activated card (never added) and Anxiety
+                   setDiscardPile(prevD => [card, anxietyCard, ...prevD]);
+                   showNotification(`Anxiety discarded ${card.title}!`, "red");
+                   return { ...p, hand: newHand, activeCards: newActiveCards };
+                }
+             }
+             return { ...p, hand: newHand, activeCards: [...p.activeCards, card] };
+          }
           else setDiscardPile(prevD => [card, ...prevD]);
           return { ...p, hand: newHand };
        }
@@ -1344,11 +1775,18 @@ export default function LampstandFinal() {
     setGameState('playing');
     
     // Continue from next player after stumble drawer
-    if (stumbleDrawerId) {
-      const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
-      const nextPlayerIdx = (drawerIdx + 1) % players.length;
-      setTurnIndex(nextPlayerIdx);
-      setOpenHandIndex(nextPlayerIdx);
+    const drawerId = stumbleDrawerId || (stumblingPlayerId ? players.find(p => p.id === stumblingPlayerId)?.id : null);
+    if (drawerId !== null && drawerId !== undefined) {
+      const drawerIdx = players.findIndex(p => p.id === drawerId);
+      if (drawerIdx !== -1) {
+        const nextPlayerIdx = (drawerIdx + 1) % players.length;
+        setTurnIndex(nextPlayerIdx);
+        setOpenHandIndex(nextPlayerIdx);
+        // Re-enable drawing for the next player after a short delay
+        setTimeout(() => {
+          setIsDrawing(false);
+        }, 100);
+      }
     }
     setStumbleDrawerId(null);
     setVanquishContributors([]);
@@ -1465,11 +1903,18 @@ export default function LampstandFinal() {
          </Link>
          <div className="bg-zinc-800 rounded-full p-1 flex gap-1 pointer-events-auto">
             <button onClick={() => setActiveTab('game')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'game' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-white'}`}><Gamepad2 size={14} /> Game</button>
+            <button onClick={() => setActiveTab('manual')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'manual' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'}`}><Info size={14} /> Manual</button>
             <button onClick={() => setActiveTab('cards')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'cards' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}`}><BookOpen size={14} /> Cards</button>
             <button onClick={() => setActiveTab('questions')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'questions' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}><MessageCircle size={14} /> Questions</button>
          </div>
          <div className="w-20"></div> {/* Spacer for centering */}
       </div>
+
+      {activeTab === 'manual' && (
+        <div className="absolute inset-0 z-50 bg-slate-950">
+          <ManualView />
+        </div>
+      )}
 
       {activeTab === 'cards' && (
         <div className="absolute inset-0 z-50 bg-slate-950">
@@ -1528,7 +1973,7 @@ export default function LampstandFinal() {
                </div>
             </div>
          ) : (
-            <div className="flex gap-12">
+            <div className="flex gap-20">
                {/* Event Card Display */}
                {currentChallenge && (
                   <div className="w-48 h-72 border-4 border-red-500 rounded-3xl flex flex-col items-center justify-center relative bg-black/60 backdrop-blur-md animate-pulse">
@@ -1538,9 +1983,15 @@ export default function LampstandFinal() {
                   </div>
                )}
 
-               <div 
-                  onClick={(e) => handleDraw(e)} 
-                  className="w-48 h-72 bg-slate-800 border-4 border-slate-700 rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-amber-500 transition-all group"
+               <div
+                  onClick={(e) => handleDraw(e)}
+                  className={`w-48 h-72 bg-slate-800 border-4 rounded-3xl flex flex-col items-center justify-center shadow-2xl transition-all group ${
+                    vanquishActive || gameState === 'stumbling'
+                      ? 'border-slate-900 opacity-50 cursor-not-allowed'
+                      : isDrawing
+                      ? 'border-slate-900 opacity-50 cursor-not-allowed'
+                      : 'border-slate-700 cursor-pointer hover:scale-105 hover:border-amber-500'
+                  }`}
                   style={{
                      transform: (() => {
                         const rotation = {
@@ -1553,8 +2004,8 @@ export default function LampstandFinal() {
                      })()
                   }}
                >
-                  <Flame size={64} className="text-amber-500/50 group-hover:text-amber-500 transition-colors mb-4" />
-                  <span className="font-black text-slate-500 uppercase tracking-widest group-hover:text-amber-100">Draw ({drawsRequired}) & End</span>
+                  <Flame size={64} className={`${isDrawing ? 'text-slate-600' : 'text-amber-500/50 group-hover:text-amber-500'} transition-colors mb-4`} />
+                  <span className={`font-black uppercase tracking-widest ${isDrawing ? 'text-slate-600' : 'text-slate-500 group-hover:text-amber-100'}`}>Draw ({drawsRequired}) & End</span>
                   <span className="text-xs text-slate-600 font-mono mt-2">{deck.length}</span>
                </div>
                {vanquishActive && (
@@ -1738,9 +2189,7 @@ export default function LampstandFinal() {
             <div
               className="pointer-events-auto cursor-pointer"
               onClick={() => {
-                if (!skipCardDelay) {
-                  setSkipCardDelay(true);
-                }
+                setSkipEntireAnimation(true);
               }}
               style={{
                 transform: (() => {
@@ -1784,11 +2233,13 @@ export default function LampstandFinal() {
               }
               100% {
                 transform: translate(-50%, -50%) translateX(${
+                  animatingCard.targetType === 'discard' ? '0px' :
                   animatingCard.targetPlayerIndex === 0 ? '0px' :
                   animatingCard.targetPlayerIndex === 1 ? '-450px' :
                   animatingCard.targetPlayerIndex === 2 ? '0px' :
                   '450px'
                 }) translateY(${
+                  animatingCard.targetType === 'discard' ? '0px' :
                   animatingCard.targetPlayerIndex === 0 ? '350px' :
                   animatingCard.targetPlayerIndex === 1 ? '0px' :
                   animatingCard.targetPlayerIndex === 2 ? '-350px' :

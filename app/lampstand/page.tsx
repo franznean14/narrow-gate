@@ -1528,7 +1528,21 @@ export default function LampstandFinal() {
                   </div>
                )}
 
-               <div onClick={(e) => handleDraw(e)} className="w-48 h-72 bg-slate-800 border-4 border-slate-700 rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-amber-500 transition-all group">
+               <div 
+                  onClick={(e) => handleDraw(e)} 
+                  className="w-48 h-72 bg-slate-800 border-4 border-slate-700 rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-amber-500 transition-all group"
+                  style={{
+                     transform: (() => {
+                        const rotation = {
+                           0: 'rotate(0deg)',
+                           1: 'rotate(90deg)',
+                           2: 'rotate(180deg)',
+                           3: 'rotate(-90deg)'
+                        }[turnIndex] || 'rotate(0deg)';
+                        return rotation;
+                     })()
+                  }}
+               >
                   <Flame size={64} className="text-amber-500/50 group-hover:text-amber-500 transition-colors mb-4" />
                   <span className="font-black text-slate-500 uppercase tracking-widest group-hover:text-amber-100">Draw ({drawsRequired}) & End</span>
                   <span className="text-xs text-slate-600 font-mono mt-2">{deck.length}</span>

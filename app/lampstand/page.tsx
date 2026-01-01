@@ -1456,11 +1456,16 @@ export default function LampstandFinal() {
                   <span className="font-black text-slate-500 uppercase tracking-widest group-hover:text-amber-100">Draw ({drawsRequired}) & End</span>
                   <span className="text-xs text-slate-600 font-mono mt-2">{deck.length}</span>
                </div>
-               <div onClick={(e) => handleQuestionDraw(e)} className={`w-48 h-72 bg-indigo-900 border-4 ${vanquishActive && !currentQuestion ? 'border-indigo-400 animate-pulse' : 'border-indigo-700'} rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-indigo-400 transition-all group`}>
-                  <BookOpen size={64} className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors mb-4" />
-                  <span className="font-black text-indigo-300 uppercase tracking-widest group-hover:text-indigo-100">Questions</span>
-                  <span className="text-xs text-indigo-500 font-mono mt-2">{questionsDeck.length}</span>
-               </div>
+               {vanquishActive && (
+                 <div onClick={(e) => handleQuestionDraw(e)} className={`w-48 h-72 bg-indigo-900 border-4 ${!currentQuestion ? 'border-indigo-400 animate-pulse' : 'border-indigo-700'} rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-indigo-400 transition-all group`}>
+                    <BookOpen size={64} className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors mb-4" />
+                    <span className="font-black text-indigo-300 uppercase tracking-widest group-hover:text-indigo-100">Questions</span>
+                    <span className="text-xs text-indigo-500 font-mono mt-2">{questionsDeck.length}</span>
+                    {vanquishQueue.length > 0 && (
+                      <span className="text-xs text-indigo-300 mt-1">Next: {players.find(p => p.id === vanquishQueue[0]?.playerId)?.name}</span>
+                    )}
+                 </div>
+               )}
                <div className="w-48 h-72 border-4 border-dashed border-slate-700 rounded-3xl flex items-center justify-center relative">
                   {discardPile.length > 0 ? (
                     <div className="absolute inset-0 p-2"><Card data={discardPile[0]} isPlayable={false} size="lg" /></div>

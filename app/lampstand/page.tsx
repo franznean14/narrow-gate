@@ -865,6 +865,7 @@ export default function LampstandFinal() {
     } else {
       // Animate card draw for regular cards
       setAnimatingCard({ card, targetPlayerIndex: turnIndex });
+      setSkipCardDelay(false); // Reset skip flag when new card starts animating
       // Card will be added to hand after animation completes
     }
   };
@@ -872,6 +873,9 @@ export default function LampstandFinal() {
   // Handle animation completion - add card to hand
   useEffect(() => {
     if (animatingCard) {
+      // Calculate delay: if skipCardDelay is true, skip the 3s delay (only 0.4s flip + 0.8s slide = 1.2s)
+      const delay = skipCardDelay ? 1200 : 4000; // 0.4s flip + (skipCardDelay ? 0s : 3s) + 0.8s slide
+      
       const timer = setTimeout(() => {
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];
@@ -879,6 +883,7 @@ export default function LampstandFinal() {
           return updatedPlayers;
         });
         setAnimatingCard(null);
+        setSkipCardDelay(false); // Reset skip flag
         // Use setTimeout to ensure state updates are complete before checking turn end
         setTimeout(() => {
           if (drawsRequired > 1) {
@@ -888,10 +893,10 @@ export default function LampstandFinal() {
             nextTurn();
           }
         }, 0);
-      }, 4000); // Animation duration: 0.4s flip + 3s delay + 0.8s slide = 4.2s, rounded to 4s
+      }, delay);
       return () => clearTimeout(timer);
     }
-  }, [animatingCard]);
+  }, [animatingCard, skipCardDelay]);
 
   const handleInspectCard = (card) => { setInspectingCard(card); };
 

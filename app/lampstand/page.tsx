@@ -1725,17 +1725,17 @@ export default function LampstandFinal() {
                 opacity: 0.3;
               }
               50% {
-                transform: translate(-50%, -50%) rotateY(90deg) scale(1.1);
+                transform: translate(-50%, -50%) rotateY(90deg) scale(1);
                 opacity: 0.8;
               }
               100% {
-                transform: translate(-50%, -50%) rotateY(0deg) scale(1.1);
+                transform: translate(-50%, -50%) rotateY(0deg) scale(1);
                 opacity: 1;
               }
             }
             @keyframes cardDrawSlide {
               0% {
-                transform: translate(-50%, -50%) scale(1.1);
+                transform: translate(-50%, -50%) scale(1);
                 opacity: 1;
               }
               100% {

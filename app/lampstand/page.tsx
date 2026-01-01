@@ -631,11 +631,12 @@ export default function LampstandFinal() {
     
     // Shuffle in Major Events
     const gtCard = { title: 'Great Tribulation', id: 'event_gt', type: 'Event', desc: 'Max Active Characters = 2.', color: 'bg-zinc-800 border-red-500', icon: <AlertTriangle size={24} /> };
-    const armageddon = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', color: 'bg-zinc-900 border-red-600', icon: <Flame size={24} /> };
+    // Armageddon card removed for now
+    // const armageddon = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', color: 'bg-zinc-900 border-red-600', icon: <Flame size={24} /> };
     
     const mid = Math.floor(newDeck.length / 2);
     newDeck.splice(mid, 0, gtCard);
-    newDeck.push(armageddon);
+    // newDeck.push(armageddon);
 
     for (let i = 0; i < 8; i++) newDeck.push({ ...CARD_TYPES.stumble, uid: Math.random() });
     for (let i = 0; i < 4; i++) newDeck.push({ ...CARD_TYPES.discord, uid: Math.random() });

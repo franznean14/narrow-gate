@@ -886,6 +886,10 @@ export default function LampstandFinal() {
         setSkipCardDelay(false); // Reset skip flag
         // Use setTimeout to ensure state updates are complete before checking turn end
         setTimeout(() => {
+          // Don't advance turn if vanquish is active
+          if (vanquishActive) {
+            return;
+          }
           if (drawsRequired > 1) {
             setDrawsRequired(prev => prev - 1);
             showNotification(`Must draw ${drawsRequired - 1} more!`, "blue");

@@ -576,6 +576,8 @@ export default function LampstandFinal() {
   const [vanquishActive, setVanquishActive] = useState(false); // Whether vanquish is in progress
   const [vanquishFailed, setVanquishFailed] = useState(false); // Whether vanquish has failed
   const [animatingQuestionCard, setAnimatingQuestionCard] = useState(null); // Animation state for question card
+  const [stumbleDrawerId, setStumbleDrawerId] = useState(null); // Player who drew the stumble (for vanquish flow)
+  const [vanquishContributors, setVanquishContributors] = useState([]); // Array of player IDs who contributed cards
 
   const initGame = (numPlayers) => {
     const newPlayers = Array.from({ length: numPlayers }, (_, i) => ({
@@ -742,6 +744,10 @@ export default function LampstandFinal() {
   const handleDraw = (e) => {
     if (e) e.stopPropagation();
     if (gameState !== 'playing') return;
+    if (vanquishActive) {
+      showNotification("Cannot draw during vanquish! Use Questions pile.", "zinc");
+      return;
+    }
     if (deck.length === 0) { setGameState('won'); return; }
 
     const card = deck[0];
@@ -1099,8 +1105,13 @@ export default function LampstandFinal() {
   const handleVanquishConfirm = (selectedCards) => {
      setIsVanquishing(false);
      
+     // Store stumble drawer ID before clearing stumblingPlayerId
+     const drawerId = stumblingPlayerId;
+     setStumbleDrawerId(drawerId);
+     
      // Remove selected cards from players and track contributors
      const updatedPlayers = [...players];
+     const contributorIds = []; // Array of unique contributor player IDs
      const contributorCounts = {}; // { playerId: count }
      
      selectedCards.forEach(selection => {
@@ -1111,45 +1122,59 @@ export default function LampstandFinal() {
             const removed = player.hand.splice(cardIdx, 1)[0];
             setDiscardPile(prev => [removed, ...prev]);
             contributorCounts[selection.playerId] = (contributorCounts[selection.playerId] || 0) + 1;
+            if (!contributorIds.includes(selection.playerId)) {
+              contributorIds.push(selection.playerId);
+            }
         }
      });
      
      setPlayers(updatedPlayers);
+     setVanquishContributors(contributorIds);
      
-     // Create question queue: clockwise from stumble drawer, 1 question per turn per player
-     const stumbleDrawerIdx = players.findIndex(p => p.id === stumblingPlayerId);
+     // Create question queue: clockwise from stumble drawer, only contributors, 1 question per turn per player
+     const stumbleDrawerIdx = players.findIndex(p => p.id === drawerId);
      const queue = [];
      const totalQuestions = selectedCards.length; // 3 questions for 3 cards
      
      let currentPlayerIdx = stumbleDrawerIdx;
      let questionIndex = 0;
+     let rounds = 0; // Prevent infinite loop
      
-     while (questionIndex < totalQuestions) {
+     while (questionIndex < totalQuestions && rounds < players.length * totalQuestions) {
        const playerId = players[currentPlayerIdx].id;
        const count = contributorCounts[playerId] || 0;
        
-       // Add questions for this player (1 per turn)
-       for (let i = 0; i < count && questionIndex < totalQuestions; i++) {
-         queue.push({ playerId, questionIndex: questionIndex++ });
+       // Only add questions for contributors
+       if (contributorIds.includes(playerId)) {
+         // Add questions for this player (1 per turn)
+         for (let i = 0; i < count && questionIndex < totalQuestions; i++) {
+           queue.push({ playerId, questionIndex: questionIndex++ });
+         }
        }
        
        // Move to next player clockwise
        currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+       rounds++;
      }
      
      setVanquishQueue(queue);
      setVanquishActive(true);
      setVanquishFailed(false);
      
-     // Hide stumble modal and return to normal game flow
+     // Hide stumble modal but keep game in vanquish mode
      setGameState('playing');
      setStumblingPlayerId(null);
      
-     // Start first question if it's the current player's turn
-     if (queue.length > 0 && queue[0].playerId === players[turnIndex].id) {
+     // Set turn to stumble drawer to start vanquish flow (don't end turn)
+     const drawerIdx = players.findIndex(p => p.id === drawerId);
+     setTurnIndex(drawerIdx);
+     setOpenHandIndex(drawerIdx);
+     
+     // Start first question if stumble drawer is a contributor and has questions
+     if (queue.length > 0 && queue[0].playerId === drawerId) {
        drawNextQuestion();
      } else {
-       showNotification("Vanquish initiated! Tap the Questions pile when it's your turn.", "indigo");
+       showNotification("Vanquish initiated! Stumble drawer starts.", "indigo");
      }
   };
   
@@ -1157,14 +1182,23 @@ export default function LampstandFinal() {
     if (vanquishQueue.length === 0 || vanquishFailed) {
       // Vanquish complete or failed
       if (!vanquishFailed && vanquishQueue.length === 0) {
-        // Success!
+        // Success! Continue from next player after stumble drawer
         setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
         setVanquishActive(false);
         setCurrentQuestion(null);
         setGameState('playing');
         setStumblingPlayerId(null);
         showNotification("VANQUISH SUCCESSFUL! Stumble removed forever!", "emerald");
-        nextTurn();
+        
+        // Continue from next player after stumble drawer
+        if (stumbleDrawerId) {
+          const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+          const nextPlayerIdx = (drawerIdx + 1) % players.length;
+          setTurnIndex(nextPlayerIdx);
+          setOpenHandIndex(nextPlayerIdx);
+        }
+        setStumbleDrawerId(null);
+        setVanquishContributors([]);
         return;
       }
       setVanquishActive(false);
@@ -1177,6 +1211,8 @@ export default function LampstandFinal() {
       showNotification("No more questions! Vanquish failed.", "red");
       setVanquishFailed(true);
       setVanquishActive(false);
+      setVanquishQueue([]);
+      setCurrentQuestion(null);
       returnStumbleToDeck();
       return;
     }
@@ -1199,7 +1235,15 @@ export default function LampstandFinal() {
     if (vanquishQueue.length === 0) return;
     
     const next = vanquishQueue[0];
-    if (next.playerId !== players[turnIndex].id) {
+    const currentPlayerId = players[turnIndex]?.id;
+    
+    // Only contributors can draw questions
+    if (!vanquishContributors.includes(currentPlayerId)) {
+      showNotification("Only players who contributed cards can draw questions!", "zinc");
+      return;
+    }
+    
+    if (next.playerId !== currentPlayerId) {
       showNotification(`Wait for ${players.find(p => p.id === next.playerId)?.name}'s turn`, "zinc");
       return;
     }
@@ -1211,13 +1255,23 @@ export default function LampstandFinal() {
     if (!currentQuestion) return;
     
     if (!isCorrect) {
-      // Fail on first wrong answer - restore normal game flow
+      // Fail on first wrong answer - continue from next player after stumble drawer
       setVanquishFailed(true);
       setVanquishActive(false);
       setVanquishQueue([]);
       setCurrentQuestion(null);
       returnStumbleToDeck();
       showNotification("Vanquish failed! Wrong answer.", "red");
+      
+      // Continue from next player after stumble drawer
+      if (stumbleDrawerId) {
+        const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+        const nextPlayerIdx = (drawerIdx + 1) % players.length;
+        setTurnIndex(nextPlayerIdx);
+        setOpenHandIndex(nextPlayerIdx);
+      }
+      setStumbleDrawerId(null);
+      setVanquishContributors([]);
       return;
     }
     
@@ -1225,19 +1279,32 @@ export default function LampstandFinal() {
     setCurrentQuestion(null);
     
     if (vanquishQueue.length === 0) {
-      // All questions answered correctly! - restore normal game flow
+      // All questions answered correctly! - continue from next player after stumble drawer
       setVanquishActive(false);
       setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
       setGameState('playing');
       setStumblingPlayerId(null);
       showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
-      nextTurn();
+      
+      // Continue from next player after stumble drawer
+      if (stumbleDrawerId) {
+        const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+        const nextPlayerIdx = (drawerIdx + 1) % players.length;
+        setTurnIndex(nextPlayerIdx);
+        setOpenHandIndex(nextPlayerIdx);
+      }
+      setStumbleDrawerId(null);
+      setVanquishContributors([]);
     } else {
       // Check if next question is for current player
       const next = vanquishQueue[0];
       if (next.playerId === players[turnIndex].id) {
         drawNextQuestion();
       } else {
+        // Move to next player in queue
+        const nextPlayerIdx = players.findIndex(p => p.id === next.playerId);
+        setTurnIndex(nextPlayerIdx);
+        setOpenHandIndex(nextPlayerIdx);
         showNotification(`Correct! Next question for ${players.find(p => p.id === next.playerId)?.name}`, "emerald");
       }
     }
@@ -1265,7 +1332,16 @@ export default function LampstandFinal() {
     setDeck(newDeck);
     setStumblingPlayerId(null);
     setGameState('playing');
-    checkTurnEnd();
+    
+    // Continue from next player after stumble drawer
+    if (stumbleDrawerId) {
+      const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+      const nextPlayerIdx = (drawerIdx + 1) % players.length;
+      setTurnIndex(nextPlayerIdx);
+      setOpenHandIndex(nextPlayerIdx);
+    }
+    setStumbleDrawerId(null);
+    setVanquishContributors([]);
   };
 
   const handleKnockout = () => {

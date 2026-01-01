@@ -1140,11 +1140,15 @@ export default function LampstandFinal() {
      setVanquishActive(true);
      setVanquishFailed(false);
      
+     // Hide stumble modal and return to normal game flow
+     setGameState('playing');
+     setStumblingPlayerId(null);
+     
      // Start first question if it's the current player's turn
      if (queue.length > 0 && queue[0].playerId === players[turnIndex].id) {
        drawNextQuestion();
      } else {
-       showNotification("Vanquish initiated! Questions will be drawn in turn order.", "indigo");
+       showNotification("Vanquish initiated! Tap the Questions pile when it's your turn.", "indigo");
      }
   };
   
@@ -1203,7 +1207,7 @@ export default function LampstandFinal() {
     if (!currentQuestion) return;
     
     if (!isCorrect) {
-      // Fail on first wrong answer
+      // Fail on first wrong answer - restore normal game flow
       setVanquishFailed(true);
       setVanquishActive(false);
       setVanquishQueue([]);
@@ -1217,9 +1221,9 @@ export default function LampstandFinal() {
     setCurrentQuestion(null);
     
     if (vanquishQueue.length === 0) {
-      // All questions answered correctly!
+      // All questions answered correctly! - restore normal game flow
       setVanquishActive(false);
-      setDiscardPile(prev => [...prev, { ...CARD_TYPES.stumble, uid: Math.random() }]);
+      setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
       setGameState('playing');
       setStumblingPlayerId(null);
       showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
@@ -1415,7 +1419,7 @@ export default function LampstandFinal() {
       {/* CENTER AREA */}
       <div className={`absolute inset-0 flex items-center justify-center z-10 ${activeTab === 'game' ? 'block' : 'hidden'}`} onClick={() => setOpenHandIndex(null)}>
          
-         {isStumbling ? (
+         {isStumbling && !vanquishActive ? (
             <div className="text-center space-y-6 z-50 animate-in zoom-in duration-300">
                <AlertTriangle size={120} className="text-red-500 mx-auto animate-bounce" />
                <h2 className="text-6xl font-black text-white uppercase">{victim?.name} Stumbled!</h2>

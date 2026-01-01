@@ -102,7 +102,7 @@ const CARD_TYPES = {
 };
 
 CHARACTERS_DB.forEach(char => {
-    CARD_TYPES[char.id] = char;
+    (CARD_TYPES as any)[char.id] = char;
 });
 
 const FRUITS = ["Love", "Joy", "Peace", "Patience", "Kindness", "Goodness", "Faith", "Mildness", "Self-Control"];
@@ -137,7 +137,7 @@ const getDistance = (helperIdx, victimIdx, totalPlayers) => {
 const Card = ({ data, onClick, isPlayable = true, size = 'md', isSelected = false }) => {
   if (!data) return <div className="w-20 h-28 bg-gray-700/50 rounded-xl animate-pulse border-2 border-white/5"></div>;
 
-  const def = CARD_TYPES[data.id] || { color: 'bg-gray-500', icon: <Info />, title: 'Unknown' };
+  const def = (CARD_TYPES as any)[data.id] || { color: 'bg-gray-500', icon: <Info />, title: 'Unknown' };
   const merged = { ...def, ...data };
   // Ensure textColor is preserved from def if not in data
   if (!merged.textColor && def.textColor) {
@@ -601,8 +601,8 @@ export default function LampstandFinal() {
     
     const armorTypes = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
     armorTypes.forEach(t => {
-        newDeck.push({ ...CARD_TYPES[t], uid: Math.random() });
-        if(numPlayers > 2) newDeck.push({ ...CARD_TYPES[t], uid: Math.random() });
+        newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() });
+        if(numPlayers > 2) newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() });
     });
 
     CHARACTERS_DB.forEach(char => {
@@ -610,13 +610,13 @@ export default function LampstandFinal() {
     });
 
     // Add 1 DCS
-    newDeck.push({ ...CARD_TYPES.days_cut_short, uid: Math.random() });
+    newDeck.push({ ...(CARD_TYPES as any).days_cut_short, uid: Math.random() });
 
-    FRUITS.forEach(f => newDeck.push({ ...CARD_TYPES.fruit, subTitle: f, uid: Math.random() }));
-    LOVE_TRAITS.forEach(l => newDeck.push({ ...CARD_TYPES.love, subTitle: l, uid: Math.random() }));
+    FRUITS.forEach(f => newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: f, uid: Math.random() }));
+    LOVE_TRAITS.forEach(l => newDeck.push({ ...(CARD_TYPES as any).love, subTitle: l, uid: Math.random() }));
 
     const trials = ['trial_anxiety', 'trial_time', 'trial_materialism', 'trial_doubt', 'trial_associations'];
-    trials.forEach(t => { for(let i=0; i<3; i++) newDeck.push({ ...CARD_TYPES[t], uid: Math.random() }); });
+    trials.forEach(t => { for(let i=0; i<3; i++) newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() }); });
 
     newDeck = shuffle(newDeck);
     

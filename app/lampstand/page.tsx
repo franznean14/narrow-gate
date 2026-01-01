@@ -569,6 +569,7 @@ export default function LampstandFinal() {
   const [isImitating, setIsImitating] = useState(false);
   const [isVanquishing, setIsVanquishing] = useState(false);
   const [animatingCard, setAnimatingCard] = useState(null); // { card, targetPlayerIndex }
+  const [skipCardDelay, setSkipCardDelay] = useState(false); // Skip the 3s delay when card is tapped
   
   // Vanquish question queue state
   const [vanquishQueue, setVanquishQueue] = useState([]); // Array of { playerId, questionCount }
@@ -1722,15 +1723,35 @@ export default function LampstandFinal() {
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              animation: 'cardDrawFlip 0.4s ease-out forwards, cardDrawSlide 0.8s ease-in-out 3s forwards'
+              animation: `cardDrawFlip 0.4s ease-out forwards, cardDrawSlide 0.8s ease-in-out ${skipCardDelay ? '0.4s' : '3s'} forwards`
             }}
           >
-            <Card 
-              data={animatingCard.card} 
-              size="lg" 
-              isPlayable={false}
-              onClick={() => {}}
-            />
+            <div
+              className="pointer-events-auto cursor-pointer"
+              onClick={() => {
+                if (!skipCardDelay) {
+                  setSkipCardDelay(true);
+                }
+              }}
+              style={{
+                transform: (() => {
+                  const rotation = {
+                    0: 'rotate(0deg)',
+                    1: 'rotate(90deg)',
+                    2: 'rotate(180deg)',
+                    3: 'rotate(-90deg)'
+                  }[turnIndex] || 'rotate(0deg)';
+                  return rotation;
+                })()
+              }}
+            >
+              <Card 
+                data={animatingCard.card} 
+                size="lg" 
+                isPlayable={false}
+                onClick={() => {}}
+              />
+            </div>
           </div>
           <style jsx global>{`
             @keyframes cardDrawFlip {

@@ -24,14 +24,28 @@ export const TRIVIA_DB = {
     { q: "What was the name of the garden where Adam and Eve lived?", a: "Eden", options: ["Eden", "Gethsemane", "Paradise"] },
     { q: "How many days was Jesus in the tomb?", a: "Three", options: ["Three", "Two", "Four"] },
     { q: "What was the name of the sea that Moses parted?", a: "Red Sea", options: ["Red Sea", "Dead Sea", "Mediterranean"] },
-    { q: "Who was the first man created by God?", a: "Adam", options: ["Adam", "Noah", "Abraham"] }
+    { q: "Who was the first man created by God?", a: "Adam", options: ["Adam", "Noah", "Abraham"] },
+    { q: "What was the name of Jesus' mother?", a: "Mary", options: ["Mary", "Elizabeth", "Sarah"] },
+    { q: "How many books are in the New Testament?", a: "27", options: ["27", "39", "66"] },
+    { q: "Who betrayed Jesus?", a: "Judas", options: ["Judas", "Peter", "Thomas"] },
+    { q: "What was the name of the mountain where Moses received the Ten Commandments?", a: "Sinai", options: ["Sinai", "Zion", "Olivet"] },
+    { q: "Who was thrown into a fiery furnace?", a: "Shadrach, Meshach, and Abednego", options: ["Shadrach, Meshach, and Abednego", "Daniel", "Moses"] },
+    { q: "What was the name of the river Jesus was baptized in?", a: "Jordan", options: ["Jordan", "Nile", "Euphrates"] },
+    { q: "Who was the first disciple Jesus called?", a: "Peter", options: ["Peter", "John", "Andrew"] },
+    { q: "What was the name of the city where Jesus was crucified?", a: "Jerusalem", options: ["Jerusalem", "Bethlehem", "Nazareth"] },
+    { q: "Who was the wisest king of Israel?", a: "Solomon", options: ["Solomon", "David", "Saul"] }
   ],
   HARD: [
     { q: "Who was the father of Methuselah?", a: "Enoch", options: ["Lamech", "Enoch", "Jared"] },
     { q: "Where did Paul experience a shipwreck?", a: "Malta", options: ["Crete", "Cyprus", "Malta"] },
     { q: "Name of the copper serpent Moses made?", a: "Nehushtan", options: ["Nehushtan", "Leviathan", "Behemoth"] },
     { q: "Who was the first martyr?", a: "Stephen", options: ["Peter", "James", "Stephen"] },
-    { q: "What was the name of the king who had Daniel thrown into the lions' den?", a: "Darius", options: ["Darius", "Nebuchadnezzar", "Belshazzar"] }
+    { q: "What was the name of the king who had Daniel thrown into the lions' den?", a: "Darius", options: ["Darius", "Nebuchadnezzar", "Belshazzar"] },
+    { q: "What was the name of the high priest who questioned Jesus?", a: "Caiaphas", options: ["Caiaphas", "Annas", "Pilate"] },
+    { q: "Which book comes before Psalms in the Old Testament?", a: "Job", options: ["Job", "Proverbs", "Ecclesiastes"] },
+    { q: "What was the name of the place where Jesus was transfigured?", a: "Mount of Transfiguration", options: ["Mount of Transfiguration", "Mount Sinai", "Mount Zion"] },
+    { q: "Who was the prophet who anointed David as king?", a: "Samuel", options: ["Samuel", "Nathan", "Elijah"] },
+    { q: "What was the name of the Roman governor who sentenced Jesus to death?", a: "Pilate", options: ["Pilate", "Herod", "Caiaphas"] }
   ]
 };
 

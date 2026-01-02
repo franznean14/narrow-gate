@@ -29,22 +29,67 @@ const Card = ({ data, size = 'md' }: { data: any, size?: 'sm' | 'md' | 'lg' }) =
     return <div className={iconWrapperClass}><IconComponent size={size === 'lg' ? 48 : 24} className={data.textColor || ''} /></div>;
   };
   
+  const iconSize = size === 'lg' ? 32 : size === 'sm' ? 12 : 20;
+  const titleSize = size === 'lg' ? 'text-base' : size === 'sm' ? 'text-[6px]' : 'text-[9px]';
+  const scriptureSize = size === 'lg' ? 'text-[10px]' : size === 'sm' ? 'text-[4px]' : 'text-[6px]';
+  const descSize = size === 'lg' ? 'text-xs' : size === 'sm' ? 'text-[5px]' : 'text-[7px]';
+
+  // Handle scripture - can be string or object with text and ref
+  const scriptureText = data.scripture?.text || (typeof data.scripture === 'string' ? data.scripture : null);
+  const scriptureRef = data.scripture?.ref || null;
+
   return (
     <div className={`relative ${sizeClasses} rounded-xl shadow-xl flex flex-col overflow-hidden transition-all duration-300 border-2 border-white/20 select-none ${data.color || 'bg-gray-500'} ${textClass}`}>
-      <div className="flex-grow flex flex-col items-center justify-center p-1 text-center pointer-events-none">
-        {renderIcon()}
-        <h3 className={`font-black uppercase leading-tight mb-1 ${textClass}`}>{data.subTitle || data.title}</h3>
-        {size === 'md' && data.desc && (
-          <p className={`leading-tight text-[8px] ${textClass} ${isDaysCutShort ? '' : 'opacity-90'}`}>
-            {data.desc}
-          </p>
-        )}
-        {size === 'lg' && data.desc && (
-          <p className={`leading-tight text-sm mt-2 ${textClass} ${isDaysCutShort ? '' : 'opacity-90'}`}>
-            {data.desc}
-          </p>
+      {/* Quantity badge */}
+      {data.quantity && size === 'lg' && data.showQuantity !== false && (
+        <div className="absolute top-2 right-2 bg-black/90 backdrop-blur-sm px-2 py-1 rounded-md border-2 border-amber-500/50 z-10 shadow-lg">
+          <span className="text-[10px] font-bold text-amber-400">Qty: {data.quantity}</span>
+        </div>
+      )}
+      
+      {/* Top Section: Title */}
+      <div className={`flex flex-col items-center justify-center pt-4 pb-3 px-2 text-center pointer-events-none ${textClass}`}>
+        <h3 className={`font-black uppercase leading-tight ${titleSize} ${textClass}`}>{data.subTitle || data.title}</h3>
+      </div>
+
+      {/* Middle Section: Icon and Scripture */}
+      <div className={`flex-1 flex flex-col items-center justify-center px-2 py-2 text-center border-t border-b border-white/10 ${textClass}`}>
+        {(() => {
+          if (!data.icon) return null;
+          
+          const iconWrapperClass = `mb-2 transform scale-110 ${data.textColor || ''}`;
+          
+          // If it's already a React element (JSX), render it directly with textColor
+          if (React.isValidElement(data.icon)) {
+            return <div className={iconWrapperClass}>{React.cloneElement(data.icon, { className: data.textColor || '' })}</div>;
+          }
+          
+          // If it's a component, render it with size prop
+          const IconComponent = data.icon;
+          return <div className={iconWrapperClass}><IconComponent size={iconSize} className={data.textColor || ''} /></div>;
+        })()}
+        {scriptureText && (
+          <>
+            <p className={`italic leading-tight ${scriptureSize} ${isDaysCutShort ? 'text-black opacity-80' : 'opacity-75'}`} style={isDaysCutShort ? { color: '#000000' } : {}}>
+              "{scriptureText}"
+            </p>
+            {scriptureRef && (
+              <p className={`mt-1 ${scriptureSize} font-semibold ${isDaysCutShort ? 'text-black opacity-70' : 'opacity-70'}`} style={isDaysCutShort ? { color: '#000000' } : {}}>
+                — {scriptureRef} NWT
+              </p>
+            )}
+          </>
         )}
       </div>
+
+      {/* Bottom Section: Effects/Description */}
+      {data.desc && (
+        <div className={`pt-3 pb-4 px-2 text-center pointer-events-none ${textClass}`}>
+          <p className={`leading-tight ${descSize} ${isDaysCutShort ? 'text-black font-semibold' : 'opacity-90'}`} style={isDaysCutShort ? { color: '#000000' } : {}}>
+            {data.desc}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
@@ -52,11 +97,79 @@ const Card = ({ data, size = 'md' }: { data: any, size?: 'sm' | 'md' | 'lg' }) =
 type SortOption = 'type' | 'name';
 type FilterOption = 'all' | 'Character' | 'Action' | 'Hazard' | 'Trial' | 'Armor' | 'Collection' | 'Event';
 
+// Function to calculate card quantity based on game setup logic
+const getCardQuantity = (cardId: string, cardType: string, fruits: string[], loveTraits: string[], charactersDb: any[]): string => {
+  // Action cards: floor(numPlayers * 1.5) (for 2-4 players = 3-6 copies)
+  const actionIds = ['insight', 'guidance', 'patience', 'kindness', 'encouragement', 'modesty', 'imitate', 'wisdom', 'prayer', 'minister', 'vigilance', 'discernment'];
+  if (actionIds.includes(cardId)) {
+    return '3-6 (floor(players × 1.5))';
+  }
+  
+  // Faith: floor(numPlayers * 1.75) (for 2-4 players = 3-7 copies)
+  if (cardId === 'faith') {
+    return '3-7 (floor(players × 1.75))';
+  }
+  
+  // Resurrection: floor(numPlayers / 2) (for 2-4 players = 1-2 copies)
+  if (cardId === 'resurrection') {
+    return '1-2 (floor(players/2))';
+  }
+  
+  // Armor: floor(numPlayers / 2) copies (2 players = 1, 3 players = 1, 4 players = 2)
+  const armorIds = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
+  if (armorIds.includes(cardId)) {
+    return '1-2 (floor(players/2))';
+  }
+  
+  // Characters: 1 copy each
+  if (cardId.startsWith('char_')) {
+    return '1';
+  }
+  
+  // Days Cut Short: 1 copy
+  if (cardId === 'days_cut_short') {
+    return '1';
+  }
+  
+  // Fruits: All fruits (two of each) - doubled for better vanquish balance
+  if (cardId === 'fruit') {
+    return `${fruits.length * 2} (two of each)`;
+  }
+  
+  // Love: All love traits (two of each) - doubled for better vanquish balance
+  if (cardId === 'love') {
+    return `${loveTraits.length * 2} (two of each)`;
+  }
+  
+  // Trials: 3 copies each
+  if (cardId.startsWith('trial_')) {
+    return '3';
+  }
+  
+  // Stumble: 8 copies
+  if (cardId === 'stumble') {
+    return '8';
+  }
+  
+  // Discord: 4 copies
+  if (cardId === 'discord') {
+    return '4';
+  }
+  
+  // Events: 1 copy
+  if (cardId.startsWith('event_')) {
+    return '1';
+  }
+  
+  return '?';
+};
+
 export default function LampstandCardsView({ cardTypes, charactersDb, fruits, loveTraits }: { cardTypes: any, charactersDb: any[], fruits: string[], loveTraits: string[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('type');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [showQuantities, setShowQuantities] = useState(true);
 
   // Combine all cards
   const allCards = useMemo(() => {
@@ -64,14 +177,14 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
     
     // Add characters
     charactersDb.forEach(char => {
-      cards.push({ ...char, type: 'Character', category: 'Character' });
+      cards.push({ ...char, type: 'Character', category: 'Character', quantity: getCardQuantity(char.id, 'Character', fruits, loveTraits, charactersDb), showQuantity: showQuantities });
     });
     
     // Add actions
-    const actionIds = ['faith', 'encouragement', 'insight', 'guidance', 'patience', 'modesty', 'kindness', 'imitate', 'days_cut_short'];
+    const actionIds = ['faith', 'encouragement', 'insight', 'guidance', 'patience', 'modesty', 'kindness', 'imitate', 'days_cut_short', 'wisdom', 'prayer', 'minister', 'vigilance', 'discernment', 'resurrection'];
     actionIds.forEach(id => {
       if (cardTypes[id]) {
-        cards.push({ ...cardTypes[id], type: 'Action', category: 'Action' });
+        cards.push({ ...cardTypes[id], type: 'Action', category: 'Action', quantity: getCardQuantity(id, 'Action', fruits, loveTraits, charactersDb), showQuantity: showQuantities });
       }
     });
     
@@ -79,7 +192,7 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
     const hazardIds = ['stumble', 'discord'];
     hazardIds.forEach(id => {
       if (cardTypes[id]) {
-        cards.push({ ...cardTypes[id], type: 'Hazard', category: 'Hazard' });
+        cards.push({ ...cardTypes[id], type: 'Hazard', category: 'Hazard', quantity: getCardQuantity(id, 'Hazard', fruits, loveTraits, charactersDb), showQuantity: showQuantities });
       }
     });
     
@@ -87,7 +200,7 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
     const trialIds = ['trial_anxiety', 'trial_time', 'trial_materialism', 'trial_doubt', 'trial_associations'];
     trialIds.forEach(id => {
       if (cardTypes[id]) {
-        cards.push({ ...cardTypes[id], type: 'Trial', category: 'Trial' });
+        cards.push({ ...cardTypes[id], type: 'Trial', category: 'Trial', quantity: getCardQuantity(id, 'Trial', fruits, loveTraits, charactersDb), showQuantity: showQuantities });
       }
     });
     
@@ -95,50 +208,48 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
     const armorIds = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
     armorIds.forEach(id => {
       if (cardTypes[id]) {
-        cards.push({ ...cardTypes[id], type: 'Armor', category: 'Armor' });
+        cards.push({ ...cardTypes[id], type: 'Armor', category: 'Armor', quantity: getCardQuantity(id, 'Armor', fruits, loveTraits, charactersDb), showQuantity: showQuantities });
       }
     });
     
-    // Add collection cards
-    const collectionIds = ['fruit', 'love'];
-    collectionIds.forEach(id => {
-      if (cardTypes[id]) {
-        cards.push({ ...cardTypes[id], type: 'Collection', category: 'Collection' });
-      }
-    });
-    
-    // Add fruit variations
+    // Add fruit variations (2 of each)
     fruits.forEach(fruit => {
-      cards.push({ ...cardTypes.fruit, subTitle: fruit, type: 'Collection', category: 'Collection', title: `Fruitage: ${fruit}` });
+      cards.push({ ...cardTypes.fruit, subTitle: fruit, type: 'Collection', category: 'Collection', title: `Fruitage: ${fruit}`, quantity: '2', scripture: cardTypes.fruit?.scripture, showQuantity: showQuantities });
     });
     
-    // Add love variations
+    // Add love variations (2 of each)
     loveTraits.forEach(trait => {
-      cards.push({ ...cardTypes.love, subTitle: trait, type: 'Collection', category: 'Collection', title: `Love Is... ${trait}` });
+      cards.push({ ...cardTypes.love, subTitle: trait, type: 'Collection', category: 'Collection', title: `Love Is... ${trait}`, quantity: '2', scripture: cardTypes.love?.scripture, showQuantity: showQuantities });
     });
     
     // Add events (created dynamically in game)
     cards.push({ 
       id: 'event_gt', 
       title: 'Great Tribulation', 
-      desc: 'Max Active Characters = 2.', 
+      desc: 'Unity -1, All lose 1 card, Cannot remove burdens, Only Breastplate+Shield+Helmet can play Fruit/Love, Max Characters = 2.', 
+      scripture: { text: 'For then there will be great tribulation such as has not occurred since the world\'s beginning until now, no, nor will occur again.', ref: 'Mt 24:21' },
       color: 'bg-zinc-800 border-red-500', 
       icon: AlertTriangle, 
       type: 'Event', 
-      category: 'Event' 
+      category: 'Event',
+      quantity: getCardQuantity('event_gt', 'Event', fruits, loveTraits, charactersDb),
+      showQuantity: showQuantities
     });
     cards.push({ 
       id: 'event_armageddon', 
       title: 'Armageddon', 
       desc: 'Activate ALL Characters. Stand Firm!', 
+      scripture: { text: 'And they gathered them together to the place that is called in Hebrew Armageddon.', ref: 'Re 16:16' },
       color: 'bg-zinc-900 border-red-600', 
       icon: Flame, 
       type: 'Event', 
-      category: 'Event' 
+      category: 'Event',
+      quantity: getCardQuantity('event_armageddon', 'Event', fruits, loveTraits, charactersDb),
+      showQuantity: showQuantities
     });
     
     return cards;
-  }, [cardTypes, charactersDb, fruits, loveTraits]);
+  }, [cardTypes, charactersDb, fruits, loveTraits, showQuantities]);
 
   // Filter and sort cards
   const filteredAndSortedCards = useMemo(() => {
@@ -277,6 +388,18 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
             <div className="ml-auto text-sm text-zinc-500">
               Showing {filteredAndSortedCards.length} of {allCards.length} cards
             </div>
+
+            {/* Toggle Quantities */}
+            <button
+              onClick={() => setShowQuantities(!showQuantities)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors border-2 ${
+                showQuantities
+                  ? 'bg-amber-500 text-zinc-900 border-amber-400 hover:bg-amber-400'
+                  : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:bg-zinc-800'
+              }`}
+            >
+              {showQuantities ? 'Hide' : 'Show'} Quantities
+            </button>
           </div>
         </div>
 

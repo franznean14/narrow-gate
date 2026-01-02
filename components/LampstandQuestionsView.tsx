@@ -31,12 +31,26 @@ const ALL_QUESTIONS = [
   { question: 'How many days was Jesus in the tomb?', answer: 'Three', difficulty: 'Easy' },
   { question: 'What was the name of the sea that Moses parted?', answer: 'Red Sea', difficulty: 'Easy' },
   { question: 'Who was the first man created by God?', answer: 'Adam', difficulty: 'Easy' },
+  { question: 'What was the name of Jesus\' mother?', answer: 'Mary', difficulty: 'Easy' },
+  { question: 'How many books are in the New Testament?', answer: '27', difficulty: 'Easy' },
+  { question: 'Who betrayed Jesus?', answer: 'Judas', difficulty: 'Easy' },
+  { question: 'What was the name of the mountain where Moses received the Ten Commandments?', answer: 'Sinai', difficulty: 'Easy' },
+  { question: 'Who was thrown into a fiery furnace?', answer: 'Shadrach, Meshach, and Abednego', difficulty: 'Easy' },
+  { question: 'What was the name of the river Jesus was baptized in?', answer: 'Jordan', difficulty: 'Easy' },
+  { question: 'Who was the first disciple Jesus called?', answer: 'Peter', difficulty: 'Easy' },
+  { question: 'What was the name of the city where Jesus was crucified?', answer: 'Jerusalem', difficulty: 'Easy' },
+  { question: 'Who was the wisest king of Israel?', answer: 'Solomon', difficulty: 'Easy' },
   // HARD
   { question: 'Who was the father of Methuselah?', answer: 'Enoch', difficulty: 'Hard' },
   { question: 'Where did Paul experience a shipwreck?', answer: 'Malta', difficulty: 'Hard' },
   { question: 'Name of the copper serpent Moses made?', answer: 'Nehushtan', difficulty: 'Hard' },
   { question: 'Who was the first martyr?', answer: 'Stephen', difficulty: 'Hard' },
   { question: 'What was the name of the king who had Daniel thrown into the lions\' den?', answer: 'Darius', difficulty: 'Hard' },
+  { question: 'What was the name of the high priest who questioned Jesus?', answer: 'Caiaphas', difficulty: 'Hard' },
+  { question: 'Which book comes before Psalms in the Old Testament?', answer: 'Job', difficulty: 'Hard' },
+  { question: 'What was the name of the place where Jesus was transfigured?', answer: 'Mount of Transfiguration', difficulty: 'Hard' },
+  { question: 'Who was the prophet who anointed David as king?', answer: 'Samuel', difficulty: 'Hard' },
+  { question: 'What was the name of the Roman governor who sentenced Jesus to death?', answer: 'Pilate', difficulty: 'Hard' },
 ];
 
 export default function LampstandQuestionsView() {
@@ -56,14 +70,14 @@ export default function LampstandQuestionsView() {
   const hardQuestions = ALL_QUESTIONS.filter(q => q.difficulty === 'Hard');
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 overflow-y-auto">
+    <div className="h-full w-full bg-zinc-950 text-white overflow-y-auto pt-24 pb-8 px-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3">
             <BookOpen className="text-amber-500" size={40} />
             Trivia Questions
           </h1>
-          <p className="text-zinc-400">30 questions total - Random difficulty selection</p>
+          <p className="text-zinc-400">45 questions total - Random difficulty selection</p>
         </div>
 
         {/* Easy Questions */}

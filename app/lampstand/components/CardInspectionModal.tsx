@@ -34,11 +34,11 @@ export const CardInspectionModal = React.memo(({
         style={{ transform: rotation }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="transform scale-150 shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-8">
+        <div className="transform scale-150 shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-16">
            <Card data={card} size="lg" isPlayable={false} />
         </div>
 
-        <div className="flex gap-4 z-50">
+        <div className="flex gap-4 z-50 mt-4">
              {isPlayerTurn && canPlay ? (
                <button onClick={onPlay} className="px-12 py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-transform text-white bg-emerald-600 hover:bg-emerald-500">
                  {card.id === 'love' ? 'PLAY TO HEAL' : 'PLAY CARD'}

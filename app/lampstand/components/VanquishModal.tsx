@@ -8,9 +8,10 @@ interface VanquishModalProps {
   players: any[];
   onClose: () => void;
   onConfirm: (selected: { playerId: string, cardUid: string }[]) => void;
+  requiredCards?: number;
 }
 
-export const VanquishModal = React.memo(({ players, onClose, onConfirm }: VanquishModalProps) => {
+export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3 }: VanquishModalProps) => {
    const [selected, setSelected] = useState<{ playerId: string, cardUid: string }[]>([]);
 
    const handleSelect = (playerId: string, cardUid: string) => {
@@ -18,7 +19,7 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm }: Vanqui
       if (exists) {
          setSelected(prev => prev.filter((s: { cardUid: string }) => s.cardUid !== cardUid));
       } else {
-         if (selected.length < 3) {
+         if (selected.length < requiredCards) {
             setSelected(prev => [...prev, { playerId, cardUid } as { playerId: string, cardUid: string }]);
          }
       }
@@ -32,7 +33,7 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm }: Vanqui
           <div className="flex justify-between items-center pb-4 border-b border-zinc-800">
              <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Invoke Scripture</h2>
              <div className="text-xl font-bold text-white bg-indigo-900/50 px-4 py-2 rounded-xl border border-indigo-500/30">
-               Selected: <span className={selected.length === 3 ? "text-emerald-400" : "text-amber-400"}>{selected.length}</span> / 3
+               Selected: <span className={selected.length === requiredCards ? "text-emerald-400" : "text-amber-400"}>{selected.length}</span> / {requiredCards}
              </div>
           </div>
           
@@ -69,7 +70,7 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm }: Vanqui
              <button onClick={onClose} className="px-8 py-3 rounded-xl font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 border-2 border-transparent">Cancel</button>
              <button 
                onClick={() => onConfirm(selected)} 
-               disabled={selected.length !== 3}
+               disabled={selected.length !== requiredCards}
                className="px-8 py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border-2 border-indigo-400 disabled:border-transparent transition-all"
              >
                Confirm & Invoke

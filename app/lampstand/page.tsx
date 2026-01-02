@@ -10,8 +10,14 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 // Lazy load heavy components
-const LampstandCardsView = dynamic(() => import('@/components/LampstandCardsView'), { ssr: false });
-const LampstandQuestionsView = dynamic(() => import('@/components/LampstandQuestionsView'), { ssr: false });
+const LampstandCardsView = dynamic(() => import('../../components/LampstandCardsView'), { 
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-screen text-white">Loading cards...</div>
+});
+const LampstandQuestionsView = dynamic(() => import('../../components/LampstandQuestionsView'), { 
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-screen text-white">Loading questions...</div>
+});
 const ManualView = lazy(() => import('./components/ManualView').then(m => ({ default: m.ManualView })));
 
 // Import constants
@@ -30,8 +36,13 @@ import {
   VanquishModal, 
   GiftModal, 
   ImitateModal, 
-  QuestionCard 
+  QuestionCard,
+  MinisterModal,
+  EncouragementModal,
+  RequestCardModal,
+  ResurrectionModal
 } from './components';
+import { WisdomRearrangeModal } from './components/WisdomRearrangeModal';
 import PWAInstaller from '../components/PWAInstaller';
 
 // --- MAIN GAME CONTAINER ---
@@ -77,8 +88,24 @@ export default function LampstandFinal() {
   const [currentChallenge, setCurrentChallenge] = useState<any | null>(null);
 
   const [isGifting, setIsGifting] = useState(false);
+  const [kindnessCard, setKindnessCard] = useState<any | null>(null);
   const [isImitating, setIsImitating] = useState(false);
   const [isVanquishing, setIsVanquishing] = useState(false);
+  const [isMinistering, setIsMinistering] = useState(false);
+  const [isEncouraging, setIsEncouraging] = useState(false);
+  const [encouragementCard, setEncouragementCard] = useState<any | null>(null);
+  const [isRequestingCard, setIsRequestingCard] = useState(false);
+  const [guidanceCard, setGuidanceCard] = useState<any | null>(null);
+  const [isResurrecting, setIsResurrecting] = useState(false);
+  const [resurrectionCard, setResurrectionCard] = useState<any | null>(null);
+  const [ministerCard, setMinisterCard] = useState<any | null>(null);
+  const [vigilanceCards, setVigilanceCards] = useState<any[] | null>(null);
+  const [vigilanceHazards, setVigilanceHazards] = useState<any[] | null>(null);
+  const [vigilanceCard, setVigilanceCard] = useState<any | null>(null);
+  const [wisdomCards, setWisdomCards] = useState<any[] | null>(null);
+  const [wisdomCard, setWisdomCard] = useState<any | null>(null);
+  const [pendingPrayerDraws, setPendingPrayerDraws] = useState(0);
+  const [pendingDiscardNext, setPendingDiscardNext] = useState(false);
   const [animatingCard, setAnimatingCard] = useState<any | null>(null);
   const [skipCardDelay, setSkipCardDelay] = useState(false);
   const [skipEntireAnimation, setSkipEntireAnimation] = useState(false);
@@ -105,31 +132,59 @@ export default function LampstandFinal() {
     let newDeck: any[] = [];
     
     // Actions & Armor
-    for (let i = 0; i < numPlayers * 2; i++) {
+    const actionCardCount = Math.floor(numPlayers * 1.5);
+    for (let i = 0; i < actionCardCount; i++) {
        newDeck.push({ ...CARD_TYPES.insight, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.guidance, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.patience, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.kindness, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.encouragement, uid: Math.random() }); 
        newDeck.push({ ...CARD_TYPES.modesty, uid: Math.random() }); 
-       newDeck.push({ ...CARD_TYPES.imitate, uid: Math.random() }); 
+       newDeck.push({ ...CARD_TYPES.imitate, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.wisdom, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.prayer, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.minister, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.vigilance, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.discernment, uid: Math.random() });
     }
     
     const armorTypes = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
+    const armorCount = Math.floor(numPlayers / 2);
     armorTypes.forEach(t => {
+        for (let i = 0; i < armorCount; i++) {
         newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() });
-        if(numPlayers > 2) newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() });
+        }
     });
 
     CHARACTERS_DB.forEach((char: any) => {
-        newDeck.push({ id: char.id, uid: Math.random() });
+        newDeck.push({ ...char, uid: Math.random() });
     });
+
+    // Add Faith (defuse) cards: # of players * 1.75 rounded down
+    const faithCount = Math.floor(numPlayers * 1.75);
+    for (let i = 0; i < faithCount; i++) {
+      newDeck.push({ ...CARD_TYPES.faith, uid: Math.random() });
+    }
+
+    // Add Resurrection cards: # of players / 2 rounded down
+    const resurrectionCount = Math.floor(numPlayers / 2);
+    for (let i = 0; i < resurrectionCount; i++) {
+      newDeck.push({ ...(CARD_TYPES as any).resurrection, uid: Math.random() });
+    }
 
     // Add 1 DCS
     newDeck.push({ ...(CARD_TYPES as any).days_cut_short, uid: Math.random() });
 
-    FRUITS.forEach(f => newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: f, uid: Math.random() }));
-    LOVE_TRAITS.forEach(l => newDeck.push({ ...(CARD_TYPES as any).love, subTitle: l, uid: Math.random() }));
+    // Add Fruit/Love cards: 2x each for better vanquish balance
+    // This gives 18 fruit + 18 love = 36 total cards (enough for 12 vanquishes)
+    FRUITS.forEach(f => {
+      newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: f, uid: Math.random() });
+      newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: f, uid: Math.random() });
+    });
+    LOVE_TRAITS.forEach(l => {
+      newDeck.push({ ...(CARD_TYPES as any).love, subTitle: l, uid: Math.random() });
+      newDeck.push({ ...(CARD_TYPES as any).love, subTitle: l, uid: Math.random() });
+    });
 
     const trials = ['trial_anxiety', 'trial_time', 'trial_materialism', 'trial_doubt', 'trial_associations'];
     trials.forEach(t => { for(let i=0; i<3; i++) newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() }); });
@@ -137,32 +192,42 @@ export default function LampstandFinal() {
     newDeck = shuffle(newDeck);
     
     // Deal Starter Hands
+    // Exclude event cards from starter hands
     newPlayers.forEach(p => { 
-      const safe = newDeck.filter((c: any) => !c.id.startsWith('trial_') && c.id !== 'stumble' && c.id !== 'discord' && c.id !== 'days_cut_short');
-      const hazards = newDeck.filter((c: any) => c.id.startsWith('trial_') || c.id === 'stumble' || c.id === 'discord' || c.id === 'days_cut_short');
+      const safe = newDeck.filter((c: any) => c.id && !c.id.startsWith('trial_') && c.id !== 'stumble' && c.id !== 'discord' && c.id !== 'days_cut_short' && c.id !== 'event_gt' && c.id !== 'event_armageddon');
+      const hazards = newDeck.filter((c: any) => c.id && (c.id.startsWith('trial_') || c.id === 'stumble' || c.id === 'discord' || c.id === 'days_cut_short'));
+      const events = newDeck.filter((c: any) => c.id && (c.id === 'event_gt' || c.id === 'event_armageddon'));
       const dealt = safe.splice(0, 3);
       p.hand.push(...dealt);
-      newDeck = shuffle([...safe, ...hazards]);
+      newDeck = shuffle([...safe, ...hazards, ...events]);
     });
     
-    // Shuffle in Major Events
-    const gtCard = { title: 'Great Tribulation', id: 'event_gt', type: 'Event', desc: 'Max Active Characters = 2.', color: 'bg-zinc-800 border-red-500', icon: AlertTriangle };
-    
-    const mid = Math.floor(newDeck.length / 2);
-    newDeck.splice(mid, 0, gtCard);
-
+    // Add stumbles and discords first
     for (let i = 0; i < 8; i++) newDeck.push({ ...CARD_TYPES.stumble, uid: Math.random() });
     for (let i = 0; i < 4; i++) newDeck.push({ ...CARD_TYPES.discord, uid: Math.random() });
     
+    // Shuffle the deck first
     newDeck = shuffle(newDeck);
+    
+    // Place Major Events
+    const gtCard = { title: 'Great Tribulation', id: 'event_gt', type: 'Event', desc: 'Unity -1, All lose 1 card, Cannot remove burdens, Only Breastplate+Shield+Helmet can play Fruit/Love, Max Characters = 2.', color: 'bg-zinc-800 border-red-500', icon: AlertTriangle };
+    const armageddonCard = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', scripture: { text: 'And they gathered them together to the place that is called in Hebrew Armageddon.', ref: 'Re 16:16' }, color: 'bg-zinc-900 border-red-600', icon: Flame };
+    
+    // Place Great Tribulation in the lower 1/3 of the deck
+    const lowerThirdStart = Math.floor(newDeck.length * (2/3));
+    const gtPosition = lowerThirdStart + Math.floor(Math.random() * (newDeck.length - lowerThirdStart));
+    newDeck.splice(gtPosition, 0, gtCard);
+    
+    // Place Armageddon at the bottom of the deck
+    newDeck.push(armageddonCard);
 
-    // Initialize Questions Deck (30 questions, random difficulty)
+    // Initialize Questions Deck (35 questions, random difficulty)
     const allQuestions: any[] = [];
     const easyQuestions = TRIVIA_DB.EASY;
     const hardQuestions = TRIVIA_DB.HARD;
     
-    // Add 25 easy and 5 hard questions (total 30)
-    for (let i = 0; i < 25; i++) {
+    // Add 30 easy and 5 hard questions (total 35)
+    for (let i = 0; i < 30; i++) {
       const q = easyQuestions[Math.floor(Math.random() * easyQuestions.length)];
       allQuestions.push({ ...q, uid: Math.random(), difficulty: 'EASY' });
     }
@@ -189,6 +254,8 @@ export default function LampstandFinal() {
     setCurrentQuestion(null);
     setVanquishActive(false);
     setVanquishFailed(false);
+    setPendingPrayerDraws(0);
+    setPendingDiscardNext(false);
     showNotification(`Unity Range: ${numPlayers - 1}`, "white");
   };
 
@@ -230,7 +297,9 @@ export default function LampstandFinal() {
     setActivePlayCount(0);
     if (!skipReset) setDrawsRequired(1);
              setOpenHandIndices(prev => new Set([...prev, nextIdx]));
-             setIsDrawing(false);
+            setIsDrawing(false);
+            setPendingPrayerDraws(0);
+            setPendingDiscardNext(false);
         } else {
              const updated = [...players];
              updated[nextIdx].activeCards.splice(burdenIdx, 1);
@@ -254,6 +323,7 @@ export default function LampstandFinal() {
              if (!skipReset) setDrawsRequired(1);
              setOpenHandIndices(prev => new Set([...prev, skipNextIdx]));
              setIsDrawing(false);
+             setPendingPrayerDraws(0);
              
              const actualNextPlayer = players[skipNextIdx];
              if (!actualNextPlayer) {
@@ -272,8 +342,10 @@ export default function LampstandFinal() {
         setActivePlayCount(0);
         if (!skipReset) setDrawsRequired(1);
         setOpenHandIndices(prev => new Set([...prev, nextIdx]));
-        setIsDrawing(false);
-        
+            setIsDrawing(false);
+            setPendingPrayerDraws(0);
+            setPendingDiscardNext(false);
+            
     if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
       const nextQuestion = vanquishQueue[0];
       if (nextQuestion.playerId === nextPlayer.id) {
@@ -288,6 +360,11 @@ export default function LampstandFinal() {
       setIsDrawing(false);
       return;
     }
+    // Don't end turn if there are pending prayer draws
+    if (pendingPrayerDraws > 0) {
+      setIsDrawing(false);
+      return;
+    }
     if (drawsRequired > 1) {
        setDrawsRequired(prev => prev - 1);
        setIsDrawing(false);
@@ -295,7 +372,7 @@ export default function LampstandFinal() {
     } else {
        nextTurn();
     }
-  }, [drawsRequired, vanquishActive]);
+  }, [drawsRequired, vanquishActive, pendingPrayerDraws]);
 
   const handleDraw = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -309,24 +386,109 @@ export default function LampstandFinal() {
       showNotification("Question incoming! Please wait.", "zinc");
       return;
     }
-    if (deck.length === 0) { setGameState('won'); return; }
+    // Climactic ending: Check win/loss conditions when deck runs out
+    if (deck.length === 0) {
+      // Count remaining stumbles in discard pile
+      const remainingStumbles = discardPile.filter((c: any) => c.id === 'stumble').length;
+      const remainingDiscords = discardPile.filter((c: any) => c.id === 'discord').length;
+      const totalHazardsRemaining = remainingStumbles + remainingDiscords;
+      
+      // Victory conditions:
+      // 1. All stumbles vanquished (0 stumbles remaining) OR
+      // 2. Unity Level is high enough (>= 3) and no players are knocked out
+      const allPlayersAlive = players.every((p: any) => !p.isOut);
+      const allStumblesVanquished = remainingStumbles === 0;
+      
+      if (allStumblesVanquished || (unity >= 3 && allPlayersAlive && totalHazardsRemaining <= 2)) {
+        setGameState('won');
+        showNotification("The Lampstand Shines Bright! Unity Prevails!", "emerald");
+      } else {
+        // Climactic final stand: If Unity is low or players are knocked out, check final conditions
+        if (unity === 0 || players.filter((p: any) => !p.isOut).length === 0) {
+          setGameState('lost');
+          showNotification("Darkness Consumes the Lampstand...", "red");
+        } else {
+          // Partial victory: Some stumbles remain but Unity holds
+          setGameState('won');
+          showNotification(`Unity Endures! ${remainingStumbles} stumble(s) remain, but the light shines on!`, "amber");
+        }
+      }
+      return;
+    }
     
     setIsDrawing(true);
 
+    // Check if this is a Prayer draw first
+    if (pendingPrayerDraws > 0) {
     const card = deck[0];
     const newDeck = deck.slice(1);
-    setDeck(newDeck);
+      
+      if (card.id === 'fruit' || card.id === 'love') {
+        // Keep the card - add to hand
+        setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'card', targetType: 'hand' });
+        setDeck(newDeck);
+        setPendingPrayerDraws(prev => prev - 1);
+        setSkipCardDelay(false);
+        // Don't end turn - let animation complete normally but skip turn end check
+        return;
+      } else {
+        // Shuffle back into deck
+        const shuffled = shuffle([...newDeck, card]);
+        setDeck(shuffled);
+        setPendingPrayerDraws(prev => prev - 1);
+        showNotification("Prayer: Card returned to deck.", "zinc");
+        setIsDrawing(false);
+        return;
+      }
+    }
+
+    // Normal draw logic
+    const card = deck[0];
+    const newDeck = deck.slice(1);
+
+    // Check if Discernment is active - discard next card (except stumble)
+    if (pendingDiscardNext) {
+      setPendingDiscardNext(false);
+      if (card.id !== 'stumble') {
+        // Discard the card
+        setDiscardPile(prev => [card, ...prev]);
+        setDeck(newDeck);
+        showNotification(`Discernment: ${card.title || card.id} discarded`, "cyan");
+        setIsDrawing(false);
+        // End turn after Discernment discards a card
+        nextTurn();
+        return;
+      } else {
+        // Stumble cannot be discarded - proceed normally
+        showNotification("Discernment: Stumble cannot be discarded!", "cyan");
+      }
+    }
 
     if (card.id === 'event_gt') {
+       // When Great Tribulation is drawn, shuffle remaining deck with Armageddon
+       // Find Armageddon in the remaining deck
+       const armageddonIndex = newDeck.findIndex((c: any) => c.id === 'event_armageddon');
+       if (armageddonIndex !== -1) {
+         // Shuffle the remaining deck (which includes Armageddon)
+         const shuffledRemaining = shuffle(newDeck);
+         setDeck(shuffledRemaining);
+         showNotification("Great Tribulation! The final battle approaches...", "purple");
+       } else {
+         setDeck(newDeck);
+       }
        setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'event', targetType: 'discard' });
        setSkipCardDelay(false);
        return;
     }
     if (card.id === 'event_armageddon') {
+       // Armageddon drawn - game is won regardless of stumbles
+       setDeck(newDeck);
        setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'event', targetType: 'discard' });
        setSkipCardDelay(false);
-        return;
+       return;
     }
+    
+    setDeck(newDeck);
 
     if (card.id === 'fruit' || card.id === 'love') {
        setPendingCard(card);
@@ -342,7 +504,8 @@ export default function LampstandFinal() {
 
     if (card.id === 'stumble') {
       const victim = players[turnIndex];
-      const shieldIndex = victim.activeCards.findIndex((c: any) => c.id === 'shield_equip');
+      // Find an unused shield (one that hasn't deflected yet)
+      const shieldIndex = victim.activeCards.findIndex((c: any) => c.id === 'shield_equip' && !c.isUsed);
       if (shieldIndex !== -1) {
          setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'stumble_deflected', targetType: 'discard' });
          setSkipCardDelay(false);
@@ -391,7 +554,7 @@ export default function LampstandFinal() {
           if (card.id === 'trial_associations' && victim.activeCards.some((c: any) => c.id === 'char_noah')) isImmune = true;
 
           if (isImmune) {
-             setDiscardPile(prev => [...prev, card]);
+             setDiscardPile(prev => [card, ...prev]);
              showNotification("Character Immunity! Trial discarded.", "indigo");
           } else {
              setPlayers(prevPlayers => {
@@ -444,10 +607,14 @@ export default function LampstandFinal() {
 
           setPlayers(prevPlayers => {
             const updatedPlayers = [...prevPlayers];
-            const shieldIndex = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'shield_equip');
+            // Find an unused shield and mark it as used (but keep it in activeCards)
+            const shieldIndex = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'shield_equip' && !c.isUsed);
             if (shieldIndex !== -1) {
-              const shieldCard = updatedPlayers[targetPlayerIndex].activeCards.splice(shieldIndex, 1)[0];
-              setDiscardPile(prev => [shieldCard, ...prev]);
+              // Mark shield as used instead of removing it
+              updatedPlayers[targetPlayerIndex].activeCards[shieldIndex] = {
+                ...updatedPlayers[targetPlayerIndex].activeCards[shieldIndex],
+                isUsed: true
+              };
             }
             return updatedPlayers;
           });
@@ -459,17 +626,17 @@ export default function LampstandFinal() {
             return newDeck;
           });
 
-          showNotification("Large Shield deflected the Stumble!", "emerald");
+          showNotification("Large Shield deflected the Stumble! (Shield remains but is now inactive)", "emerald");
         } else if (animatingCard.type === 'discord') {
           const card = animatingCard.card;
           const targetPlayerIndex = animatingCard.targetPlayerIndex;
 
           const hasBreastplate = players[targetPlayerIndex].activeCards.some((c: any) => c.id === 'breastplate');
           if (hasBreastplate) {
-             setDiscardPile(prev => [...prev, card]);
+             setDiscardPile(prev => [card, ...prev]);
              showNotification("Breastplate guarded the heart! No Unity lost.", "cyan");
           } else {
-             setDiscardPile(prev => [...prev, card]);
+             setDiscardPile(prev => [card, ...prev]);
              setUnity(prev => Math.max(0, prev - 1));
              showNotification("Discord! Unity decreased (-1 Range)", "orange");
           }
@@ -480,7 +647,27 @@ export default function LampstandFinal() {
              if (!cutShort) {
                 setMaxCharacters(2);
                 setCurrentChallenge(card);
-                showNotification("Great Tribulation! Char Limit = 2", "purple");
+                
+                // Great Tribulation negative effects
+                // 1. Unity -1
+                setUnity(prev => Math.max(0, prev - 1));
+                
+                // 2. Each player loses 1 card
+                setPlayers(prevPlayers => {
+                  const updatedPlayers = prevPlayers.map((p: any) => {
+                    if (p.hand.length > 0) {
+                      const newHand = [...p.hand];
+                      const randomIndex = Math.floor(Math.random() * newHand.length);
+                      const lostCard = newHand.splice(randomIndex, 1)[0];
+                      setDiscardPile(prev => [lostCard, ...prev]);
+                      return { ...p, hand: newHand };
+                    }
+                    return p;
+                  });
+                  return updatedPlayers;
+                });
+                
+                showNotification("Great Tribulation! Unity -1, All players lost 1 card, Char Limit = 2", "purple");
              } else {
                 showNotification("Tribulation Skipped (Cut Short)", "zinc");
                 setDiscardPile(prev => [card, ...prev]);
@@ -488,7 +675,12 @@ export default function LampstandFinal() {
           } else if (card.id === 'event_armageddon') {
              setMaxCharacters(99);
              setCurrentChallenge(card);
-             showNotification("ARMAGEDDON! Activate EVERYTHING!", "red");
+             showNotification("ARMAGEDDON! All Characters Activated!", "red");
+             // Game is won upon drawing Armageddon, regardless of stumbles
+             setTimeout(() => {
+               setGameState('won');
+               showNotification("VICTORY! The Final Battle is Won! The Lampstand Stands Firm!", "emerald");
+             }, 2000);
           }
         } else if (animatingCard.type === 'play_active') {
           // Card being activated to active tableau
@@ -511,15 +703,46 @@ export default function LampstandFinal() {
                 const firstCharIdx = player.activeCards.findIndex((c: any) => c.id.startsWith('char_'));
                 if (firstCharIdx !== -1) {
                   const old = player.activeCards.splice(firstCharIdx, 1)[0];
-                  setDiscardPile(prev => [old, ...prev]);
+                  // Only discard the old character, not the new one being equipped
+                  setDiscardPile(prev => {
+                    // Ensure the new card being equipped is NOT in the discard pile
+                    const filtered = prev.filter((c: any) => c.uid !== card.uid);
+                    return [old, ...filtered];
+                  });
+                }
+              }
+              
+              // Special effect: Sarah removes ALL active doubt cards when activated
+              // Check BEFORE adding Sarah to activeCards
+              if (card.id === 'char_sarah') {
+                const doubtCards = player.activeCards.filter((c: any) => c.id === 'trial_doubt');
+                if (doubtCards.length > 0) {
+                  // Remove all doubt cards from active cards
+                  player.activeCards = player.activeCards.filter((c: any) => c.id !== 'trial_doubt');
+                  // Add all doubt cards to discard pile
+                  doubtCards.forEach((doubtCard: any) => {
+                    setDiscardPile(prev => {
+                      // Ensure we don't add duplicates
+                      if (!prev.some((c: any) => c.uid === doubtCard.uid)) {
+                        return [doubtCard, ...prev];
+                      }
+                      return prev;
+                    });
+                  });
+                  showNotification(`Sarah's Faith: ${doubtCards.length} Doubt card(s) removed!`, "emerald");
                 }
               }
             }
             
-            // Add to active cards
+            // Add to active cards (only if not already there)
             if (!player.activeCards.some((c: any) => c.uid === card.uid)) {
               player.activeCards.push(card);
             }
+            
+            // IMPORTANT: Ensure the new card is NOT in discard pile
+            // Remove it if it somehow got added (shouldn't happen, but safety check)
+            setDiscardPile(prev => prev.filter((c: any) => c.uid !== card.uid));
+            
             return updatedPlayers;
           });
           
@@ -533,6 +756,7 @@ export default function LampstandFinal() {
           // Card being played and discarded
           const card = animatingCard.card;
           const targetPlayerIndex = animatingCard.targetPlayerIndex;
+          const isFaithCard = card.id === 'faith';
           
           setPlayers(prevPlayers => {
             const updatedPlayers = [...prevPlayers];
@@ -558,6 +782,78 @@ export default function LampstandFinal() {
             }
             return updatedPlayers;
           });
+          
+          // Clear animation state
+        setAnimatingCard(null);
+          setSkipCardDelay(false);
+          setSkipEntireAnimation(false);
+          setIsDrawing(false);
+          
+          // Faith card ends the turn
+          if (isFaithCard) {
+        setTimeout(() => {
+              checkTurnEnd();
+            }, 100);
+            return;
+          }
+          
+          // Don't end turn - other action cards don't end turn
+          return;
+        } else if (animatingCard.type === 'fruit_love_success') {
+          // Fruit/Love card successfully answered trivia - add to hand
+          const card = animatingCard.card;
+          const targetPlayerIndex = animatingCard.targetPlayerIndex;
+          
+          setPlayers(prevPlayers => {
+            const updatedPlayers = [...prevPlayers];
+            const alreadyExists = updatedPlayers[targetPlayerIndex].hand.some((c: any) => c.uid === card.uid);
+            if (!alreadyExists) {
+              updatedPlayers[targetPlayerIndex].hand.push(card);
+              
+              // Check for Breastplate effect
+              if (card.id === 'fruit' && updatedPlayers[targetPlayerIndex].activeCards.some((c: any) => c.id === 'breastplate')) {
+                setUnity(prev => Math.min(players.length - 1, prev + 1));
+                showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
+              } else {
+                showNotification("Correct! Card added.", "emerald");
+              }
+            }
+            return updatedPlayers;
+          });
+          
+          // End turn after fruit/love success - explicitly call nextTurn
+          setAnimatingCard(null);
+          setSkipCardDelay(false);
+          setSkipEntireAnimation(false);
+          setIsDrawing(false);
+          setTimeout(() => {
+            // Explicitly end the turn for fruit/love trivia success
+            nextTurn();
+          }, 100);
+          return;
+        } else if (animatingCard.type === 'fruit_love_fail') {
+          // Fruit/Love card failed trivia - shuffle back to deck
+          const card = animatingCard.card;
+          
+          setDeck(prevDeck => {
+            const newDeck = [...prevDeck];
+            const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
+            newDeck.splice(insertAt, 0, card);
+            return newDeck;
+          });
+          
+          showNotification("Wrong answer! Card returned to deck.", "red");
+          
+          setAnimatingCard(null);
+          setSkipCardDelay(false);
+          setSkipEntireAnimation(false);
+          setIsDrawing(false);
+          
+          // End turn after failed fruit/love trivia
+          setTimeout(() => {
+            nextTurn();
+          }, 100);
+          return;
         } else {
           // Regular card draw - add to hand
           setPlayers(prevPlayers => {
@@ -576,6 +872,8 @@ export default function LampstandFinal() {
         setIsDrawing(false);
         setTimeout(() => {
           if (vanquishActive) return;
+          // Don't end turn if there are pending prayer draws
+          if (pendingPrayerDraws > 0) return;
           if (drawsRequired > 1) {
             setDrawsRequired(prev => prev - 1);
             showNotification(`Must draw ${drawsRequired - 1} more!`, "blue");
@@ -588,7 +886,7 @@ export default function LampstandFinal() {
       if (skipEntireAnimation) {
         executeCompletion();
       } else {
-        const delay = skipCardDelay ? 1200 : 4000;
+        const delay = skipCardDelay ? 1200 : 1000;
         const timer = setTimeout(() => {
           executeCompletion();
         }, delay);
@@ -605,11 +903,25 @@ export default function LampstandFinal() {
      const receiverIdx = players.findIndex(p => p.id === targetId);
      const newPlayers = [...players];
      const cIdx = newPlayers[giverIdx].hand.findIndex((c: any) => c.uid === card.uid);
-     if (cIdx === -1) return;
+     if (cIdx === -1) {
+       setKindnessCard(null);
+       return;
+     }
      const gift = newPlayers[giverIdx].hand.splice(cIdx, 1)[0];
      newPlayers[receiverIdx].hand.push(gift);
      setPlayers(newPlayers);
+     
+     // Remove kindness card only on successful gift
+     if (kindnessCard) {
+       const kindnessIdx = newPlayers[giverIdx].hand.findIndex((c: any) => c.uid === kindnessCard.uid);
+       if (kindnessIdx !== -1) {
+         removeCardFromHand(giverIdx, kindnessCard.uid, false, true);
+       }
+       setKindnessCard(null);
+     }
+     
      showNotification(`Sent ${gift.title} to ${newPlayers[receiverIdx].name}!`, "pink");
+     // Don't end turn - kindness card doesn't end turn
   };
 
   const handleImitate = (targetCard: any) => {
@@ -620,6 +932,244 @@ export default function LampstandFinal() {
      currentPlayer.activeCards.push(clonedCard);
      setPlayers(updatedPlayers);
      showNotification(`Imitating ${targetCard.title}!`, "teal");
+  };
+
+  const handleMinisterRemoveBurden = (targetPlayerId: number) => {
+    if (!ministerCard) return;
+    
+    // Cannot remove burdens during Great Tribulation
+    if (currentChallenge?.title === 'Great Tribulation') {
+      setIsMinistering(false);
+      setMinisterCard(null);
+      showNotification("Cannot remove burdens during Great Tribulation!", "red");
+      return;
+    }
+    
+    setIsMinistering(false);
+    const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === ministerCard.uid));
+    if (ownerIdx === -1) {
+      setMinisterCard(null);
+      return;
+    }
+    
+    const updatedPlayers = [...players];
+    const targetIdx = updatedPlayers.findIndex((p: any) => p.id === targetPlayerId);
+    if (targetIdx !== -1) {
+      const burdenIdx = updatedPlayers[targetIdx].activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
+      if (burdenIdx !== -1) {
+        updatedPlayers[targetIdx].activeCards.splice(burdenIdx, 1);
+        setPlayers(updatedPlayers);
+        removeCardFromHand(ownerIdx, ministerCard.uid, false, true);
+        setMinisterCard(null);
+        showNotification(`Removed burden from ${updatedPlayers[targetIdx].name}!`, "amber");
+        // Minister doesn't end turn
+      } else {
+        setMinisterCard(null);
+        showNotification("No burden found on target player.", "zinc");
+      }
+    } else {
+      setMinisterCard(null);
+    }
+  };
+
+  const handleMinisterGiveCard = (card: any, targetPlayerId: number) => {
+    if (!ministerCard) return;
+    
+    setIsMinistering(false);
+    const giverIdx = turnIndex;
+    const receiverIdx = players.findIndex((p: any) => p.id === targetPlayerId);
+    const newPlayers = [...players];
+    const cIdx = newPlayers[giverIdx].hand.findIndex((c: any) => c.uid === card.uid);
+    if (cIdx === -1) {
+      setMinisterCard(null);
+      return;
+    }
+    const gift = newPlayers[giverIdx].hand.splice(cIdx, 1)[0];
+    newPlayers[receiverIdx].hand.push(gift);
+    setPlayers(newPlayers);
+    // Remove the minister card
+    removeCardFromHand(giverIdx, ministerCard.uid, false, true);
+    setMinisterCard(null);
+    showNotification(`Minister: Sent ${gift.title} to ${newPlayers[receiverIdx].name}!`, "amber");
+    // Minister doesn't end turn
+  };
+
+  const handleEncouragementConfirm = (targetPlayerId: number) => {
+    if (!encouragementCard) return;
+    
+    setIsEncouraging(false);
+    const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === encouragementCard.uid));
+    if (ownerIdx === -1) {
+      setEncouragementCard(null);
+      return;
+    }
+    
+    if (gameState === 'stumbling') {
+      // Save from stumble
+      const victimIdx = players.findIndex(p => p.id === stumblingPlayerId);
+      if (victimIdx !== -1 && targetPlayerId === stumblingPlayerId) {
+        removeCardFromHand(ownerIdx, encouragementCard.uid, false, true);
+        returnStumbleToDeck();
+        showNotification(`Saved by ${players[ownerIdx].name}!`, "amber");
+        setIsDrawing(true);
+      }
+    } else {
+      // Remove burden during normal play
+      // Cannot remove burdens during Great Tribulation
+      if (currentChallenge?.title === 'Great Tribulation') {
+        setEncouragementCard(null);
+        setIsEncouraging(false);
+        showNotification("Cannot remove burdens during Great Tribulation!", "red");
+        return;
+      }
+      
+      const newPlayers = [...players];
+      const targetIdx = newPlayers.findIndex((p: any) => p.id === targetPlayerId);
+      if (targetIdx !== -1) {
+        const burdenIdx = newPlayers[targetIdx].activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
+        if (burdenIdx !== -1) {
+          const removedBurden = newPlayers[targetIdx].activeCards.splice(burdenIdx, 1)[0];
+          setPlayers(newPlayers);
+          removeCardFromHand(ownerIdx, encouragementCard.uid, false, true);
+          const targetName = targetIdx === ownerIdx ? 'yourself' : newPlayers[targetIdx].name;
+          showNotification(`Removed ${removedBurden.title} from ${targetName}!`, "emerald");
+          
+          // Encouragement to remove burden does NOT end the turn
+          // Only encouragement to defuse a stumble ends the turn (handled in stumbling branch above)
+        } else {
+          showNotification("No burden found on target player.", "zinc");
+        }
+      }
+    }
+    
+    setEncouragementCard(null);
+  };
+
+  const handleGuidanceRequest = (requestedCard: any, targetPlayerId: number) => {
+    if (!guidanceCard) return;
+    
+    setIsRequestingCard(false);
+    const requesterIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === guidanceCard.uid));
+    if (requesterIdx === -1) {
+      setGuidanceCard(null);
+      return;
+    }
+    
+    const targetIdx = players.findIndex((p: any) => p.id === targetPlayerId);
+    if (targetIdx === -1) {
+      setGuidanceCard(null);
+      return;
+    }
+    
+    // Validate Unity Level range
+    const targetPlayer = players[targetIdx];
+    if (targetPlayer.isOut) {
+      showNotification("Cannot request from knocked-out player!", "red");
+      setGuidanceCard(null);
+      return;
+    }
+    
+    const dist = getDistance(requesterIdx, targetIdx, players.length);
+    const hasJobCharacter = targetPlayer.activeCards.some((c: any) => c.id === 'char_job');
+    if (dist > unity && !hasJobCharacter) {
+      showNotification("Target player is out of Unity Level range!", "red");
+      setGuidanceCard(null);
+      return;
+    }
+    
+    const newPlayers = [...players];
+    const cardIdx = newPlayers[targetIdx].hand.findIndex((c: any) => c.uid === requestedCard.uid);
+    if (cardIdx === -1) {
+      showNotification("Card no longer available!", "red");
+      setGuidanceCard(null);
+      return;
+    }
+    
+    // Transfer card from target to requester
+    const transferredCard = newPlayers[targetIdx].hand.splice(cardIdx, 1)[0];
+    newPlayers[requesterIdx].hand.push(transferredCard);
+    setPlayers(newPlayers);
+    
+    // Remove guidance card
+    removeCardFromHand(requesterIdx, guidanceCard.uid, false, true);
+    setGuidanceCard(null);
+    showNotification(`Received ${transferredCard.title} from ${newPlayers[targetIdx].name}!`, "purple");
+    // Guidance doesn't end turn
+  };
+
+  const handleResurrection = (targetPlayerId: number) => {
+    if (!resurrectionCard) return;
+    
+    setIsResurrecting(false);
+    const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === resurrectionCard.uid));
+    if (ownerIdx === -1) {
+      setResurrectionCard(null);
+      return;
+    }
+    
+    const targetIdx = players.findIndex((p: any) => p.id === targetPlayerId);
+    if (targetIdx === -1 || !players[targetIdx].isOut) {
+      showNotification("Player not found or not knocked out!", "red");
+      setResurrectionCard(null);
+      return;
+    }
+    
+    // Revive the player
+    const newPlayers = [...players];
+    newPlayers[targetIdx].isOut = false;
+    // Give them a starting hand with 1 Faith card
+    newPlayers[targetIdx].hand = [{ ...CARD_TYPES.faith, uid: Math.random() }];
+    newPlayers[targetIdx].activeCards = [];
+    setPlayers(newPlayers);
+    
+    // Remove resurrection card
+    removeCardFromHand(ownerIdx, resurrectionCard.uid, false, true);
+    setResurrectionCard(null);
+    showNotification(`${newPlayers[targetIdx].name} has been resurrected!`, "rose");
+    // Resurrection doesn't end turn
+  };
+
+  const handleVigilanceDiscard = (card: any) => {
+    if (!vigilanceCards || !vigilanceHazards || !vigilanceCard) return;
+    
+    // Vigilance card was already removed when played (since modal is non-cancellable)
+    // Just process the discard action
+    
+    // Remove the selected hazard from deck
+    const newDeck = [...deck];
+    const hazardIdx = newDeck.findIndex((c: any) => c.uid === card.uid);
+    if (hazardIdx !== -1) {
+      const hazard = newDeck.splice(hazardIdx, 1)[0];
+      setDiscardPile(prev => [hazard, ...prev]);
+      setDeck(newDeck);
+      showNotification(`Vigilance: Discarded ${card.title}!`, "purple");
+    }
+    
+    setVigilanceCards(null);
+    setVigilanceHazards(null);
+    setVigilanceCard(null);
+    // Vigilance doesn't end turn
+  };
+
+  const handleWisdomRearrange = (reorderedCards: any[]) => {
+    if (!wisdomCards || !wisdomCard || reorderedCards.length !== unity) return;
+    
+    // Card is already removed when played (not in cardsRequiringConfirmation since modal is non-cancellable)
+    const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === wisdomCard.uid));
+    if (ownerIdx !== -1) {
+      // Safety check: if card is still in hand, remove it now
+      removeCardFromHand(ownerIdx, wisdomCard.uid, false, true);
+    }
+    
+    // Replace top cards (Unity Level) with reordered version
+    const newDeck = [...deck];
+    newDeck.splice(0, unity, ...reorderedCards);
+    setDeck(newDeck);
+    
+    setWisdomCards(null);
+    setWisdomCard(null);
+    showNotification(`Wisdom: ${unity} cards rearranged!`, "violet");
+    // Wisdom doesn't end turn
   };
 
   const playCard = (card: any) => {
@@ -634,22 +1184,11 @@ export default function LampstandFinal() {
           returnStumbleToDeck();
           showNotification("Faith Used!", "emerald");
           setIsDrawing(true);
+          // Turn will end after animation completes (handled in animation completion handler)
        }
        else if (card.id === 'encouragement') {
-          const victimIdx = players.findIndex(p => p.id === stumblingPlayerId);
-          const dist = getDistance(ownerIdx, victimIdx, players.length);
-          const victim = players[victimIdx];
-          const isJob = victim.activeCards.some((c: any) => c.id === 'char_job');
-          const isRuth = players[ownerIdx].activeCards.some((c: any) => c.id === 'char_ruth'); 
-
-          if (isJob || isRuth || dist <= unity) {
-             removeCardFromHand(ownerIdx, card.uid, false, true);
-             returnStumbleToDeck();
-             showNotification(`Saved by ${players[ownerIdx].name}!`, "amber");
-             setIsDrawing(true);
-          } else {
-             showNotification(`Too far! Needs Unity Range ${dist} (Current: ${unity})`, "red");
-          }
+          setEncouragementCard(card);
+          setIsEncouraging(true);
        }
        return;
     }
@@ -659,6 +1198,12 @@ export default function LampstandFinal() {
         return;
     }
     
+    // Faith card can only be played during stumble (not during normal play)
+    if (card.id === 'faith' && gameState !== 'stumbling') {
+      showNotification("Faith can only be played when you stumble!", "red");
+      return;
+    }
+    
     if (players[turnIndex].activeCards.some((c: any) => c.id === 'trial_doubt')) {
        if (['faith', 'encouragement'].includes(card.id)) {
           showNotification("Burden of Doubt! Cannot play Faith/Encourage.", "red");
@@ -666,11 +1211,28 @@ export default function LampstandFinal() {
        }
     }
 
+    // Cards that depend on Unity Level cannot be played when Unity is 0
+    const unityDependentCards = ['wisdom', 'insight', 'patience', 'vigilance', 'guidance', 'kindness', 'encouragement', 'minister'];
+    if (unityDependentCards.includes(card.id) && unity === 0) {
+      showNotification("Unity Level is 0! Cannot play this card.", "red");
+      return;
+    }
+
     const isActiveCard = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(card.id) || card.id.startsWith('char_');
     if (isActiveCard) {
        if (activePlayCount >= 1) {
          showNotification("Max 1 Active Card per turn!", "red");
          return;
+       }
+       
+       // Armor cards can only be equipped if player has a character card active
+       const isArmorCard = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(card.id);
+       if (isArmorCard) {
+         const hasCharacter = players[turnIndex].activeCards.some((c: any) => c.id.startsWith('char_'));
+         if (!hasCharacter) {
+           showNotification("You need a Character card active to equip armor!", "red");
+           return;
+         }
        }
        
        // Character replacement will be handled in animation completion
@@ -681,7 +1243,7 @@ export default function LampstandFinal() {
     }
 
     if (card.id === 'kindness') {
-       removeCardFromHand(turnIndex, card.uid, false, true);
+       setKindnessCard(card);
        setIsGifting(true);
        return;
     }
@@ -690,12 +1252,52 @@ export default function LampstandFinal() {
        setIsImitating(true);
        return;
     }
+    if (card.id === 'fruit') {
+        const maxUnity = players.length - 1;
+        if (unity >= maxUnity) {
+            showNotification("Unity is already max!", "zinc");
+            return;
+        }
+        
+        // During Great Tribulation, only players with breastplate+shield+helmet can play fruit/love
+        if (currentChallenge?.title === 'Great Tribulation') {
+          const player = players[turnIndex];
+          const hasBreastplate = player.activeCards.some((c: any) => c.id === 'breastplate');
+          const hasShield = player.activeCards.some((c: any) => c.id === 'shield_equip');
+          const hasHelmet = player.activeCards.some((c: any) => c.id === 'helmet');
+          
+          if (!hasBreastplate || !hasShield || !hasHelmet) {
+            showNotification("Great Tribulation: Need Breastplate+Shield+Helmet to play Fruit/Love!", "red");
+            return;
+          }
+        }
+        
+        removeCardFromHand(turnIndex, card.uid, false, true);
+        setUnity(prev => Math.min(players.length - 1, prev + 1));
+        showNotification("Fruit played! Unity +1", "emerald");
+        // Fruit doesn't end turn
+       return;
+    }
     if (card.id === 'love') {
         const maxUnity = players.length - 1;
         if (unity >= maxUnity) {
             showNotification("Unity is already max!", "zinc");
             return;
         }
+        
+        // During Great Tribulation, only players with breastplate+shield+helmet can play fruit/love
+        if (currentChallenge?.title === 'Great Tribulation') {
+          const player = players[turnIndex];
+          const hasBreastplate = player.activeCards.some((c: any) => c.id === 'breastplate');
+          const hasShield = player.activeCards.some((c: any) => c.id === 'shield_equip');
+          const hasHelmet = player.activeCards.some((c: any) => c.id === 'helmet');
+          
+          if (!hasBreastplate || !hasShield || !hasHelmet) {
+            showNotification("Great Tribulation: Need Breastplate+Shield+Helmet to play Fruit/Love!", "red");
+            return;
+          }
+        }
+        
         removeCardFromHand(turnIndex, card.uid, false, true);
         setUnity(prev => prev + 1);
         showNotification("Love builds up! Unity +1", "pink");
@@ -715,7 +1317,14 @@ export default function LampstandFinal() {
         return;
     }
 
-    removeCardFromHand(turnIndex, card.uid, false, true);
+    // Cards that require modal confirmation should not be removed until confirmed
+    // Note: Insight, Vigilance, and Wisdom are removed immediately since their modals show cards and are non-cancellable
+    const cardsRequiringConfirmation = ['encouragement', 'minister', 'kindness', 'resurrection', 'guidance'];
+    const requiresConfirmation = cardsRequiringConfirmation.includes(card.id);
+    
+    if (!requiresConfirmation) {
+      removeCardFromHand(turnIndex, card.uid, false, true);
+    }
 
     switch (card.id) {
       case 'modesty':
@@ -724,58 +1333,116 @@ export default function LampstandFinal() {
         nextTurn(true); 
         break;
       case 'patience': 
-        const depth = players[turnIndex].activeCards.some((c: any) => c.id === 'sandals') ? 5 : 3;
+        // Use Unity Level by default, but Sandals adds +2
+        const depth = players[turnIndex].activeCards.some((c: any) => c.id === 'sandals') ? unity + 2 : unity;
+        if (depth === 0) {
+          showNotification("Unity Level is 0! Cannot play Patience.", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
+          return;
+        }
         if (deck.length > 0) {
            const newDeck = [...deck];
            const top = newDeck.shift();
            newDeck.splice(Math.min(newDeck.length, depth), 0, top);
            setDeck(newDeck);
-           showNotification(`Patience: Threat delayed.`, "blue");
+           showNotification(`Patience: Threat delayed ${depth} spots.`, "blue");
         }
         break;
       case 'guidance': 
-        const shuffled = shuffle([...deck]);
-        setDeck(shuffled);
-        if (players[turnIndex].activeCards.some((c: any) => c.id === 'sword')) {
-           setPeekCards([shuffled[0]]);
-           showNotification("Deck Shuffled + Peek!", "purple");
-        } else {
-           showNotification("Deck Shuffled", "purple");
-        }
+        setGuidanceCard(card);
+        setIsRequestingCard(true);
+        // Card stays in hand until modal is confirmed
+        break;
+      case 'resurrection':
+        setResurrectionCard(card);
+        setIsResurrecting(true);
         break;
       case 'insight': 
-        const count = players[turnIndex].activeCards.some((c: any) => c.id === 'belt') ? 5 : 3;
+        // Use Unity Level by default, but Belt of Truth adds +2
+        const count = players[turnIndex].activeCards.some((c: any) => c.id === 'belt') ? unity + 2 : unity;
+        if (count === 0) {
+          showNotification("Unity Level is 0! Cannot play Insight.", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
+          return;
+        }
         setPeekCards(deck.slice(0, count)); 
-        break;
+        // Insight doesn't end turn
+        return;
       case 'encouragement':
-         const newPlayers = [...players];
-         let removed = false;
-
-         for (let i = 1; i <= unity; i++) {
-            const targetIdx = (turnIndex + i) % players.length;
-            const target = newPlayers[targetIdx];
-            const burdenIdx = target.activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
-            if (burdenIdx !== -1) {
-               target.activeCards.splice(burdenIdx, 1);
-               removed = true;
-               showNotification(`Removed burden from ${target.name}!`, "emerald");
+         setEncouragementCard(card);
+         setIsEncouraging(true);
                break;
-            }
-         }
-         
-         if (!removed) {
-           const selfBurden = newPlayers[turnIndex].activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
-           if (selfBurden !== -1) {
-              newPlayers[turnIndex].activeCards.splice(selfBurden, 1);
-              removed = true;
-              showNotification("Removed own burden!", "emerald");
-           }
-         }
-         
-         if (removed) {
-             setPlayers(newPlayers);
+      case 'wisdom':
+        // Look at top cards (Unity Level), rearrange same number
+        const wisdomCount = unity;
+        if (wisdomCount === 0) {
+          showNotification("Unity Level is 0! Cannot play Wisdom.", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
+          return;
+        }
+        if (deck.length >= wisdomCount) {
+          setWisdomCard(card);
+          setWisdomCards(deck.slice(0, wisdomCount));
+          showNotification(`Wisdom: Rearrange top ${wisdomCount} cards (select ${wisdomCount} to reorder)`, "violet");
+        } else {
+          showNotification("Not enough cards in deck!", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
+        }
+        break;
+      case 'prayer':
+        // Set up pending prayer draw - next draw will trigger prayer effect
+        setPendingPrayerDraws(prev => prev + 1);
+        showNotification("Prayer: Next draw will check for Fruit/Love", "yellow");
+        break;
+      case 'discernment':
+        // Set up pending discard - next draw will be discarded (except stumble)
+        setPendingDiscardNext(true);
+        removeCardFromHand(turnIndex, card.uid, false, true);
+        showNotification("Discernment: Next card drawn will be discarded (except Stumble)", "cyan");
+        // Don't end turn - player will draw again
+        return;
+      case 'minister':
+        // Choose: Remove 1 burden OR give 1 card
+        setMinisterCard(card);
+        setIsMinistering(true);
+        break;
+      case 'vigilance':
+        // Look at top cards (Unity Level), discard 1 burden card if found
+        const vigilanceCount = unity;
+        if (vigilanceCount === 0) {
+          showNotification("Unity Level is 0! Cannot play Vigilance.", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
+          return;
+        }
+        if (deck.length >= vigilanceCount) {
+          const topCards = deck.slice(0, vigilanceCount);
+          const burdens = topCards.filter((c: any) => 
+            c.id.startsWith('trial_')
+          );
+          
+          if (burdens.length > 0) {
+            // Show cards and let player select burden to discard
+            // Card is already removed (not in cardsRequiringConfirmation since modal is non-cancellable)
+            setVigilanceCard(card);
+            setVigilanceCards(topCards);
+            setVigilanceHazards(burdens);
+            showNotification("Vigilance: Select a burden to discard", "purple");
          } else {
-             showNotification("No one in range has burdens.", "zinc");
+            setPeekCards(topCards);
+            showNotification("Vigilance: No burden cards found in top cards", "zinc");
+            // Card wasn't removed, so remove it now since there's no modal
+            removeCardFromHand(turnIndex, card.uid, false, true);
+            // Vigilance doesn't end turn
+          }
+        } else {
+          showNotification("Not enough cards in deck!", "red");
+          // Card wasn't removed, so remove it now since we're canceling
+          removeCardFromHand(turnIndex, card.uid, false, true);
          }
          break;
     }
@@ -788,8 +1455,11 @@ export default function LampstandFinal() {
   const handleVanquishConfirm = (selectedCards: { playerId: string, cardUid: string }[]) => {
     setIsVanquishing(false);
 
-    if (!selectedCards || selectedCards.length !== 3) {
-      showNotification(`Need exactly 3 cards for vanquish! Got ${selectedCards?.length || 0}`, "red");
+    // During Great Tribulation, require 5 cards instead of 3
+    const requiredCards = currentChallenge?.title === 'Great Tribulation' ? 5 : 3;
+
+    if (!selectedCards || selectedCards.length !== requiredCards) {
+      showNotification(`Need exactly ${requiredCards} cards for vanquish! Got ${selectedCards?.length || 0}`, "red");
       return;
     }
 
@@ -842,56 +1512,51 @@ export default function LampstandFinal() {
        rounds++;
      }
      
-    setVanquishQueue(queue);
+    // Set vanquish state first
     setVanquishActive(true);
     setVanquishFailed(false);
-
-     setGameState('playing');
-     setStumblingPlayerId(null);
-     
-    const drawerIdx = players.findIndex((p: any) => p.id === drawerId);
-     setTurnIndex(drawerIdx);
-    setOpenHandIndices(prev => new Set([...prev, drawerIdx]));
-     
+    setVanquishQueue(queue);
+    
+    // Don't change game state or turn index yet - wait for questions
+    // Keep the stumble state active until vanquish completes
+    
     if (queue.length > 0) {
       const firstPlayerId = queue[0].playerId;
       const firstPlayerIdx = players.findIndex((p: any) => p.id === firstPlayerId);
+      if (firstPlayerIdx !== -1) {
       setTurnIndex(firstPlayerIdx);
-      setOpenHandIndices(prev => new Set([...prev, firstPlayerIdx]));
-      showNotification(`Vanquish initiated! ${players.find((p: any) => p.id === firstPlayerId)?.name} draws first question.`, "indigo");
+        setOpenHandIndices(prev => new Set([...prev, firstPlayerIdx]));
+        showNotification(`Vanquish initiated! ${players[firstPlayerIdx].name} draws first question.`, "indigo");
 
-      setTimeout(() => {
-        drawNextQuestion(queue);
-      }, 100);
+        // Use setTimeout to ensure state is set before calling drawNextQuestion
+        // IMPORTANT: Don't call drawNextQuestion automatically - wait for player to click Questions pile
+        // The player must manually click the Questions pile to draw the first question
+    } else {
+        showNotification("Error: Could not find first player for vanquish!", "red");
+        setVanquishActive(false);
+        setVanquishQueue([]);
+      }
     } else {
       showNotification("Vanquish initiated but no questions needed!", "indigo");
+      setVanquishActive(false);
+      setVanquishQueue([]);
     }
   };
   
   const drawNextQuestion = (queueOverride: any = null) => {
     const queueToCheck = queueOverride || vanquishQueue;
     
-    if (queueToCheck.length === 0 || vanquishFailed) {
-      if (!vanquishFailed && queueToCheck.length === 0) {
-        setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
+    // If vanquish has failed, stop
+    if (vanquishFailed) {
         setVanquishActive(false);
         setCurrentQuestion(null);
-        setGameState('playing');
-        setStumblingPlayerId(null);
-        showNotification("VANQUISH SUCCESSFUL! Stumble removed forever!", "emerald");
-        
-        if (stumbleDrawerId) {
-          const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
-          const nextPlayerIdx = (drawerIdx + 1) % players.length;
-          setTurnIndex(nextPlayerIdx);
-          setOpenHandIndices(prev => new Set([...prev, nextPlayerIdx]));
-        }
-        setStumbleDrawerId(null);
-        setVanquishContributors([]);
         return;
       }
-      setVanquishActive(false);
-      setCurrentQuestion(null);
+    
+    // If queue is empty, something went wrong - don't auto-succeed
+    if (!queueToCheck || queueToCheck.length === 0) {
+      console.warn("Vanquish queue is empty but vanquish is active. This shouldn't happen.");
+      showNotification("Error: Vanquish queue is empty!", "red");
       return;
     }
     
@@ -942,7 +1607,7 @@ export default function LampstandFinal() {
     if (!currentQuestion) return;
     
     // Handle fruit/love trivia
-    if (pendingCard && trivia && !vanquishActive) {
+    if (pendingCard && trivia && trivia.type === 'KEEP' && !vanquishActive) {
       handleTriviaAnswer(isCorrect);
       setCurrentQuestion(null);
       return;
@@ -954,17 +1619,9 @@ export default function LampstandFinal() {
       setVanquishActive(false);
       setVanquishQueue([]);
       setCurrentQuestion(null);
-      returnStumbleToDeck();
       showNotification("Vanquish failed! Wrong answer.", "red");
-      
-      if (stumbleDrawerId) {
-        const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
-        const nextPlayerIdx = (drawerIdx + 1) % players.length;
-        setTurnIndex(nextPlayerIdx);
-        setOpenHandIndices(prev => new Set([...prev, nextPlayerIdx]));
-      }
-      setStumbleDrawerId(null);
-      setVanquishContributors([]);
+      // returnStumbleToDeck() will handle ending the stumble drawer's turn
+      returnStumbleToDeck();
       return;
     }
     
@@ -972,16 +1629,39 @@ export default function LampstandFinal() {
     
     if (vanquishQueue.length === 0) {
       setVanquishActive(false);
-      setDiscardPile(prev => [...prev, { ...(CARD_TYPES as any).stumble, uid: Math.random() }]);
+      const vanquishedStumble = { ...(CARD_TYPES as any).stumble, uid: Math.random() };
+      setDiscardPile(prev => [vanquishedStumble, ...prev]);
       setGameState('playing');
       setStumblingPlayerId(null);
-      showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
       
+      // Check if this was the last stumble for climactic ending
+      const remainingStumblesInDeck = deck.filter((c: any) => c.id === 'stumble').length;
+      const remainingStumblesInDiscard = [...discardPile, vanquishedStumble].filter((c: any) => c.id === 'stumble').length;
+      const totalStumblesRemaining = remainingStumblesInDeck + remainingStumblesInDiscard;
+      
+      if (totalStumblesRemaining === 0) {
+        showNotification("THE LAST STUMBLE VANQUISHED! The Lampstand Shines Eternal!", "emerald");
+        // Check win condition after a brief delay
+        setTimeout(() => {
+          if (deck.length === 0 || (unity >= 2 && players.every((p: any) => !p.isOut))) {
+            setGameState('won');
+            showNotification("VICTORY! Unity has triumphed over all darkness!", "emerald");
+          }
+        }, 2000);
+      } else {
+        showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
+      }
+      
+      // End the stumble drawer's turn - move to next player
       if (stumbleDrawerId) {
         const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
         const nextPlayerIdx = (drawerIdx + 1) % players.length;
         setTurnIndex(nextPlayerIdx);
+        setActivePlayCount(0);
+        setDrawsRequired(1);
         setOpenHandIndices(prev => new Set([...prev, nextPlayerIdx]));
+        setIsDrawing(false);
+        setPendingPrayerDraws(0);
       }
       setStumbleDrawerId(null);
       setVanquishContributors([]);
@@ -1062,16 +1742,18 @@ export default function LampstandFinal() {
     setStumblingPlayerId(null);
     setGameState('playing');
     
+    // End the stumble drawer's turn - move to next player
     const drawerId = stumbleDrawerId || (stumblingPlayerId ? players.find((p: any) => p.id === stumblingPlayerId)?.id : null);
     if (drawerId !== null && drawerId !== undefined) {
       const drawerIdx = players.findIndex((p: any) => p.id === drawerId);
       if (drawerIdx !== -1) {
       const nextPlayerIdx = (drawerIdx + 1) % players.length;
       setTurnIndex(nextPlayerIdx);
+        setActivePlayCount(0);
+        setDrawsRequired(1);
         setOpenHandIndices(prev => new Set([...prev, nextPlayerIdx]));
-        setTimeout(() => {
-          setIsDrawing(false);
-        }, 100);
+        setIsDrawing(false);
+        setPendingPrayerDraws(0);
       }
     }
     setStumbleDrawerId(null);
@@ -1094,14 +1776,9 @@ export default function LampstandFinal() {
         return;
      }
 
-     if (unity > 0) {
-       setUnity(prev => prev - 1);
-       setStumblingPlayerId(null);
-       setGameState('playing');
-       returnStumbleToDeck();
-       showNotification("Unity lost (-1), but you were saved!", "amber");
-       return;
-     }
+     // New mechanic: If cannot vanquish/defuse, always knock out regardless of unity
+     // Unity is also deducted by 1
+     setUnity(prev => Math.max(0, prev - 1));
 
      const newPlayers = [...players];
      newPlayers[victimIdx].hand = [];
@@ -1110,7 +1787,7 @@ export default function LampstandFinal() {
      setPlayers(newPlayers);
      setStumblingPlayerId(null);
      setGameState('playing');
-     showNotification(`${newPlayers[victimIdx].name} stumbled into darkness...`, "red");
+     showNotification(`${newPlayers[victimIdx].name} stumbled into darkness... Unity -1`, "red");
      
      if (newPlayers.every((p: any) => p.isOut)) setGameState('lost');
      else checkTurnEnd();
@@ -1119,44 +1796,40 @@ export default function LampstandFinal() {
   const handleTriviaAnswer = (isCorrect: boolean) => {
      if (trivia.type === 'KEEP') {
         if (isCorrect) {
-           // Animate card to hand
+           // Animate card to hand - the useEffect will handle adding it to the hand
            if (pendingCard) {
              setAnimatingCard({ 
                card: pendingCard, 
                targetPlayerIndex: turnIndex, 
-               type: 'card', 
+               type: 'fruit_love_success', 
                targetType: 'hand' 
              });
              setSkipCardDelay(false);
              
-             // Update state after animation completes
-             setTimeout(() => {
-           const updatedPlayers = [...players];
-           updatedPlayers[turnIndex].hand.push(pendingCard);
-               if (pendingCard.id === 'fruit' && updatedPlayers[turnIndex].activeCards.some((c: any) => c.id === 'breastplate')) {
-              setUnity(prev => Math.min(players.length - 1, prev + 1));
-              showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
-           } else {
-              showNotification("Correct! Card added.", "emerald");
-           }
-           setPlayers(updatedPlayers);
-               setTrivia(null);
-               setPendingCard(null);
-               checkTurnEnd();
-             }, 1200); // Wait for animation to complete
+             // Clear trivia state immediately
+             setTrivia(null);
+             setPendingCard(null);
            }
         } else {
-           const newDeck = [...deck];
-           newDeck.splice(Math.floor(Math.random() * (newDeck.length + 1)), 0, pendingCard);
-           setDeck(newDeck);
-           showNotification("Wrong! Card lost.", "red");
+           // Wrong answer - animate card back to deck
+           if (pendingCard) {
+             setAnimatingCard({ 
+               card: pendingCard, 
+               targetPlayerIndex: turnIndex, 
+               type: 'fruit_love_fail', 
+               targetType: 'deck' 
+             });
+             setSkipCardDelay(false);
+             
+             // Clear trivia state immediately
         setTrivia(null);
         setPendingCard(null);
-        checkTurnEnd();
+             // Turn will end after animation completes (handled in useEffect)
+           }
         }
      } else if (trivia.type === 'DEFUSE') {
         if (isCorrect) {
-           setDiscardPile(prev => [...prev, { ...CARD_TYPES.stumble, uid: Math.random() }]); 
+           setDiscardPile(prev => [{ ...CARD_TYPES.stumble, uid: Math.random() }, ...prev]); 
            setGameState('playing');
            setStumblingPlayerId(null);
            showNotification("STUMBLE REMOVED FOREVER! Great teamwork!", "emerald");
@@ -1272,7 +1945,7 @@ export default function LampstandFinal() {
                  
                  <button onClick={openVanquishModal} className="bg-indigo-600 hover:bg-indigo-500 text-white w-full py-4 mb-3 rounded-xl font-bold uppercase tracking-widest shadow-lg border-2 border-indigo-400 flex items-center justify-center gap-2">
                      <BookOpen size={20} /> Invoke Scripture (Vanquish)
-                     <span className="text-[10px] opacity-70 ml-2">Requires 3 Love/Fruit</span>
+                     <span className="text-[10px] opacity-70 ml-2">Requires {currentChallenge?.title === 'Great Tribulation' ? '5' : '3'} Love/Fruit</span>
                  </button>
 
                  <button onClick={handleKnockout} className="bg-red-600 hover:bg-red-500 text-white w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-lg">
@@ -1312,8 +1985,13 @@ export default function LampstandFinal() {
                   }}
                >
                   <Flame size={64} className={`${isDrawing ? 'text-slate-600' : 'text-amber-500/50 group-hover:text-amber-500'} transition-colors mb-4`} />
-                  <span className={`font-black uppercase tracking-widest ${isDrawing ? 'text-slate-600' : 'text-slate-500 group-hover:text-amber-100'}`}>Draw ({drawsRequired}) & End</span>
+                  <span className={`font-black uppercase tracking-widest ${isDrawing ? 'text-slate-600' : 'text-slate-500 group-hover:text-amber-100'}`}>
+                    {pendingPrayerDraws > 0 ? `Prayer Draw (${pendingPrayerDraws})` : `Draw (${drawsRequired}) & End`}
+                  </span>
                   <span className="text-xs text-slate-600 font-mono mt-2">{deck.length}</span>
+                  {pendingPrayerDraws > 0 && (
+                    <span className="text-xs text-yellow-400 font-bold mt-1">Prayer Active</span>
+                  )}
                </div>
                {(vanquishActive || (pendingCard && trivia)) && (
                  <div onClick={(e) => {
@@ -1385,7 +2063,7 @@ export default function LampstandFinal() {
            }}
            onCardClick={(c: any) => handleInspectCard(c)}
            onActiveCardClick={(c: any) => handleInspectCard(c)}
-           canHelp={gameState === 'stumbling' && p.id !== stumblingPlayerId && p.hand.some((c: any) => c.id === 'encouragement') && (getDistance(i, players.findIndex((pl: any) => pl.id === stumblingPlayerId), players.length) <= unity || players.find((p: any) => p.id === stumblingPlayerId)?.activeCards.some((c: any) => c.id === 'char_job'))}
+           canHelp={gameState === 'stumbling' && p.id !== stumblingPlayerId && p.hand.some((c: any) => c.id === 'encouragement') && !players.find((pl: any) => pl.id === stumblingPlayerId)?.activeCards.some((c: any) => c.id === 'trial_associations') && (getDistance(i, players.findIndex((pl: any) => pl.id === stumblingPlayerId), players.length) <= unity || players.find((p: any) => p.id === stumblingPlayerId)?.activeCards.some((c: any) => c.id === 'char_job'))}
          />
       ))}
 
@@ -1398,19 +2076,24 @@ export default function LampstandFinal() {
             canPlay={
                (gameState === 'stumbling' && inspectingCard.id === 'faith' && players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) === players.findIndex((p: any) => p.id === stumblingPlayerId)) ||
                (gameState === 'stumbling' && inspectingCard.id === 'encouragement' && getDistance(players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)), players.findIndex((p: any) => p.id === stumblingPlayerId), players.length) <= unity) ||
-               (gameState === 'playing' && turnIndex === players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)))
+               (gameState === 'playing' && turnIndex === players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) && inspectingCard.id !== 'faith')
             }
             isPlayerTurn={true} 
             activePlayerIndex={turnIndex}
          />
       )}
 
-      {isGifting && (
+      {isGifting && kindnessCard && (
          <GiftModal 
             giver={currentPlayer} 
             players={players} 
-            onClose={() => setIsGifting(false)} 
+            unity={unity}
+            onClose={() => {
+               setIsGifting(false);
+               setKindnessCard(null);
+            }} 
             onConfirm={(card, targetId) => handleGift(card, targetId)} 
+            excludeCardUid={kindnessCard.uid}
          />
       )}
 
@@ -1427,38 +2110,120 @@ export default function LampstandFinal() {
          <VanquishModal 
             players={players} 
             onClose={() => setIsVanquishing(false)} 
-            onConfirm={(cards) => handleVanquishConfirm(cards)} 
+            onConfirm={(cards) => handleVanquishConfirm(cards)}
+            requiredCards={currentChallenge?.title === 'Great Tribulation' ? 5 : 3}
+         />
+      )}
+
+      {isMinistering && ministerCard && (
+         <MinisterModal 
+            minister={currentPlayer} 
+            players={players}
+            unity={unity}
+            ministerCardUid={ministerCard.uid}
+            onClose={() => {
+              setIsMinistering(false);
+              setMinisterCard(null);
+            }} 
+            onRemoveBurden={handleMinisterRemoveBurden}
+            onGiveCard={handleMinisterGiveCard}
+         />
+      )}
+
+      {isEncouraging && encouragementCard && (
+         <EncouragementModal 
+            encourager={players.find((p: any) => p.hand.some((c: any) => c.uid === encouragementCard.uid)) || currentPlayer}
+            players={players}
+            unity={unity}
+            isStumbling={gameState === 'stumbling'}
+            stumblingPlayerId={stumblingPlayerId}
+            onClose={() => {
+               setIsEncouraging(false);
+               setEncouragementCard(null);
+            }} 
+            onConfirm={handleEncouragementConfirm}
+         />
+      )}
+
+      {isRequestingCard && guidanceCard && (
+         <RequestCardModal 
+            requester={players.find((p: any) => p.hand.some((c: any) => c.uid === guidanceCard.uid)) || players[turnIndex] || players[0]}
+            players={players}
+            unity={unity}
+            onClose={() => {
+               setIsRequestingCard(false);
+               // Card stays in hand when canceled
+               setGuidanceCard(null);
+            }} 
+            onConfirm={handleGuidanceRequest}
+         />
+      )}
+
+      {isResurrecting && resurrectionCard && (
+         <ResurrectionModal 
+            players={players}
+            onClose={() => {
+               setIsResurrecting(false);
+               setResurrectionCard(null);
+            }} 
+            onConfirm={handleResurrection}
          />
       )}
 
       {peekCards && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500">
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={() => setPeekCards(null)}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500" onClick={(e) => e.stopPropagation()}>
              <h3 className="text-xl font-bold text-indigo-400 mb-6 flex gap-2"><Eye /> Future Sight</h3>
              <div className="flex gap-4">
                 {peekCards.map((c, i) => <div key={i} className="scale-100"><Card data={c} isPlayable={false} /></div>)}
              </div>
-             <button onClick={() => setPeekCards(null)} className="mt-8 w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg font-bold">Close</button>
+             <p className="mt-6 text-zinc-400 text-sm text-center">Click outside to close</p>
            </div>
         </div>
       )}
 
-      {trivia && trivia.type !== 'VANQUISH' && !currentQuestion && (
-         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-zinc-900 border-2 border-lime-500 p-8 rounded-2xl max-w-md w-full shadow-2xl">
-               <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-xl font-bold text-lime-400 flex items-center gap-2"><HelpCircle /> {trivia.type === 'DEFUSE' ? 'Vanquish Trivia' : 'Bible Trivia'}</h3>
-                 <span className="text-xs bg-lime-900 text-lime-200 px-2 py-1 rounded">{trivia.type === 'DEFUSE' ? 'HARD' : 'EASY'}</span>
+      {wisdomCards && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={(e) => e.stopPropagation()}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-violet-500 max-w-5xl" onClick={(e) => e.stopPropagation()}>
+             <h3 className="text-xl font-bold text-violet-400 mb-6 flex gap-2">Wisdom: Rearrange {unity} cards</h3>
+             <WisdomRearrangeModal 
+               cards={wisdomCards} 
+               rearrangeCount={unity}
+               onConfirm={handleWisdomRearrange}
+             />
                </div>
-               <p className="text-lg font-medium text-white mb-8 leading-relaxed">"{trivia.q}"</p>
-               <div className="grid grid-cols-1 gap-3">
-                  {trivia.options.map((opt: string) => (
-                     <button key={opt} onClick={() => handleTriviaAnswer(opt === trivia.a)} className="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left font-bold border border-zinc-700 transition-colors hover:border-lime-500">{opt}</button>
+        </div>
+      )}
+
+      {vigilanceCards && vigilanceHazards && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-purple-500">
+             <h3 className="text-xl font-bold text-purple-400 mb-6 flex gap-2">Vigilance: Select burden to discard</h3>
+             <div className="flex gap-4 mb-6">
+                {vigilanceCards.map((c, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => {
+                      if (vigilanceHazards.some((h: any) => h.uid === c.uid)) {
+                        handleVigilanceDiscard(c);
+                      }
+                    }}
+                    className={`cursor-pointer transition-all ${
+                      vigilanceHazards.some((h: any) => h.uid === c.uid)
+                        ? 'ring-4 ring-red-500 hover:scale-110'
+                        : 'opacity-50'
+                    }`}
+                  >
+                    <Card data={c} isPlayable={false} />
+                  </div>
                   ))}
                </div>
+             <p className="text-zinc-400 text-sm text-center">Click on a red-bordered burden card to discard it</p>
             </div>
-         </div>
+        </div>
       )}
+
+      {/* Old trivia modal removed - fruit/love now uses question pile flow, DEFUSE uses QuestionCard */}
       
       {currentQuestion && (
         <QuestionCard 
@@ -1601,6 +2366,7 @@ export default function LampstandFinal() {
               100% {
                 transform: translate(-50%, -50%) translateX(${
                   animatingCard.targetType === 'discard' ? '0px' :
+                  animatingCard.targetType === 'deck' ? '0px' :
                   animatingCard.targetType === 'active' ? (
                     animatingCard.targetPlayerIndex === 0 ? '0px' :
                     animatingCard.targetPlayerIndex === 1 ? '-450px' :
@@ -1613,6 +2379,7 @@ export default function LampstandFinal() {
                   '450px'
                 }) translateY(${
                   animatingCard.targetType === 'discard' ? '0px' :
+                  animatingCard.targetType === 'deck' ? '0px' :
                   animatingCard.targetType === 'active' ? (
                     animatingCard.targetPlayerIndex === 0 ? '250px' :
                     animatingCard.targetPlayerIndex === 1 ? '0px' :

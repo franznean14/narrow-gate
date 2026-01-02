@@ -1,5 +1,4 @@
 'use client';
-// @ts-nocheck - TypeScript types will be added incrementally
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -9,7 +8,7 @@ import {
   Sword, HardHat, Footprints, Shirt, Octagon, Users, 
   Spline, Zap, ChevronUp, Info, User,
   Clock, Gem, CloudRain, Lock, Star, Crown,
-  Wind, Anchor, Smile, Sun, Copy, Scissors, CheckCircle, Home, Gamepad2, Book, MessageCircle
+  Wind, Anchor, Smile, Sun, Copy, Scissors, CheckCircle, Home, Gamepad2, Book, MessageCircle, Dice6
 } from 'lucide-react';
 import Link from 'next/link';
 import LampstandCardsView from '@/components/LampstandCardsView';
@@ -183,7 +182,7 @@ const Card = ({ data, onClick, isPlayable = true, size = 'md', isSelected = fals
   );
 };
 
-const PlayerZone = ({ player, isActive, position, onCardClick, onActiveCardClick, toggleHand, isOpen, isStumbling, canHelp }: { player: any, isActive: boolean, position: number, onCardClick: (card: any) => void, onActiveCardClick: (card: any) => void, toggleHand: () => void, isOpen: boolean, isStumbling: boolean, canHelp: boolean }) => {
+const PlayerZone = ({ player, isActive, position, onCardClick, onActiveCardClick, toggleHand, isOpen, isStumbling, canHelp }: { player: any, isActive: boolean, position: number, onCardClick: (card: any) => void, onActiveCardClick: (card: any) => void, toggleHand: (e?: any) => void, isOpen: boolean, isStumbling: boolean, canHelp: boolean }) => {
   let containerStyle = {};
   let contentClass = "flex flex-col items-center transition-transform duration-500";
   
@@ -290,23 +289,23 @@ const CardInspectionModal = ({ card, onClose, onPlay, canPlay, isPlayerTurn, act
 };
 
 // NEW: Vanquish Modal
-const VanquishModal = ({ players, onClose, onConfirm }) => {
+const VanquishModal = ({ players, onClose, onConfirm }: { players: any[], onClose: () => void, onConfirm: (selected: { playerId: string, cardUid: string }[]) => void }) => {
    // State to track selected cards: { playerId, cardUid }
-   const [selected, setSelected] = useState([]);
+   const [selected, setSelected] = useState<{ playerId: string, cardUid: string }[]>([]);
 
-   const handleSelect = (playerId, cardUid) => {
+   const handleSelect = (playerId: string, cardUid: string) => {
       // Toggle selection
-      const exists = selected.find(s => s.cardUid === cardUid);
+      const exists = selected.find((s: { cardUid: string }) => s.cardUid === cardUid);
       if (exists) {
-         setSelected(prev => prev.filter(s => s.cardUid !== cardUid));
+         setSelected(prev => prev.filter((s: { cardUid: string }) => s.cardUid !== cardUid));
       } else {
          if (selected.length < 3) {
-            setSelected(prev => [...prev, { playerId, cardUid }]);
+            setSelected(prev => [...prev, { playerId, cardUid } as { playerId: string, cardUid: string }]);
          }
       }
    };
 
-   const isSelected = (uid) => selected.some(s => s.cardUid === uid);
+   const isSelected = (uid: string) => selected.some((s: { cardUid: string }) => s.cardUid === uid);
 
    return (
     <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
@@ -319,15 +318,15 @@ const VanquishModal = ({ players, onClose, onConfirm }) => {
           </div>
           
           <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-             {players.map((p) => {
-                const validCards = p.hand.filter(c => c.id === 'fruit' || c.id === 'love');
+             {players.map((p: any) => {
+                const validCards = p.hand.filter((c: any) => c.id === 'fruit' || c.id === 'love');
                 if (validCards.length === 0) return null;
 
                 return (
                    <div key={p.id} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700">
                       <div className="font-bold text-zinc-400 mb-3 uppercase text-xs tracking-wider border-b border-zinc-700 pb-2">{p.name}</div>
                       <div className="grid grid-cols-2 gap-2">
-                         {validCards.map(c => (
+                         {validCards.map((c: any) => (
                             <div key={c.uid} className="transform scale-90 origin-top-left cursor-pointer" onClick={() => handleSelect(p.id, c.uid)}>
                                <Card 
                                   data={c} 
@@ -342,7 +341,7 @@ const VanquishModal = ({ players, onClose, onConfirm }) => {
                    </div>
                 );
              })}
-             {players.every(p => p.hand.filter(c => c.id === 'fruit' || c.id === 'love').length === 0) && (
+             {players.every((p: any) => p.hand.filter((c: any) => c.id === 'fruit' || c.id === 'love').length === 0) && (
                 <div className="col-span-full text-center text-zinc-500 py-10 font-bold">No Fruitage or Love cards available in any hand.</div>
              )}
           </div>
@@ -362,10 +361,10 @@ const VanquishModal = ({ players, onClose, onConfirm }) => {
    );
 };
 
-const GiftModal = ({ giver, players, onClose, onConfirm }) => {
-   const [selectedCard, setSelectedCard] = useState(null);
-   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
-   const targets = players.filter(p => p.id !== giver.id && !p.isOut);
+const GiftModal = ({ giver, players, onClose, onConfirm }: { giver: any, players: any[], onClose: () => void, onConfirm: (selectedCard: any, selectedPlayerId: string) => void }) => {
+   const [selectedCard, setSelectedCard] = useState<any | null>(null);
+   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+   const targets = players.filter((p: any) => p.id !== giver.id && !p.isOut);
    const handleSend = () => { if(selectedCard && selectedPlayerId !== null) onConfirm(selectedCard, selectedPlayerId); };
 
    return (
@@ -376,7 +375,7 @@ const GiftModal = ({ giver, players, onClose, onConfirm }) => {
              <div className="flex-1 bg-zinc-800/50 rounded-2xl p-4 overflow-y-auto border border-zinc-700">
                 <h3 className="text-zinc-400 font-bold uppercase text-sm mb-4">1. Select Gift</h3>
                 <div className="grid grid-cols-3 gap-4">
-                   {giver.hand.map(c => (
+                   {giver.hand.map((c: any) => (
                       <div key={c.uid} onClick={() => setSelectedCard(c)} className={`cursor-pointer transition-all ${selectedCard?.uid === c.uid ? 'ring-4 ring-pink-500 scale-105 z-10' : 'opacity-80 hover:opacity-100'}`}>
                          <Card data={c} size="sm" isPlayable={false} />
                       </div>
@@ -386,7 +385,7 @@ const GiftModal = ({ giver, players, onClose, onConfirm }) => {
              <div className="flex-1 bg-zinc-800/50 rounded-2xl p-4 overflow-y-auto border border-zinc-700">
                 <h3 className="text-zinc-400 font-bold uppercase text-sm mb-4">2. Select Friend</h3>
                 <div className="flex flex-col gap-3">
-                   {targets.map(p => (
+                   {targets.map((p: any) => (
                       <button key={p.id} onClick={() => setSelectedPlayerId(p.id)} className={`p-4 rounded-xl text-left flex items-center justify-between transition-all ${selectedPlayerId === p.id ? 'bg-pink-600 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}>
                          <span className="font-bold text-lg">{p.name}</span>
                          <span className="text-xs bg-black/20 px-2 py-1 rounded">{p.hand.length} cards</span>
@@ -404,11 +403,11 @@ const GiftModal = ({ giver, players, onClose, onConfirm }) => {
    );
 };
 
-const ImitateModal = ({ giver, players, onClose, onConfirm }) => {
-   const [selectedPlayer, setSelectedPlayer] = useState(null);
-   const [selectedCard, setSelectedCard] = useState(null);
-   const targets = players.filter(p => p.id !== giver.id && !p.isOut && p.activeCards.filter(c => !c.id.startsWith('trial_')).length > 0);
-   const getPositiveCards = (p) => p.activeCards.filter(c => !c.id.startsWith('trial_'));
+const ImitateModal = ({ giver, players, onClose, onConfirm }: { giver: any, players: any[], onClose: () => void, onConfirm: (card: any) => void }) => {
+   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
+   const [selectedCard, setSelectedCard] = useState<any | null>(null);
+   const targets = players.filter((p: any) => p.id !== giver.id && !p.isOut && p.activeCards.filter((c: any) => !c.id.startsWith('trial_')).length > 0);
+   const getPositiveCards = (p: any) => p.activeCards.filter((c: any) => !c.id.startsWith('trial_'));
 
    return (
     <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
@@ -418,7 +417,7 @@ const ImitateModal = ({ giver, players, onClose, onConfirm }) => {
              <div className="w-1/3 bg-zinc-800/50 rounded-2xl p-4 overflow-y-auto border border-zinc-700">
                 <h3 className="text-zinc-400 font-bold uppercase text-sm mb-4">1. Whose Faith?</h3>
                 <div className="flex flex-col gap-3">
-                   {targets.length > 0 ? targets.map(p => (
+                   {targets.length > 0 ? targets.map((p: any) => (
                         <button key={p.id} onClick={() => { setSelectedPlayer(p); setSelectedCard(null); }} className={`p-4 rounded-xl text-left flex items-center justify-between transition-all ${selectedPlayer?.id === p.id ? 'bg-teal-600 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}>
                           <span className="font-bold">{p.name}</span>
                           <span className="text-xs bg-black/20 px-2 py-1 rounded">{getPositiveCards(p).length} Buffs</span>
@@ -430,7 +429,7 @@ const ImitateModal = ({ giver, players, onClose, onConfirm }) => {
                 <h3 className="text-zinc-400 font-bold uppercase text-sm mb-4">2. Select Blessing</h3>
                 {selectedPlayer ? (
                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                      {getPositiveCards(selectedPlayer).map(c => (
+                      {getPositiveCards(selectedPlayer).map((c: any) => (
                          <div key={c.uid} onClick={() => setSelectedCard(c)} className={`cursor-pointer transition-all ${selectedCard?.uid === c.uid ? 'ring-4 ring-teal-500 scale-105 z-10' : 'opacity-80 hover:opacity-100'}`}>
                             <Card data={c} size="sm" isPlayable={false} />
                          </div>
@@ -448,13 +447,13 @@ const ImitateModal = ({ giver, players, onClose, onConfirm }) => {
    );
 };
 
-const Modal = ({ children }) => (
+const Modal = ({ children }: { children: React.ReactNode }) => (
   <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
     {children}
   </div>
 );
 
-const TriviaModal = ({ card, onClose, onResult }) => {
+const TriviaModal = ({ card, onClose, onResult }: { card: any, onClose: () => void, onResult: (isCorrect: boolean) => void }) => {
   const [step, setStep] = useState('roll'); 
   const [roll, setRoll] = useState(0);
   const difficulty = roll > 3 ? 'Hard' : 'Easy';
@@ -464,7 +463,7 @@ const TriviaModal = ({ card, onClose, onResult }) => {
     <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
       <div className="bg-zinc-900 border border-amber-500/50 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative overflow-hidden">
         <h3 className="text-xl font-black text-amber-500 uppercase italic mb-4 flex items-center gap-2">Faith in Action</h3>
-        {step === 'roll' && <div className="text-center space-y-6"><button onClick={handleRoll} className="bg-amber-500 text-zinc-900 font-bold px-8 py-4 rounded-xl flex items-center gap-2 mx-auto"><Dices size={20} /> Roll Dice</button></div>}
+        {step === 'roll' && <div className="text-center space-y-6"><button onClick={handleRoll} className="bg-amber-500 text-zinc-900 font-bold px-8 py-4 rounded-xl flex items-center gap-2 mx-auto"><Dice6 size={20} /> Roll Dice</button></div>}
         {step === 'question' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center text-xs font-bold text-zinc-500 border-b border-zinc-800 pb-2"><span>Rolled: {roll}</span><span>{difficulty}</span></div>
@@ -481,7 +480,7 @@ const TriviaModal = ({ card, onClose, onResult }) => {
 };
 
 // Question Card Component for Vanquish
-const QuestionCard = ({ question, onAnswer, isActive }) => {
+const QuestionCard = ({ question, onAnswer, isActive }: { question: any, onAnswer: (isCorrect: boolean) => void, isActive: boolean }) => {
   if (!question) return null;
   
   const isHard = question.difficulty === 'HARD';
@@ -502,7 +501,7 @@ const QuestionCard = ({ question, onAnswer, isActive }) => {
           <p className="text-xl font-medium text-white mb-6 leading-relaxed text-center">"{question.q}"</p>
           
           <div className="grid grid-cols-1 gap-3">
-            {question.options.map((opt, idx) => (
+            {question.options.map((opt: string, idx: number) => (
               <button
                 key={idx}
                 onClick={() => onAnswer(opt === question.a)}
@@ -773,12 +772,12 @@ const ManualView = () => (
 export default function LampstandFinal() {
   const [activeTab, setActiveTab] = useState('game'); 
   const [gameState, setGameState] = useState('setup');
-  const [deck, setDeck] = useState([]);
-  const [discardPile, setDiscardPile] = useState([]);
-  const [questionsDeck, setQuestionsDeck] = useState([]); // Questions pile
-  const [players, setPlayers] = useState([]);
+  const [deck, setDeck] = useState<any[]>([]);
+  const [discardPile, setDiscardPile] = useState<any[]>([]);
+  const [questionsDeck, setQuestionsDeck] = useState<any[]>([]); // Questions pile
+  const [players, setPlayers] = useState<any[]>([]);
   const [turnIndex, setTurnIndex] = useState(0);
-  const [notification, setNotification] = useState(null);
+  const [notification, setNotification] = useState<{ msg: string, color: string } | null>(null);
   const [unity, setUnity] = useState(3);
   
   const [activePlayCount, setActivePlayCount] = useState(0); 
@@ -786,34 +785,34 @@ export default function LampstandFinal() {
   const [cutShort, setCutShort] = useState(false);
   const [maxCharacters, setMaxCharacters] = useState(1);
 
-  const [stumblingPlayerId, setStumblingPlayerId] = useState(null);
-  const [peekCards, setPeekCards] = useState(null);
-  const [openHandIndex, setOpenHandIndex] = useState(null);
+  const [stumblingPlayerId, setStumblingPlayerId] = useState<number | null>(null);
+  const [peekCards, setPeekCards] = useState<any[] | null>(null);
+  const [openHandIndex, setOpenHandIndex] = useState<number | null>(null);
   const [showUnityHelp, setShowUnityHelp] = useState(false);
   
-  const [trivia, setTrivia] = useState(null);
-  const [pendingCard, setPendingCard] = useState(null);
-  const [inspectingCard, setInspectingCard] = useState(null);
-  const [currentChallenge, setCurrentChallenge] = useState(null);
+  const [trivia, setTrivia] = useState<any | null>(null);
+  const [pendingCard, setPendingCard] = useState<any | null>(null);
+  const [inspectingCard, setInspectingCard] = useState<any | null>(null);
+  const [currentChallenge, setCurrentChallenge] = useState<any | null>(null);
 
   const [isGifting, setIsGifting] = useState(false);
   const [isImitating, setIsImitating] = useState(false);
   const [isVanquishing, setIsVanquishing] = useState(false);
-  const [animatingCard, setAnimatingCard] = useState(null); // { card, targetPlayerIndex, type: 'card' | 'trial', targetType: 'hand' | 'discard' }
+  const [animatingCard, setAnimatingCard] = useState<any | null>(null); // { card, targetPlayerIndex, type: 'card' | 'trial', targetType: 'hand' | 'discard' }
   const [skipCardDelay, setSkipCardDelay] = useState(false); // Skip the 3s delay when card is tapped
   const [skipEntireAnimation, setSkipEntireAnimation] = useState(false); // Skip the entire animation when card is clicked
   const [isDrawing, setIsDrawing] = useState(false); // Track if a draw is in progress
   
   // Vanquish question queue state
-  const [vanquishQueue, setVanquishQueue] = useState([]); // Array of { playerId, questionCount }
-  const [currentQuestion, setCurrentQuestion] = useState(null); // Current question being answered
+  const [vanquishQueue, setVanquishQueue] = useState<{ playerId: number, questionIndex: number }[]>([]); // Array of { playerId, questionCount }
+  const [currentQuestion, setCurrentQuestion] = useState<any | null>(null); // Current question being answered
   const [vanquishActive, setVanquishActive] = useState(false); // Whether vanquish is in progress
   const [vanquishFailed, setVanquishFailed] = useState(false); // Whether vanquish has failed
-  const [animatingQuestionCard, setAnimatingQuestionCard] = useState(null); // Animation state for question card
-  const [stumbleDrawerId, setStumbleDrawerId] = useState(null); // Player who drew the stumble (for vanquish flow)
-  const [vanquishContributors, setVanquishContributors] = useState([]); // Array of player IDs who contributed cards
+  const [animatingQuestionCard, setAnimatingQuestionCard] = useState<any | null>(null); // Animation state for question card
+  const [stumbleDrawerId, setStumbleDrawerId] = useState<number | null>(null); // Player who drew the stumble (for vanquish flow)
+  const [vanquishContributors, setVanquishContributors] = useState<number[]>([]); // Array of player IDs who contributed cards
 
-  const initGame = (numPlayers) => {
+  const initGame = (numPlayers: number) => {
     const newPlayers = Array.from({ length: numPlayers }, (_, i) => ({
       id: i,
       name: `Player ${i + 1}`,
@@ -822,7 +821,7 @@ export default function LampstandFinal() {
       isOut: false
     }));
 
-    let newDeck = [];
+    let newDeck: any[] = [];
     
     // Actions & Armor
     for (let i = 0; i < numPlayers * 2; i++) {
@@ -858,8 +857,8 @@ export default function LampstandFinal() {
     
     // Deal Starter Hands
     newPlayers.forEach(p => { 
-      const safe = newDeck.filter(c => !c.id.startsWith('trial_') && c.id !== 'stumble' && c.id !== 'discord' && c.id !== 'days_cut_short');
-      const hazards = newDeck.filter(c => c.id.startsWith('trial_') || c.id === 'stumble' || c.id === 'discord' || c.id === 'days_cut_short');
+      const safe = newDeck.filter((c: any) => !c.id.startsWith('trial_') && c.id !== 'stumble' && c.id !== 'discord' && c.id !== 'days_cut_short');
+      const hazards = newDeck.filter((c: any) => c.id.startsWith('trial_') || c.id === 'stumble' || c.id === 'discord' || c.id === 'days_cut_short');
       const dealt = safe.splice(0, 3);
       p.hand.push(...dealt);
       newDeck = shuffle([...safe, ...hazards]);
@@ -880,7 +879,7 @@ export default function LampstandFinal() {
     newDeck = shuffle(newDeck);
 
     // Initialize Questions Deck (30 questions, random difficulty)
-    const allQuestions = [];
+    const allQuestions: any[] = [];
     const easyQuestions = TRIVIA_DB.EASY;
     const hardQuestions = TRIVIA_DB.HARD;
     
@@ -916,7 +915,7 @@ export default function LampstandFinal() {
   };
 
   // ... (Other handlers same as previous) ...
-  const nextTurn = (skipReset = false) => {
+  const nextTurn = (skipReset: boolean = false) => {
     // Don't advance turn if vanquish is active
     if (vanquishActive) {
       return;
@@ -925,8 +924,8 @@ export default function LampstandFinal() {
     // 1. Cleanup Imitated/Temporary cards
     const updatedPlayers = [...players];
     const currentP = updatedPlayers[turnIndex];
-    if (currentP.activeCards.some(c => c.isTemporary)) {
-       currentP.activeCards = currentP.activeCards.filter(c => !c.isTemporary);
+    if (currentP.activeCards.some((c: any) => c.isTemporary)) {
+       currentP.activeCards = currentP.activeCards.filter((c: any) => !c.isTemporary);
        setPlayers(updatedPlayers);
        showNotification("Imitation faded.", "zinc");
     }
@@ -946,10 +945,10 @@ export default function LampstandFinal() {
     const nextPlayer = players[nextIdx];
     
     // Check if next player has Unwise Time burden
-    if (nextPlayer.activeCards.some(c => c.id === 'trial_time')) {
-        const burdenIdx = nextPlayer.activeCards.findIndex(c => c.id === 'trial_time');
+    if (nextPlayer.activeCards.some((c: any) => c.id === 'trial_time')) {
+        const burdenIdx = nextPlayer.activeCards.findIndex((c: any) => c.id === 'trial_time');
         // Check Moses Immunity
-        if (nextPlayer.activeCards.some(c => c.id === 'char_moses')) {
+        if (nextPlayer.activeCards.some((c: any) => c.id === 'char_moses')) {
              showNotification("Moses is immune to Unwise Time!", "cyan");
              // Moses is immune, so set turn normally
              setTurnIndex(nextIdx);
@@ -1025,7 +1024,7 @@ export default function LampstandFinal() {
     }
   }, [drawsRequired, vanquishActive, nextTurn]);
 
-  const handleDraw = (e) => {
+  const handleDraw = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (gameState !== 'playing') return;
     if (isDrawing) return; // Prevent multiple draws
@@ -1073,7 +1072,7 @@ export default function LampstandFinal() {
 
     if (card.id === 'stumble') {
       const victim = players[turnIndex];
-      const shieldIndex = victim.activeCards.findIndex(c => c.id === 'shield_equip');
+      const shieldIndex = victim.activeCards.findIndex((c: any) => c.id === 'shield_equip');
       if (shieldIndex !== -1) {
          // Animate stumble card draw even when deflected
          setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'stumble_deflected', targetType: 'discard' });
@@ -1089,11 +1088,11 @@ export default function LampstandFinal() {
       // Check if trial will be immune (and thus discarded) or applied
       const victim = players[turnIndex];
       let isImmune = false;
-      if (card.id === 'trial_materialism' && (victim.activeCards.some(c => c.id === 'char_daniel') || victim.activeCards.some(c => c.id === 'char_noah'))) isImmune = true;
-      if (card.id === 'trial_anxiety' && victim.activeCards.some(c => c.id === 'char_david')) isImmune = true;
-      if (card.id === 'trial_time' && (victim.activeCards.some(c => c.id === 'char_moses') || victim.activeCards.some(c => c.id === 'char_sarah'))) isImmune = true;
-      if (card.id === 'trial_doubt' && victim.activeCards.some(c => c.id === 'char_sarah')) isImmune = true;
-      if (card.id === 'trial_associations' && victim.activeCards.some(c => c.id === 'char_noah')) isImmune = true;
+      if (card.id === 'trial_materialism' && (victim.activeCards.some((c: any) => c.id === 'char_daniel') || victim.activeCards.some((c: any) => c.id === 'char_noah'))) isImmune = true;
+      if (card.id === 'trial_anxiety' && victim.activeCards.some((c: any) => c.id === 'char_david')) isImmune = true;
+      if (card.id === 'trial_time' && (victim.activeCards.some((c: any) => c.id === 'char_moses') || victim.activeCards.some((c: any) => c.id === 'char_sarah'))) isImmune = true;
+      if (card.id === 'trial_doubt' && victim.activeCards.some((c: any) => c.id === 'char_sarah')) isImmune = true;
+      if (card.id === 'trial_associations' && victim.activeCards.some((c: any) => c.id === 'char_noah')) isImmune = true;
 
       // Animate trial card draw - immune cards go to discard, others go to activeCards
       setAnimatingCard({
@@ -1122,11 +1121,11 @@ export default function LampstandFinal() {
           const targetPlayerIndex = animatingCard.targetPlayerIndex;
           const victim = players[targetPlayerIndex];
           let isImmune = false;
-          if (card.id === 'trial_materialism' && (victim.activeCards.some(c => c.id === 'char_daniel') || victim.activeCards.some(c => c.id === 'char_noah'))) isImmune = true;
-          if (card.id === 'trial_anxiety' && victim.activeCards.some(c => c.id === 'char_david')) isImmune = true;
-          if (card.id === 'trial_time' && (victim.activeCards.some(c => c.id === 'char_moses') || victim.activeCards.some(c => c.id === 'char_sarah'))) isImmune = true;
-          if (card.id === 'trial_doubt' && victim.activeCards.some(c => c.id === 'char_sarah')) isImmune = true;
-          if (card.id === 'trial_associations' && victim.activeCards.some(c => c.id === 'char_noah')) isImmune = true;
+          if (card.id === 'trial_materialism' && (victim.activeCards.some((c: any) => c.id === 'char_daniel') || victim.activeCards.some((c: any) => c.id === 'char_noah'))) isImmune = true;
+          if (card.id === 'trial_anxiety' && victim.activeCards.some((c: any) => c.id === 'char_david')) isImmune = true;
+          if (card.id === 'trial_time' && (victim.activeCards.some((c: any) => c.id === 'char_moses') || victim.activeCards.some((c: any) => c.id === 'char_sarah'))) isImmune = true;
+          if (card.id === 'trial_doubt' && victim.activeCards.some((c: any) => c.id === 'char_sarah')) isImmune = true;
+          if (card.id === 'trial_associations' && victim.activeCards.some((c: any) => c.id === 'char_noah')) isImmune = true;
 
           if (isImmune) {
              setDiscardPile(prev => [...prev, card]);
@@ -1135,7 +1134,7 @@ export default function LampstandFinal() {
              setPlayers(prevPlayers => {
                const updatedPlayers = [...prevPlayers];
                // Check if this burden card already exists to prevent duplication
-               const alreadyExists = updatedPlayers[targetPlayerIndex].activeCards.some(c => c.uid === card.uid);
+               const alreadyExists = updatedPlayers[targetPlayerIndex].activeCards.some((c: any) => c.uid === card.uid);
                if (alreadyExists) {
                  // Card already exists, don't add it again
                  return updatedPlayers;
@@ -1146,17 +1145,17 @@ export default function LampstandFinal() {
                if (card.id === 'trial_anxiety') {
                   // Find positive cards (non-trial cards) BEFORE Anxiety was added
                   // We need to exclude the Anxiety card we just added
-                  const positives = updatedPlayers[targetPlayerIndex].activeCards.filter(c => !c.id.startsWith('trial_'));
+                  const positives = updatedPlayers[targetPlayerIndex].activeCards.filter((c: any) => !c.id.startsWith('trial_'));
                   if (positives.length > 0) {
                      // There are active cards, discard ONLY ONE and remove anxiety
-                     const targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => !c.id.startsWith('trial_'));
+                     const targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => !c.id.startsWith('trial_'));
                      if (targetIdx !== -1) {
                         // Remove only ONE positive card
                         const lost = updatedPlayers[targetPlayerIndex].activeCards.splice(targetIdx, 1)[0];
                         setDiscardPile(prev => [lost, ...prev]);
                         showNotification(`Anxiety discarded ${lost.title}!`, "red");
                         // Remove the anxiety card itself after its effect
-                        const anxietyIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'trial_anxiety' && c.uid === card.uid);
+                        const anxietyIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'trial_anxiety' && c.uid === card.uid);
                         if (anxietyIdx !== -1) {
                           const anxietyCard = updatedPlayers[targetPlayerIndex].activeCards.splice(anxietyIdx, 1)[0];
                           setDiscardPile(prev => [anxietyCard, ...prev]);
@@ -1166,7 +1165,7 @@ export default function LampstandFinal() {
                   // If no active cards, anxiety stays - it will trigger when next active card is activated
                }
                if (card.id === 'trial_materialism') {
-                   const fruitIdx = updatedPlayers[targetPlayerIndex].hand.findIndex(c => c.id === 'fruit');
+                   const fruitIdx = updatedPlayers[targetPlayerIndex].hand.findIndex((c: any) => c.id === 'fruit');
                    if (fruitIdx !== -1) {
                       const lost = updatedPlayers[targetPlayerIndex].hand.splice(fruitIdx, 1)[0];
                       setDeck(prevDeck => {
@@ -1176,7 +1175,7 @@ export default function LampstandFinal() {
                         return newDeck;
                       });
                       // Remove the materialism card we just added (it should be the last one)
-                      const materialismIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'trial_materialism');
+                      const materialismIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'trial_materialism');
                       if (materialismIdx !== -1) {
                         updatedPlayers[targetPlayerIndex].activeCards.splice(materialismIdx, 1);
                       }
@@ -1194,7 +1193,7 @@ export default function LampstandFinal() {
 
           setPlayers(prevPlayers => {
             const updatedPlayers = [...prevPlayers];
-            const shieldIndex = updatedPlayers[targetPlayerIndex].activeCards.findIndex(c => c.id === 'shield_equip');
+            const shieldIndex = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'shield_equip');
             if (shieldIndex !== -1) {
               const shieldCard = updatedPlayers[targetPlayerIndex].activeCards.splice(shieldIndex, 1)[0];
               setDiscardPile(prev => [shieldCard, ...prev]);
@@ -1215,7 +1214,7 @@ export default function LampstandFinal() {
           const card = animatingCard.card;
           const targetPlayerIndex = animatingCard.targetPlayerIndex;
 
-          const hasBreastplate = players[targetPlayerIndex].activeCards.some(c => c.id === 'breastplate');
+          const hasBreastplate = players[targetPlayerIndex].activeCards.some((c: any) => c.id === 'breastplate');
           if (hasBreastplate) {
              setDiscardPile(prev => [...prev, card]);
              showNotification("Breastplate guarded the heart! No Unity lost.", "cyan");
@@ -1247,7 +1246,7 @@ export default function LampstandFinal() {
           setPlayers(prevPlayers => {
             const updatedPlayers = [...prevPlayers];
             // Check if card already exists in hand to prevent duplication
-            const alreadyExists = updatedPlayers[animatingCard.targetPlayerIndex].hand.some(c => c.uid === animatingCard.card.uid);
+            const alreadyExists = updatedPlayers[animatingCard.targetPlayerIndex].hand.some((c: any) => c.uid === animatingCard.card.uid);
             if (!alreadyExists) {
               updatedPlayers[animatingCard.targetPlayerIndex].hand.push(animatingCard.card);
             }
@@ -1289,14 +1288,14 @@ export default function LampstandFinal() {
     }
   }, [animatingCard, skipCardDelay, skipEntireAnimation]);
 
-  const handleInspectCard = (card) => { setInspectingCard(card); };
+  const handleInspectCard = (card: any) => { setInspectingCard(card); };
 
-  const handleGift = (card, targetId) => {
+  const handleGift = (card: any, targetId: string) => {
      setIsGifting(false);
      const giverIdx = turnIndex;
      const receiverIdx = players.findIndex(p => p.id === targetId);
      const newPlayers = [...players];
-     const cIdx = newPlayers[giverIdx].hand.findIndex(c => c.uid === card.uid);
+     const cIdx = newPlayers[giverIdx].hand.findIndex((c: any) => c.uid === card.uid);
      if (cIdx === -1) return;
      const gift = newPlayers[giverIdx].hand.splice(cIdx, 1)[0];
      newPlayers[receiverIdx].hand.push(gift);
@@ -1304,7 +1303,7 @@ export default function LampstandFinal() {
      showNotification(`Sent ${gift.title} to ${newPlayers[receiverIdx].name}!`, "pink");
   };
 
-  const handleImitate = (targetCard) => {
+  const handleImitate = (targetCard: any) => {
      setIsImitating(false);
      const updatedPlayers = [...players];
      const currentPlayer = updatedPlayers[turnIndex];
@@ -1314,12 +1313,12 @@ export default function LampstandFinal() {
      showNotification(`Imitating ${targetCard.title}!`, "teal");
   };
 
-  const playCard = (card) => {
+  const playCard = (card: any) => {
     setInspectingCard(null);
 
     // STUMBLE PHASE
     if (gameState === 'stumbling') {
-       const ownerIdx = players.findIndex(p => p.hand.some(c => c.uid === card.uid));
+       const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === card.uid));
        const isVictim = players[ownerIdx].id === stumblingPlayerId;
        
        if (card.id === 'faith' && isVictim) {
@@ -1333,8 +1332,8 @@ export default function LampstandFinal() {
           const victimIdx = players.findIndex(p => p.id === stumblingPlayerId);
           const dist = getDistance(ownerIdx, victimIdx, players.length);
           const victim = players[victimIdx];
-          const isJob = victim.activeCards.some(c => c.id === 'char_job');
-          const isRuth = players[ownerIdx].activeCards.some(c => c.id === 'char_ruth'); 
+          const isJob = victim.activeCards.some((c: any) => c.id === 'char_job');
+          const isRuth = players[ownerIdx].activeCards.some((c: any) => c.id === 'char_ruth'); 
 
           if (isJob || isRuth || dist <= unity) {
              removeCardFromHand(ownerIdx, card.uid);
@@ -1350,13 +1349,13 @@ export default function LampstandFinal() {
     }
 
     // NORMAL PHASE
-    if (turnIndex !== players.findIndex(p => p.hand.some(c => c.uid === card.uid))) {
+    if (turnIndex !== players.findIndex((p: any) => p.hand.some((c: any) => c.uid === card.uid))) {
         showNotification("Not your turn.", "red");
         return;
     }
     
     // Check Burden: Doubt
-    if (players[turnIndex].activeCards.some(c => c.id === 'trial_doubt')) {
+    if (players[turnIndex].activeCards.some((c: any) => c.id === 'trial_doubt')) {
        if (['faith', 'encouragement'].includes(card.id)) {
           showNotification("Burden of Doubt! Cannot play Faith/Encourage.", "red");
           return;
@@ -1374,8 +1373,8 @@ export default function LampstandFinal() {
        if (card.id.startsWith('char_')) {
           const newPlayers = [...players];
           const player = newPlayers[turnIndex];
-          if (player.activeCards.filter(c => c.id.startsWith('char_')).length >= maxCharacters) {
-              const firstCharIdx = player.activeCards.findIndex(c => c.id.startsWith('char_'));
+          if (player.activeCards.filter((c: any) => c.id.startsWith('char_')).length >= maxCharacters) {
+              const firstCharIdx = player.activeCards.findIndex((c: any) => c.id.startsWith('char_'));
               if(firstCharIdx !== -1) {
                   const old = player.activeCards.splice(firstCharIdx, 1)[0];
                   setDiscardPile(prev => [old, ...prev]);
@@ -1437,7 +1436,7 @@ export default function LampstandFinal() {
         nextTurn(true); 
         break;
       case 'patience': 
-        const depth = players[turnIndex].activeCards.some(c => c.id === 'sandals') ? 5 : 3;
+        const depth = players[turnIndex].activeCards.some((c: any) => c.id === 'sandals') ? 5 : 3;
         if (deck.length > 0) {
            const newDeck = [...deck];
            const top = newDeck.shift();
@@ -1449,7 +1448,7 @@ export default function LampstandFinal() {
       case 'guidance': 
         const shuffled = shuffle([...deck]);
         setDeck(shuffled);
-        if (players[turnIndex].activeCards.some(c => c.id === 'sword')) {
+        if (players[turnIndex].activeCards.some((c: any) => c.id === 'sword')) {
            setPeekCards([shuffled[0]]);
            showNotification("Deck Shuffled + Peek!", "purple");
         } else {
@@ -1457,7 +1456,7 @@ export default function LampstandFinal() {
         }
         break;
       case 'insight': 
-        const count = players[turnIndex].activeCards.some(c => c.id === 'belt') ? 5 : 3;
+        const count = players[turnIndex].activeCards.some((c: any) => c.id === 'belt') ? 5 : 3;
         setPeekCards(deck.slice(0, count)); 
         break;
       case 'encouragement':
@@ -1469,7 +1468,7 @@ export default function LampstandFinal() {
          for (let i = 1; i <= unity; i++) {
             const targetIdx = (turnIndex + i) % players.length;
             const target = newPlayers[targetIdx];
-            const burdenIdx = target.activeCards.findIndex(c => c.id.startsWith('trial_'));
+            const burdenIdx = target.activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
             if (burdenIdx !== -1) {
                target.activeCards.splice(burdenIdx, 1);
                removed = true;
@@ -1480,7 +1479,7 @@ export default function LampstandFinal() {
          
          if (!removed) {
            // Search self
-           const selfBurden = newPlayers[turnIndex].activeCards.findIndex(c => c.id.startsWith('trial_'));
+           const selfBurden = newPlayers[turnIndex].activeCards.findIndex((c: any) => c.id.startsWith('trial_'));
            if (selfBurden !== -1) {
               newPlayers[turnIndex].activeCards.splice(selfBurden, 1);
               removed = true;
@@ -1503,7 +1502,7 @@ export default function LampstandFinal() {
   };
 
   // NEW: CONFIRM VANQUISH
-  const handleVanquishConfirm = (selectedCards) => {
+  const handleVanquishConfirm = (selectedCards: { playerId: string, cardUid: string }[]) => {
     setIsVanquishing(false);
 
     // Validate selected cards
@@ -1521,19 +1520,20 @@ export default function LampstandFinal() {
      
      // Remove selected cards from players and track contributors
      const updatedPlayers = [...players];
-     const contributorIds = []; // Array of unique contributor player IDs
-     const contributorCounts = {}; // { playerId: count }
+     const contributorIds: number[] = []; // Array of unique contributor player IDs
+     const contributorCounts: { [key: number]: number } = {}; // { playerId: count }
      
-     selectedCards.forEach(selection => {
-        const pIdx = updatedPlayers.findIndex(p => p.id === selection.playerId);
+     selectedCards.forEach((selection: { playerId: string, cardUid: string }) => {
+        const pIdx = updatedPlayers.findIndex((p: any) => p.id === parseInt(selection.playerId));
         const player = updatedPlayers[pIdx];
-        const cardIdx = player.hand.findIndex(c => c.uid === selection.cardUid);
+        const cardIdx = player.hand.findIndex((c: any) => c.uid === selection.cardUid);
         if (cardIdx !== -1) {
             const removed = player.hand.splice(cardIdx, 1)[0];
             setDiscardPile(prev => [removed, ...prev]);
-            contributorCounts[selection.playerId] = (contributorCounts[selection.playerId] || 0) + 1;
-            if (!contributorIds.includes(selection.playerId)) {
-              contributorIds.push(selection.playerId);
+            const playerIdNum = parseInt(selection.playerId);
+            contributorCounts[playerIdNum] = (contributorCounts[playerIdNum] || 0) + 1;
+            if (!contributorIds.includes(playerIdNum)) {
+              contributorIds.push(playerIdNum);
             }
         }
      });
@@ -1542,8 +1542,8 @@ export default function LampstandFinal() {
      setVanquishContributors(contributorIds);
      
      // Create question queue: clockwise from stumble drawer, only contributors, 1 question per turn per player
-     const stumbleDrawerIdx = players.findIndex(p => p.id === drawerId);
-     const queue = [];
+     const stumbleDrawerIdx = players.findIndex((p: any) => p.id === drawerId);
+     const queue: { playerId: number, questionIndex: number }[] = [];
      const totalQuestions = selectedCards.length; // 3 questions for 3 cards
      
      let currentPlayerIdx = stumbleDrawerIdx;
@@ -1558,7 +1558,7 @@ export default function LampstandFinal() {
        if (contributorIds.includes(playerId)) {
          // Add questions for this player (1 per turn)
          for (let i = 0; i < count && questionIndex < totalQuestions; i++) {
-           queue.push({ playerId, questionIndex: questionIndex++ });
+           queue.push({ playerId: playerId as number, questionIndex: questionIndex++ });
          }
        }
        
@@ -1600,7 +1600,7 @@ export default function LampstandFinal() {
     }
   };
   
-  const drawNextQuestion = (queueOverride = null) => {
+  const drawNextQuestion = (queueOverride: any = null) => {
     // Use override queue if provided, otherwise use state (for initial call before state updates)
     const queueToCheck = queueOverride || vanquishQueue;
     
@@ -1617,7 +1617,7 @@ export default function LampstandFinal() {
         
         // Continue from next player after stumble drawer
         if (stumbleDrawerId) {
-          const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+          const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
           const nextPlayerIdx = (drawerIdx + 1) % players.length;
           setTurnIndex(nextPlayerIdx);
           setOpenHandIndex(nextPlayerIdx);
@@ -1654,7 +1654,7 @@ export default function LampstandFinal() {
     }, 1200);
   };
   
-  const handleQuestionDraw = (e) => {
+  const handleQuestionDraw = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!vanquishActive || currentQuestion) return;
     if (vanquishQueue.length === 0) return;
@@ -1676,7 +1676,7 @@ export default function LampstandFinal() {
     drawNextQuestion();
   };
   
-  const handleQuestionAnswer = (isCorrect) => {
+  const handleQuestionAnswer = (isCorrect: boolean) => {
     if (!currentQuestion) return;
     
     if (!isCorrect) {
@@ -1690,7 +1690,7 @@ export default function LampstandFinal() {
       
       // Continue from next player after stumble drawer
       if (stumbleDrawerId) {
-        const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+        const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
         const nextPlayerIdx = (drawerIdx + 1) % players.length;
         setTurnIndex(nextPlayerIdx);
         setOpenHandIndex(nextPlayerIdx);
@@ -1713,7 +1713,7 @@ export default function LampstandFinal() {
       
       // Continue from next player after stumble drawer
       if (stumbleDrawerId) {
-        const drawerIdx = players.findIndex(p => p.id === stumbleDrawerId);
+        const drawerIdx = players.findIndex((p: any) => p.id === stumbleDrawerId);
         const nextPlayerIdx = (drawerIdx + 1) % players.length;
         setTurnIndex(nextPlayerIdx);
         setOpenHandIndex(nextPlayerIdx);
@@ -1735,23 +1735,23 @@ export default function LampstandFinal() {
     }
   };
 
-  const removeCardFromHand = (pIdx, uid, moveToActive = false) => {
-    setPlayers(prev => prev.map((p, i) => {
+  const removeCardFromHand = (pIdx: number, uid: number, moveToActive: boolean = false) => {
+    setPlayers((prev: any[]) => prev.map((p: any, i: number) => {
        if (i === pIdx) {
-          const cardIdx = p.hand.findIndex(c => c.uid === uid);
+          const cardIdx = p.hand.findIndex((c: any) => c.uid === uid);
           if (cardIdx === -1) return p;
           const newHand = [...p.hand];
           const card = newHand.splice(cardIdx, 1)[0];
           if (moveToActive) {
              // Check if player has Anxiety burden - if so, discard the newly activated card and remove Anxiety
-             const hasAnxiety = p.activeCards.some(c => c.id === 'trial_anxiety');
+             const hasAnxiety = p.activeCards.some((c: any) => c.id === 'trial_anxiety');
              if (hasAnxiety) {
                 // Don't add card to activeCards - Anxiety will discard it immediately
-                const anxietyIdx = p.activeCards.findIndex(c => c.id === 'trial_anxiety');
+                const anxietyIdx = p.activeCards.findIndex((c: any) => c.id === 'trial_anxiety');
                 if (anxietyIdx !== -1) {
                    const anxietyCard = p.activeCards[anxietyIdx];
                    // Remove Anxiety from activeCards
-                   const newActiveCards = p.activeCards.filter((c, idx) => idx !== anxietyIdx);
+                   const newActiveCards = p.activeCards.filter((c: any, idx: number) => idx !== anxietyIdx);
                    // Discard both the newly activated card (never added) and Anxiety
                    setDiscardPile(prevD => [card, anxietyCard, ...prevD]);
                    showNotification(`Anxiety discarded ${card.title}!`, "red");
@@ -1776,9 +1776,9 @@ export default function LampstandFinal() {
     setGameState('playing');
     
     // Continue from next player after stumble drawer
-    const drawerId = stumbleDrawerId || (stumblingPlayerId ? players.find(p => p.id === stumblingPlayerId)?.id : null);
+    const drawerId = stumbleDrawerId || (stumblingPlayerId ? players.find((p: any) => p.id === stumblingPlayerId)?.id : null);
     if (drawerId !== null && drawerId !== undefined) {
-      const drawerIdx = players.findIndex(p => p.id === drawerId);
+      const drawerIdx = players.findIndex((p: any) => p.id === drawerId);
       if (drawerIdx !== -1) {
         const nextPlayerIdx = (drawerIdx + 1) % players.length;
         setTurnIndex(nextPlayerIdx);
@@ -1793,10 +1793,10 @@ export default function LampstandFinal() {
     setVanquishContributors([]);
   };
 
-  const handleKnockout = () => {
-     const victimIdx = players.findIndex(p => p.id === stumblingPlayerId);
+  const handleKnockout = (): void => {
+     const victimIdx = players.findIndex((p: any) => p.id === stumblingPlayerId);
      const victim = players[victimIdx];
-     const helmetIdx = victim.activeCards.findIndex(c => c.id === 'helmet');
+     const helmetIdx = victim.activeCards.findIndex((c: any) => c.id === 'helmet');
      
      if (helmetIdx !== -1) {
         const newPlayers = [...players];
@@ -1827,16 +1827,16 @@ export default function LampstandFinal() {
      setGameState('playing');
      showNotification(`${newPlayers[victimIdx].name} stumbled into darkness...`, "red");
      
-     if (newPlayers.every(p => p.isOut)) setGameState('lost');
+     if (newPlayers.every((p: any) => p.isOut)) setGameState('lost');
      else checkTurnEnd();
   };
 
-  const handleTriviaAnswer = (isCorrect) => {
+  const handleTriviaAnswer = (isCorrect: boolean) => {
      if (trivia.type === 'KEEP') {
         if (isCorrect) {
            const updatedPlayers = [...players];
            updatedPlayers[turnIndex].hand.push(pendingCard);
-           if (pendingCard.id === 'fruit' && updatedPlayers[turnIndex].activeCards.some(c => c.id === 'breastplate')) {
+           if (pendingCard.id === 'fruit' && updatedPlayers[turnIndex].activeCards.some((c: any) => c.id === 'breastplate')) {
               setUnity(prev => Math.min(players.length - 1, prev + 1));
               showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
            } else {
@@ -1868,7 +1868,7 @@ export default function LampstandFinal() {
      }
   };
 
-  const showNotification = (msg, color) => {
+  const showNotification = (msg: string, color: string) => {
     setNotification({ msg, color });
     setTimeout(() => setNotification(null), 3000);
   };
@@ -2038,10 +2038,10 @@ export default function LampstandFinal() {
            isActive={i === turnIndex} 
            isOpen={openHandIndex === i}
            isStumbling={p.id === stumblingPlayerId}
-           toggleHand={(e) => { e.stopPropagation(); setOpenHandIndex(openHandIndex === i ? null : i); }}
-           onCardClick={(c) => handleInspectCard(c)}
-           onActiveCardClick={(c) => handleInspectCard(c)}
-           canHelp={gameState === 'stumbling' && p.id !== stumblingPlayerId && p.hand.some(c => c.id === 'encouragement') && (getDistance(i, players.findIndex(pl => pl.id === stumblingPlayerId), players.length) <= unity || players.find(p => p.id === stumblingPlayerId)?.activeCards.some(c => c.id === 'char_job'))}
+           toggleHand={(e: any) => { e.stopPropagation(); setOpenHandIndex(openHandIndex === i ? null : i); }}
+           onCardClick={(c: any) => handleInspectCard(c)}
+           onActiveCardClick={(c: any) => handleInspectCard(c)}
+           canHelp={gameState === 'stumbling' && p.id !== stumblingPlayerId && p.hand.some((c: any) => c.id === 'encouragement') && (getDistance(i, players.findIndex((pl: any) => pl.id === stumblingPlayerId), players.length) <= unity || players.find((p: any) => p.id === stumblingPlayerId)?.activeCards.some((c: any) => c.id === 'char_job'))}
          />
       ))}
 
@@ -2052,9 +2052,9 @@ export default function LampstandFinal() {
             onClose={() => setInspectingCard(null)} 
             onPlay={() => playCard(inspectingCard)}
             canPlay={
-               (gameState === 'stumbling' && inspectingCard.id === 'faith' && players.findIndex(p => p.hand.some(c => c.uid === inspectingCard.uid)) === players.findIndex(p => p.id === stumblingPlayerId)) ||
-               (gameState === 'stumbling' && inspectingCard.id === 'encouragement' && getDistance(players.findIndex(p => p.hand.some(c => c.uid === inspectingCard.uid)), players.findIndex(p => p.id === stumblingPlayerId), players.length) <= unity) ||
-               (gameState === 'playing' && turnIndex === players.findIndex(p => p.hand.some(c => c.uid === inspectingCard.uid)))
+               (gameState === 'stumbling' && inspectingCard.id === 'faith' && players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) === players.findIndex((p: any) => p.id === stumblingPlayerId)) ||
+               (gameState === 'stumbling' && inspectingCard.id === 'encouragement' && getDistance(players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)), players.findIndex((p: any) => p.id === stumblingPlayerId), players.length) <= unity) ||
+               (gameState === 'playing' && turnIndex === players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)))
             }
             isPlayerTurn={true} 
             activePlayerIndex={turnIndex}
@@ -2108,7 +2108,7 @@ export default function LampstandFinal() {
                </div>
                <p className="text-lg font-medium text-white mb-8 leading-relaxed">"{trivia.q}"</p>
                <div className="grid grid-cols-1 gap-3">
-                  {trivia.options.map(opt => (
+                  {trivia.options.map((opt: string) => (
                      <button key={opt} onClick={() => handleTriviaAnswer(opt === trivia.a)} className="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left font-bold border border-zinc-700 transition-colors hover:border-lime-500">{opt}</button>
                   ))}
                </div>

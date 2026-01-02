@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Filter, ArrowUpDown, Search, X, AlertTriangle, Flame } from 'lucide-react';
 
 // Card component from lampstand
-const Card = ({ data, size = 'md' }) => {
+const Card = ({ data, size = 'md' }: { data: any, size?: 'sm' | 'md' | 'lg' }) => {
   if (!data) return <div className="w-20 h-28 bg-gray-700/50 rounded-xl animate-pulse border-2 border-white/5"></div>;
 
   const sizeClasses = size === 'lg' ? 'w-48 h-72 text-sm' : size === 'sm' ? 'w-14 h-20 text-[7px]' : 'w-24 h-36 text-[8px]';
@@ -52,7 +52,7 @@ const Card = ({ data, size = 'md' }) => {
 type SortOption = 'type' | 'name';
 type FilterOption = 'all' | 'Character' | 'Action' | 'Hazard' | 'Trial' | 'Armor' | 'Collection' | 'Event';
 
-export default function LampstandCardsView({ cardTypes, charactersDb, fruits, loveTraits }) {
+export default function LampstandCardsView({ cardTypes, charactersDb, fruits, loveTraits }: { cardTypes: any, charactersDb: any[], fruits: string[], loveTraits: string[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('type');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');

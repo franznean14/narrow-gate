@@ -32,10 +32,25 @@ import {
   ImitateModal, 
   QuestionCard 
 } from './components';
+import PWAInstaller from '../components/PWAInstaller';
 
 // --- MAIN GAME CONTAINER ---
 
 export default function LampstandFinal() {
+  // Register service worker for PWA
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
   const [activeTab, setActiveTab] = useState('game'); 
   const [gameState, setGameState] = useState('setup');
   const [deck, setDeck] = useState<any[]>([]);
@@ -211,9 +226,9 @@ export default function LampstandFinal() {
         const burdenIdx = nextPlayer.activeCards.findIndex((c: any) => c.id === 'trial_time');
         if (nextPlayer.activeCards.some((c: any) => c.id === 'char_moses')) {
              showNotification("Moses is immune to Unwise Time!", "cyan");
-             setTurnIndex(nextIdx);
-             setActivePlayCount(0);
-             if (!skipReset) setDrawsRequired(1);
+    setTurnIndex(nextIdx);
+    setActivePlayCount(0);
+    if (!skipReset) setDrawsRequired(1);
              setOpenHandIndices(prev => new Set([...prev, nextIdx]));
              setIsDrawing(false);
         } else {
@@ -259,12 +274,12 @@ export default function LampstandFinal() {
         setOpenHandIndices(prev => new Set([...prev, nextIdx]));
         setIsDrawing(false);
         
-        if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
-          const nextQuestion = vanquishQueue[0];
-          if (nextQuestion.playerId === nextPlayer.id) {
-            showNotification(`${nextPlayer.name}, draw a question from the Questions pile!`, "indigo");
+    if (vanquishActive && !vanquishFailed && vanquishQueue.length > 0) {
+      const nextQuestion = vanquishQueue[0];
+      if (nextQuestion.playerId === nextPlayer.id) {
+        showNotification(`${nextPlayer.name}, draw a question from the Questions pile!`, "indigo");
           }
-        }
+      }
     }
   };
 
@@ -310,7 +325,7 @@ export default function LampstandFinal() {
     if (card.id === 'event_armageddon') {
        setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'event', targetType: 'discard' });
        setSkipCardDelay(false);
-       return;
+        return;
     }
 
     if (card.id === 'fruit' || card.id === 'love') {
@@ -535,7 +550,7 @@ export default function LampstandFinal() {
                 const anxietyCard = player.activeCards.splice(anxietyIdx, 1)[0];
                 setDiscardPile(prev => [card, anxietyCard, ...prev]);
                 showNotification(`Anxiety discarded ${card.title}!`, "red");
-              } else {
+        } else {
                 setDiscardPile(prev => [card, ...prev]);
               }
             } else {
@@ -549,7 +564,7 @@ export default function LampstandFinal() {
             const updatedPlayers = [...prevPlayers];
             const alreadyExists = updatedPlayers[animatingCard.targetPlayerIndex].hand.some((c: any) => c.uid === animatingCard.card.uid);
             if (!alreadyExists) {
-              updatedPlayers[animatingCard.targetPlayerIndex].hand.push(animatingCard.card);
+            updatedPlayers[animatingCard.targetPlayerIndex].hand.push(animatingCard.card);
             }
             return updatedPlayers;
           });
@@ -783,10 +798,10 @@ export default function LampstandFinal() {
     const drawerId = stumblingPlayerId;
     setStumbleDrawerId(drawerId);
 
-    const updatedPlayers = [...players];
+     const updatedPlayers = [...players];
     const contributorIds: number[] = [];
     const contributorCounts: { [key: number]: number } = {};
-    
+     
     selectedCards.forEach((selection: { playerId: string, cardUid: string }) => {
         const pIdx = updatedPlayers.findIndex((p: any) => p.id === parseInt(selection.playerId));
         const player = updatedPlayers[pIdx];
@@ -800,44 +815,44 @@ export default function LampstandFinal() {
               contributorIds.push(playerIdNum);
             }
         }
-    });
-    
-    setPlayers(updatedPlayers);
-    setVanquishContributors(contributorIds);
-    
+     });
+     
+     setPlayers(updatedPlayers);
+     setVanquishContributors(contributorIds);
+     
     const stumbleDrawerIdx = players.findIndex((p: any) => p.id === drawerId);
     const queue: { playerId: number, questionIndex: number }[] = [];
     const totalQuestions = selectedCards.length;
-    
-    let currentPlayerIdx = stumbleDrawerIdx;
-    let questionIndex = 0;
+     
+     let currentPlayerIdx = stumbleDrawerIdx;
+     let questionIndex = 0;
     let rounds = 0;
-    
-    while (questionIndex < totalQuestions && rounds < players.length * totalQuestions) {
-      const playerId = players[currentPlayerIdx].id;
-      const count = contributorCounts[playerId] || 0;
-      
-      if (contributorIds.includes(playerId)) {
-        for (let i = 0; i < count && questionIndex < totalQuestions; i++) {
+     
+     while (questionIndex < totalQuestions && rounds < players.length * totalQuestions) {
+       const playerId = players[currentPlayerIdx].id;
+       const count = contributorCounts[playerId] || 0;
+       
+       if (contributorIds.includes(playerId)) {
+         for (let i = 0; i < count && questionIndex < totalQuestions; i++) {
           queue.push({ playerId: playerId as number, questionIndex: questionIndex++ });
-        }
-      }
-      
-      currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
-      rounds++;
-    }
-    
+         }
+       }
+       
+       currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+       rounds++;
+     }
+     
     setVanquishQueue(queue);
     setVanquishActive(true);
     setVanquishFailed(false);
 
-    setGameState('playing');
-    setStumblingPlayerId(null);
-    
+     setGameState('playing');
+     setStumblingPlayerId(null);
+     
     const drawerIdx = players.findIndex((p: any) => p.id === drawerId);
-    setTurnIndex(drawerIdx);
+     setTurnIndex(drawerIdx);
     setOpenHandIndices(prev => new Set([...prev, drawerIdx]));
-    
+     
     if (queue.length > 0) {
       const firstPlayerId = queue[0].playerId;
       const firstPlayerIdx = players.findIndex((p: any) => p.id === firstPlayerId);
@@ -1051,8 +1066,8 @@ export default function LampstandFinal() {
     if (drawerId !== null && drawerId !== undefined) {
       const drawerIdx = players.findIndex((p: any) => p.id === drawerId);
       if (drawerIdx !== -1) {
-        const nextPlayerIdx = (drawerIdx + 1) % players.length;
-        setTurnIndex(nextPlayerIdx);
+      const nextPlayerIdx = (drawerIdx + 1) % players.length;
+      setTurnIndex(nextPlayerIdx);
         setOpenHandIndices(prev => new Set([...prev, nextPlayerIdx]));
         setTimeout(() => {
           setIsDrawing(false);
@@ -1116,15 +1131,15 @@ export default function LampstandFinal() {
              
              // Update state after animation completes
              setTimeout(() => {
-               const updatedPlayers = [...players];
-               updatedPlayers[turnIndex].hand.push(pendingCard);
+           const updatedPlayers = [...players];
+           updatedPlayers[turnIndex].hand.push(pendingCard);
                if (pendingCard.id === 'fruit' && updatedPlayers[turnIndex].activeCards.some((c: any) => c.id === 'breastplate')) {
-                  setUnity(prev => Math.min(players.length - 1, prev + 1));
-                  showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
-               } else {
-                  showNotification("Correct! Card added.", "emerald");
-               }
-               setPlayers(updatedPlayers);
+              setUnity(prev => Math.min(players.length - 1, prev + 1));
+              showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
+           } else {
+              showNotification("Correct! Card added.", "emerald");
+           }
+           setPlayers(updatedPlayers);
                setTrivia(null);
                setPendingCard(null);
                checkTurnEnd();
@@ -1135,9 +1150,9 @@ export default function LampstandFinal() {
            newDeck.splice(Math.floor(Math.random() * (newDeck.length + 1)), 0, pendingCard);
            setDeck(newDeck);
            showNotification("Wrong! Card lost.", "red");
-           setTrivia(null);
-           setPendingCard(null);
-           checkTurnEnd();
+        setTrivia(null);
+        setPendingCard(null);
+        checkTurnEnd();
         }
      } else if (trivia.type === 'DEFUSE') {
         if (isCorrect) {
@@ -1615,6 +1630,9 @@ export default function LampstandFinal() {
           `}</style>
         </div>
       )}
+
+      {/* PWA Install Prompt */}
+      <PWAInstaller />
 
     </div>
   );

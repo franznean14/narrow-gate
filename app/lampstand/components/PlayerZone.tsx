@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Zap, AlertTriangle, ChevronUp } from 'lucide-react';
 import { Card } from './Card';
@@ -34,173 +34,75 @@ export const PlayerZone = React.memo(({
 }: PlayerZoneProps) => {
   const [isHandHovered, setIsHandHovered] = useState(false);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
-  const [touchedCardUid, setTouchedCardUid] = useState<string | null>(null);
-  const [longPressCardUid, setLongPressCardUid] = useState<string | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [touchStartCardUid, setTouchStartCardUid] = useState<string | null>(null);
-  const [touchMovedOutside, setTouchMovedOutside] = useState(false);
   const [isActiveCardsHovered, setIsActiveCardsHovered] = useState(false);
   const [hoveredActiveCardUid, setHoveredActiveCardUid] = useState<string | null>(null);
-  const touchPositionRef = useRef<{ x: number; y: number } | null>(null);
   
-  // Cleanup timer on unmount
+  // Track if hand is expanded via touch
+  const [isHandExpandedByTouch, setIsHandExpandedByTouch] = useState(false);
+  const handContainerRef = useRef<HTMLDivElement>(null);
+  // Track if hand was expanded BEFORE this touch sequence (to prevent modal on first touch)
+  const wasHandExpandedRef = useRef(false);
+  
+  // Handle touch outside to retract
   useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
+    const handleTouchOutside = (e: TouchEvent) => {
+      const target = e.target as Node;
+      if (handContainerRef.current && !handContainerRef.current.contains(target)) {
+        setIsHandExpandedByTouch(false);
+        setIsHandHovered(false);
+        setHoveredCardUid(null);
+        wasHandExpandedRef.current = false;
       }
     };
-  }, []);
 
-  // Function to find card under touch point
-  const findCardUnderTouch = (x: number, y: number): string | null => {
-    const target = document.elementFromPoint(x, y);
-    if (!target) return null;
-    const cardElement = target.closest('[data-card-uid]');
-    return cardElement?.getAttribute('data-card-uid') || null;
-  };
-
-  // Track if touch is active
-  const isTouchingRef = useRef(false);
-
-  // Helper to find card under touch point - checks all cards and returns the topmost one
-  const findCardUnderPoint = (x: number, y: number): string | null => {
-    const handContainer = document.querySelector('[data-card-hand="true"]');
-    if (!handContainer) return null;
-    
-    // Get all cards and check which one contains the point
-    // Check in reverse order (topmost first) since cards overlap
-    const allCards = Array.from(handContainer.querySelectorAll('[data-card-uid]')).reverse();
-    
-    for (const card of allCards) {
-      const rect = card.getBoundingClientRect();
-      // Check if point is within card bounds
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        return card.getAttribute('data-card-uid');
-      }
+    if (isHandExpandedByTouch) {
+      document.addEventListener('touchstart', handleTouchOutside);
+      return () => {
+        document.removeEventListener('touchstart', handleTouchOutside);
+      };
     }
+  }, [isHandExpandedByTouch]);
+  
+  // Handle touch on hand container - expand only (don't open modal)
+  const handleHandTouchStart = (e: React.TouchEvent) => {
+    // Only expand if this is a touch on the container itself, not bubbling from a card
+    const target = e.target as HTMLElement;
+    const isDirectContainerTouch = target === handContainerRef.current || 
+                                   target.closest('[data-card-hand="true"]') === handContainerRef.current;
     
-    // Fallback: try elementFromPoint
-    const target = document.elementFromPoint(x, y);
-    if (target) {
-      const cardElement = target.closest('[data-card-uid]');
-      if (cardElement) {
-        return cardElement.getAttribute('data-card-uid');
-      }
-    }
-    
-    return null;
-  };
-
-  // Handle touch move on container - works like hover, updates card under finger
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isTouchingRef.current) return;
-    
-    e.preventDefault(); // Prevent scrolling
-    
-    const touch = e.touches[0];
-    if (!touch) return;
-    
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find card under touch using improved detection
-    const cardUid = findCardUnderPoint(x, y);
-    
-    // Check if moved outside hand container
-    const handContainer = e.currentTarget;
-    const target = document.elementFromPoint(x, y);
-    if (target && !handContainer.contains(target as Node)) {
-      setTouchMovedOutside(true);
-      setTouchedCardUid(null);
-      return;
-    }
-    
-    // Always update highlighted card immediately (clears previous, sets new)
-    // This is the primary handler - it should always run and update the state
-    // Use function form to ensure we always update, even if React batches
-    setTouchedCardUid((prevUid) => {
-      // Always return the new cardUid - this ensures previous card is cleared
-      return cardUid;
-    });
-    setTouchMovedOutside(false);
-  };
-
-  // Handle touch enter on individual card - ensures card updates when touch moves over it
-  const handleCardTouchEnter = (cardUid: string) => {
-    if (isTouchingRef.current) {
-      // Force update to this card (clears any previous card)
-      // Use function form to ensure React always processes the update
-      setTouchedCardUid((prevUid) => {
-        // Always return the new cardUid, even if it's the same
-        // This ensures React processes the update
-        return cardUid;
-      });
-      setTouchMovedOutside(false);
+    if (isDirectContainerTouch && !target.closest('[data-card-uid]')) {
+      e.stopPropagation();
+      // Mark that hand was expanded before any card touch
+      wasHandExpandedRef.current = true;
+      setIsHandExpandedByTouch(true);
+      setIsHandHovered(true);
     }
   };
-
-  // Handle touch start - like mouse enter
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
+  
+  // Handle touch on card - only open modal if hand was already expanded BEFORE this touch
+  const handleCardTouch = (e: React.TouchEvent, card: any) => {
+    // Stop propagation FIRST to prevent container handler from running
+    e.stopPropagation();
+    e.preventDefault();
     
-    isTouchingRef.current = true;
-    setIsHandHovered(true);
+    // Check if hand was expanded BEFORE this touch (capture the value before any state changes)
+    const wasExpandedBefore = wasHandExpandedRef.current || isHandHovered;
     
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find initial card under touch
-    const target = document.elementFromPoint(x, y);
-    const cardElement = target?.closest('[data-card-uid]');
-    const cardUid = cardElement?.getAttribute('data-card-uid') || null;
-    
-    if (cardUid) {
-      setTouchedCardUid(cardUid);
-      setTouchStartCardUid(cardUid);
+    // Only open modal if hand was expanded BEFORE this touch sequence
+    if (wasExpandedBefore) {
+      onCardClick(card);
+      // Retract after opening modal
+      setIsHandExpandedByTouch(false);
+      wasHandExpandedRef.current = false;
+    } else {
+      // First touch on card - just expand, don't open modal
+      setIsHandExpandedByTouch(true);
+      setIsHandHovered(true);
+      // Set the flag after a short delay so next touch will open modal
+      setTimeout(() => {
+        wasHandExpandedRef.current = true;
+      }, 50);
     }
-    setTouchMovedOutside(false);
-  };
-
-  // Handle touch end - like mouse click
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touch = e.changedTouches[0];
-    if (!touch) return;
-    
-    isTouchingRef.current = false;
-    
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find which card touch ended on
-    const target = document.elementFromPoint(x, y);
-    const cardElement = target?.closest('[data-card-uid]');
-    const cardUid = cardElement?.getAttribute('data-card-uid') || null;
-    
-    // If touch ended on a card, show modal
-    if (cardUid && !touchMovedOutside) {
-      const card = player.hand.find((c: any) => c.uid === cardUid);
-      if (card) {
-        setTimeout(() => {
-          onCardClick(card);
-        }, 50);
-      }
-    }
-    
-    // Reset all states (like mouse leave)
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    setLongPressCardUid(null);
-    setTouchStartCardUid(null);
-    
-    setTimeout(() => {
-      setIsHandHovered(false);
-      setTouchedCardUid(null);
-      setTouchMovedOutside(false);
-    }, 100);
   };
   
   let containerStyle = {};
@@ -248,10 +150,22 @@ export const PlayerZone = React.memo(({
               const isDirectlyHovered = isHovered;
               
               // Get card definition for icon (check both CARD_TYPES and CHARACTERS_DB)
-              const cardDef = CARD_TYPES[c.id] || CHARACTERS_DB.find((char: any) => char.id === c.id) || {};
-              const IconComponent = cardDef.icon;
-              const iconColor = cardDef.textColor || 'text-white';
-              const cardColor = cardDef.color || 'bg-zinc-700';
+              // Use the exact same merge logic as Card component
+              const def = CARD_TYPES[c.id] || CHARACTERS_DB.find((char: any) => char.id === c.id) || { color: 'bg-gray-500', icon: null, title: 'Unknown' };
+              
+              // Merge - use data properties if they exist, otherwise fall back to def
+              // IMPORTANT: Check if data.icon exists (not just truthy) to avoid overriding def.icon with undefined
+              const merged = { 
+                ...def, 
+                ...c,
+                // Ensure icon is preserved - use data.icon if it exists (even if falsy), otherwise use def.icon
+                icon: (c.icon !== undefined && c.icon !== null) ? c.icon : def.icon,
+                // Explicitly preserve textColor from def if data doesn't have one
+                textColor: c.textColor !== undefined ? c.textColor : def.textColor
+              };
+              
+              const iconColor = merged.textColor || 'text-white';
+              const cardColor = merged.color || 'bg-zinc-700';
               
               return (
                 <div 
@@ -275,29 +189,25 @@ export const PlayerZone = React.memo(({
                       onClick={() => onActiveCardClick(c)}
                     >
                       {(() => {
-                        // Also check CHARACTERS_DB if not found in CARD_TYPES
-                        const finalIcon = IconComponent || (c.id.startsWith('char_') ? CHARACTERS_DB.find((char: any) => char.id === c.id)?.icon : null);
+                        // Use the exact same approach as Card component which works correctly
+                        // Check merged.icon first, then fallback to def.icon (same as Card component does)
+                        const iconToUse = merged.icon || def.icon;
                         
-                        if (!finalIcon) {
+                        if (!iconToUse) {
                           return <div className="w-7 h-7 bg-white/10 rounded"></div>;
                         }
                         
-                        // Use the same approach as LampstandCardsView which works correctly
-                        // If it's a function (component), render it with size prop (most common case)
-                        if (typeof finalIcon === 'function') {
-                          const IconComp = finalIcon;
-                          return <IconComp size={28} className={iconColor} />;
-                        }
-                        
-                        // If it's already a React element (JSX), clone it
-                        if (React.isValidElement(finalIcon)) {
-                          return React.cloneElement(finalIcon as React.ReactElement<any>, { 
-                            className: iconColor, 
-                            size: 28 
+                        // If it's already a React element (JSX), render it directly with textColor
+                        if (React.isValidElement(iconToUse)) {
+                          return React.cloneElement(iconToUse as React.ReactElement<any>, { 
+                            className: iconColor 
                           } as any);
                         }
                         
-                        return <div className="w-7 h-7 bg-white/10 rounded"></div>;
+                        // If it's a component, render it with size prop (most common case)
+                        // Wrap in div like Card component does
+                        const IconComponent = iconToUse;
+                        return <IconComponent size={28} className={iconColor} />;
                       })()}
                     </div>
                   )}
@@ -327,96 +237,182 @@ export const PlayerZone = React.memo(({
          
         {/* Hand Cards */}
         <motion.div 
+          ref={handContainerRef}
           data-card-hand="true"
           className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl border-x border-b border-white/20 p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px]"
-          style={{ touchAction: 'none' }}
           onMouseEnter={() => setIsHandHovered(true)}
           onMouseLeave={() => {
             setIsHandHovered(false);
             setHoveredCardUid(null);
           }}
-          onTouchStart={(e) => {
-            handleTouchStart(e);
-          }}
-          onTouchMove={(e) => {
-            // Only handle touch move if not already handled by a card
-            // Cards handle their own touch move events
-            handleTouchMove(e);
-          }}
-          onTouchEnd={(e) => {
-            handleTouchEnd(e);
-          }}
-          onTouchCancel={() => {
-            isTouchingRef.current = false;
-            setIsHandHovered(false);
-            setTouchedCardUid(null);
-            setTouchMovedOutside(false);
-          }}
+          onTouchStart={handleHandTouchStart}
         >
-            <div className={`flex transition-all duration-300 items-end h-36 ${
-              isHandHovered || touchedCardUid ? 'gap-2' : '-space-x-12'
-            }`}>
-              {player.hand.map((c: any, i: number) => {
-                const isTouched = touchedCardUid === c.uid;
-                const isHovered = hoveredCardUid === c.uid;
-                const shouldExpand = isHandHovered || isTouched;
-                const isDirectlyInteracted = isTouched || isHovered;
-                const isLongPressed = longPressCardUid === c.uid;
+            {(() => {
+              const totalCards = player.hand.length;
+              const isExpanded = isHandHovered || isHandExpandedByTouch;
+              
+              // Calculate dynamic spacing for rest state based on card count
+              // More cards = less spacing (more negative)
+              const getRestSpacing = () => {
+                if (totalCards <= 5) return '-space-x-12'; // -3rem (48px)
+                if (totalCards <= 8) return '-space-x-10'; // -2.5rem (40px)
+                if (totalCards <= 10) return '-space-x-8';  // -2rem (32px)
+                if (totalCards <= 12) return '-space-x-6';  // -1.5rem (24px)
+                if (totalCards <= 15) return '-space-x-4';  // -1rem (16px)
+                return '-space-x-2'; // -0.5rem (8px) for 16+ cards
+              };
+              
+              const restSpacing = getRestSpacing();
+              
+              // Only use 2-row layout in expanded state when > 10 cards
+              if (isExpanded && totalCards > 10) {
+                const topRowCount = Math.ceil(totalCards / 2);
+                const bottomRowCount = totalCards - topRowCount;
+                const topRow = player.hand.slice(0, topRowCount);
+                const bottomRow = player.hand.slice(topRowCount);
                 
                 return (
-                  <div 
-                    key={`hand-${c.uid}-${i}`}
-                    data-card-uid={c.uid}
-                    className={`origin-bottom transition-transform ${
-                      shouldExpand 
-                        ? `-translate-y-8 z-50 ${isDirectlyInteracted ? 'scale-[1.6]' : 'scale-[1.5]'}` 
-                        : ''
-                    }`}
-                    style={{ 
-                      zIndex: shouldExpand ? (isDirectlyInteracted ? 101 : 100) : i,
-                      touchAction: 'manipulation',
-                      WebkitTouchCallout: 'none',
-                      WebkitUserSelect: 'none',
-                      userSelect: 'none'
-                    }}
-                    onMouseEnter={() => setHoveredCardUid(c.uid)}
-                    onMouseLeave={() => setHoveredCardUid(null)}
-                    onTouchStart={(e) => {
-                      // Update card when touch enters it
-                      if (!isTouchingRef.current) {
-                        handleTouchStart(e as any);
-                      }
-                      // Immediately update to this card
-                      handleCardTouchEnter(c.uid);
-                    }}
-                    onTouchMove={(e) => {
-                      // Let container handle touch move - it's the primary source of truth
-                      // Individual card handlers can cause conflicts
-                      // Just prevent default to avoid scrolling
-                      e.preventDefault();
-                    }}
-                    onTouchEnd={(e) => {
-                      // Let parent handle touch end
-                    }}
-                    onTouchCancel={() => {
-                      isTouchingRef.current = false;
-                      if (longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                      setTouchedCardUid(null);
-                      setLongPressCardUid(null);
-                      setTouchStartCardUid(null);
-                      setTouchMovedOutside(false);
-                      setIsHandHovered(false);
-                    }}
-                  >
-                    <Card data={c} size="md" onClick={() => onCardClick(c)} isPlayable={!player.isOut} showScripture={false} />
+                  <div className="flex flex-col transition-all duration-300 items-center gap-4 h-auto py-4">
+                    {/* Top row */}
+                    <div className="flex transition-all duration-300 items-end gap-6">
+                      {topRow.map((c: any, i: number) => {
+                        const isHovered = hoveredCardUid === c.uid;
+                        const isDirectlyInteracted = isHovered && isHandHovered;
+                        
+                        return (
+                          <div 
+                            key={`hand-top-${c.uid}-${i}`}
+                            data-card-uid={c.uid}
+                            className={`origin-bottom transition-transform -translate-y-8 z-50 ${isDirectlyInteracted ? 'scale-[1.6]' : 'scale-[1.5]'}`}
+                            style={{ 
+                              zIndex: isDirectlyInteracted ? 101 : 100
+                            }}
+                            onMouseEnter={() => {
+                              if (!isHandExpandedByTouch) {
+                                setHoveredCardUid(c.uid);
+                              }
+                            }}
+                            onMouseLeave={() => setHoveredCardUid(null)}
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              handleCardTouch(e, c);
+                            }}
+                            onClick={(e) => {
+                              if (!wasHandExpandedRef.current && !isHandHovered) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return;
+                              }
+                              if (wasHandExpandedRef.current || isHandHovered) {
+                                onCardClick(c);
+                                setIsHandExpandedByTouch(false);
+                                wasHandExpandedRef.current = false;
+                              }
+                            }}
+                          >
+                            <Card data={c} size="md" onClick={() => {}} isPlayable={!player.isOut} showScripture={false} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* Bottom row */}
+                    <div className="flex transition-all duration-300 items-end gap-6">
+                      {bottomRow.map((c: any, i: number) => {
+                        const isHovered = hoveredCardUid === c.uid;
+                        const isDirectlyInteracted = isHovered && isHandHovered;
+                        
+                        return (
+                          <div 
+                            key={`hand-bottom-${c.uid}-${i}`}
+                            data-card-uid={c.uid}
+                            className={`origin-bottom transition-transform -translate-y-8 z-50 ${isDirectlyInteracted ? 'scale-[1.6]' : 'scale-[1.5]'}`}
+                            style={{ 
+                              zIndex: isDirectlyInteracted ? 101 : 100
+                            }}
+                            onMouseEnter={() => {
+                              if (!isHandExpandedByTouch) {
+                                setHoveredCardUid(c.uid);
+                              }
+                            }}
+                            onMouseLeave={() => setHoveredCardUid(null)}
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              handleCardTouch(e, c);
+                            }}
+                            onClick={(e) => {
+                              if (!wasHandExpandedRef.current && !isHandHovered) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return;
+                              }
+                              if (wasHandExpandedRef.current || isHandHovered) {
+                                onCardClick(c);
+                                setIsHandExpandedByTouch(false);
+                                wasHandExpandedRef.current = false;
+                              }
+                            }}
+                          >
+                            <Card data={c} size="md" onClick={() => {}} isPlayable={!player.isOut} showScripture={false} />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
-              })}
-              {player.hand.length === 0 && <span className="text-xs text-slate-600 font-bold uppercase py-10">Empty Hand</span>}
-            </div>
+              }
+              
+              // Rest state or expanded with <= 10 cards: always single row
+              return (
+                <div className={`flex transition-all duration-300 items-end h-36 ${
+                  isExpanded ? 'gap-6' : restSpacing
+                }`}>
+                  {player.hand.map((c: any, i: number) => {
+                    const isHovered = hoveredCardUid === c.uid;
+                    const isDirectlyInteracted = isHovered && isHandHovered;
+                    
+                    return (
+                      <div 
+                        key={`hand-${c.uid}-${i}`}
+                        data-card-uid={c.uid}
+                        className={`origin-bottom transition-transform ${
+                          isExpanded 
+                            ? `-translate-y-8 z-50 ${isDirectlyInteracted ? 'scale-[1.6]' : 'scale-[1.5]'}` 
+                            : ''
+                        }`}
+                        style={{ 
+                          zIndex: isExpanded ? (isDirectlyInteracted ? 101 : 100) : i
+                        }}
+                        onMouseEnter={() => {
+                          if (!isHandExpandedByTouch) {
+                            setHoveredCardUid(c.uid);
+                          }
+                        }}
+                        onMouseLeave={() => setHoveredCardUid(null)}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          handleCardTouch(e, c);
+                        }}
+                        onClick={(e) => {
+                          if (!wasHandExpandedRef.current && !isHandHovered) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return;
+                          }
+                          if (wasHandExpandedRef.current || isHandHovered) {
+                            onCardClick(c);
+                            setIsHandExpandedByTouch(false);
+                            wasHandExpandedRef.current = false;
+                          }
+                        }}
+                      >
+                        <Card data={c} size="md" onClick={() => {}} isPlayable={!player.isOut} showScripture={false} />
+                      </div>
+                    );
+                  })}
+                  {player.hand.length === 0 && <span className="text-xs text-slate-600 font-bold uppercase py-10">Empty Hand</span>}
+                </div>
+              );
+            })()}
         </motion.div>
       </div>
     </div>

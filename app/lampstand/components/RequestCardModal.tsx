@@ -36,11 +36,11 @@ export const RequestCardModal = React.memo(({ requester, players, unity, onClose
    });
    
    // Get available cards from selected player
-   // Try multiple lookup methods to ensure we find the player
-   const selectedPlayer = selectedPlayerId !== null 
+   // Try multiple lookup methods to ensure we find the player (handle id: 0 for player 1)
+   const selectedPlayer = selectedPlayerId !== null && selectedPlayerId !== undefined
      ? (players.find((p: any) => p.id === selectedPlayerId) || 
         players.find((p: any, idx: number) => idx === selectedPlayerId) ||
-        players[selectedPlayerId])
+        (typeof selectedPlayerId === 'number' && selectedPlayerId >= 0 && selectedPlayerId < players.length ? players[selectedPlayerId] : null))
      : null;
    // Ensure we have a valid player with a hand array
    const availableCards = selectedPlayer && Array.isArray(selectedPlayer.hand) ? selectedPlayer.hand : [];
@@ -89,10 +89,10 @@ export const RequestCardModal = React.memo(({ requester, players, unity, onClose
                   2. Select Card to Request
                   {selectedPlayer && ` (from ${selectedPlayer.name})`}
                 </h3>
-                {!selectedPlayerId ? (
+                {selectedPlayerId === null || selectedPlayerId === undefined ? (
                    <div className="text-center text-zinc-500 py-8">Select a player first</div>
                 ) : !selectedPlayer ? (
-                   <div className="text-center text-zinc-500 py-8">Player not found</div>
+                   <div className="text-center text-zinc-500 py-8">Player not found (ID: {selectedPlayerId})</div>
                 ) : availableCards.length === 0 ? (
                    <div className="text-center text-zinc-500 py-8">This player has no cards</div>
                 ) : (

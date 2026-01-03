@@ -28,14 +28,8 @@
   [data-scrollable="true"] {
     overflow-y: auto;
     overflow-x: hidden;
-    touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-  }
-  
-  /* Allow touch manipulation for interactive card areas */
-  [data-card-hand] {
-    touch-action: manipulation;
   }
 }
 

@@ -99,10 +99,10 @@ type FilterOption = 'all' | 'Character' | 'Action' | 'Hazard' | 'Trial' | 'Armor
 
 // Function to calculate card quantity based on game setup logic
 const getCardQuantity = (cardId: string, cardType: string, fruits: string[], loveTraits: string[], charactersDb: any[]): string => {
-  // Action cards: floor(numPlayers * 1.5) (for 2-4 players = 3-6 copies)
+  // Action cards: floor(numPlayers * 1.0) (for 2-4 players = 2-4 copies)
   const actionIds = ['insight', 'guidance', 'patience', 'kindness', 'encouragement', 'modesty', 'imitate', 'wisdom', 'prayer', 'minister', 'vigilance', 'discernment'];
   if (actionIds.includes(cardId)) {
-    return '3-6 (floor(players × 1.5))';
+    return '2-4 (floor(players × 1.0))';
   }
   
   // Faith: floor(numPlayers * 1.75) (for 2-4 players = 3-7 copies)
@@ -115,10 +115,10 @@ const getCardQuantity = (cardId: string, cardType: string, fruits: string[], lov
     return '1-2 (floor(players/2))';
   }
   
-  // Armor: floor(numPlayers / 2) copies (2 players = 1, 3 players = 1, 4 players = 2)
+  // Armor: 1 copy each (reduced from floor(players/2))
   const armorIds = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
   if (armorIds.includes(cardId)) {
-    return '1-2 (floor(players/2))';
+    return '1';
   }
   
   // Characters: 1 copy each
@@ -131,24 +131,24 @@ const getCardQuantity = (cardId: string, cardType: string, fruits: string[], lov
     return '1';
   }
   
-  // Fruits: All fruits (two of each) - doubled for better vanquish balance
+  // Fruits: All fruits (one of each)
   if (cardId === 'fruit') {
-    return `${fruits.length * 2} (two of each)`;
+    return `${fruits.length} (one of each)`;
   }
   
-  // Love: All love traits (two of each) - doubled for better vanquish balance
+  // Love: All love traits (one of each)
   if (cardId === 'love') {
-    return `${loveTraits.length * 2} (two of each)`;
+    return `${loveTraits.length} (one of each)`;
   }
   
-  // Trials: 3 copies each
+  // Trials: 2 copies each (reduced from 3)
   if (cardId.startsWith('trial_')) {
-    return '3';
+    return '2';
   }
   
-  // Stumble: 8 copies
+  // Stumble: 6 copies (reduced from 8)
   if (cardId === 'stumble') {
-    return '8';
+    return '6';
   }
   
   // Discord: 4 copies
@@ -212,21 +212,21 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
       }
     });
     
-    // Add fruit variations (2 of each)
+    // Add fruit variations (1 of each)
     fruits.forEach(fruit => {
-      cards.push({ ...cardTypes.fruit, subTitle: fruit, type: 'Collection', category: 'Collection', title: `Fruitage: ${fruit}`, quantity: '2', scripture: cardTypes.fruit?.scripture, showQuantity: showQuantities });
+      cards.push({ ...cardTypes.fruit, subTitle: fruit, type: 'Collection', category: 'Collection', title: `Fruitage: ${fruit}`, quantity: '1', scripture: cardTypes.fruit?.scripture, showQuantity: showQuantities });
     });
     
-    // Add love variations (2 of each)
+    // Add love variations (1 of each)
     loveTraits.forEach(trait => {
-      cards.push({ ...cardTypes.love, subTitle: trait, type: 'Collection', category: 'Collection', title: `Love Is... ${trait}`, quantity: '2', scripture: cardTypes.love?.scripture, showQuantity: showQuantities });
+      cards.push({ ...cardTypes.love, subTitle: trait, type: 'Collection', category: 'Collection', title: `Love Is... ${trait}`, quantity: '1', scripture: cardTypes.love?.scripture, showQuantity: showQuantities });
     });
     
     // Add events (created dynamically in game)
     cards.push({ 
       id: 'event_gt', 
       title: 'Great Tribulation', 
-      desc: 'Unity -1, All lose 1 card, Cannot remove burdens, Only Breastplate+Shield+Helmet can play Fruit/Love, Max Characters = 2.', 
+      desc: 'Unity -1. All players lose 1 card. Cannot remove burdens. Only players with 2 Characters + 1 Armor can play Fruit/Love. Max Characters = 2. Vanquishing requires 5 Love/Fruit cards.', 
       scripture: { text: 'For then there will be great tribulation such as has not occurred since the world\'s beginning until now, no, nor will occur again.', ref: 'Mt 24:21' },
       color: 'bg-zinc-800 border-red-500', 
       icon: AlertTriangle, 

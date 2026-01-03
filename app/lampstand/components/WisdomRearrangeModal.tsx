@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from './Card';
 import { X, Check, GripVertical } from 'lucide-react';
 
@@ -20,6 +20,15 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
   const modalPosition = getModalPosition(activePlayerIndex);
+  
+  // Touch support
+  const [touchDraggedCard, setTouchDraggedCard] = useState<any | null>(null);
+  const [touchSource, setTouchSource] = useState<'grid' | 'reorder' | null>(null);
+  const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
+  const touchStartRef = useRef<{ card: any; source: 'grid' | 'reorder'; elementX: number; elementY: number; touchX: number; touchY: number } | null>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const reorderCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const gridCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const handleCardDragStart = (e: React.DragEvent, card: any) => {
     setDraggedCard(card);
@@ -126,17 +135,158 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
     }
   };
 
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent, card: any, source: 'grid' | 'reorder') => {
+    const touch = e.touches[0];
+    const element = e.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    touchStartRef.current = {
+      card,
+      source,
+      elementX: rect.left,
+      elementY: rect.top,
+      touchX: touch.clientX,
+      touchY: touch.clientY
+    };
+    setTouchDraggedCard(card);
+    setTouchSource(source);
+    setTouchPosition({ x: touch.clientX, y: touch.clientY });
+    e.preventDefault();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.touches[0];
+    setTouchPosition({ x: touch.clientX, y: touch.clientY });
+    
+    // Check if over drop zone
+    if (dropZoneRef.current) {
+      const rect = dropZoneRef.current.getBoundingClientRect();
+      const isOverDropZone = touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                            touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+      setIsDraggingOverDropZone(isOverDropZone);
+      
+      // Check if over a reorder card
+      let overIndex: number | null = null;
+      reorderCardRefs.current.forEach((el, uid) => {
+        if (el) {
+          const cardRect = el.getBoundingClientRect();
+          if (touch.clientX >= cardRect.left && touch.clientX <= cardRect.right &&
+              touch.clientY >= cardRect.top && touch.clientY <= cardRect.bottom) {
+            const cardIndex = reorderedCards.findIndex((c: any) => c.uid === uid);
+            if (cardIndex !== -1) {
+              overIndex = cardIndex;
+            }
+          }
+        }
+      });
+      setDragOverIndex(overIndex);
+    }
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) {
+      setTouchDraggedCard(null);
+      setTouchSource(null);
+      setTouchPosition(null);
+      setIsDraggingOverDropZone(false);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const { card, source } = touchStartRef.current;
+
+    // Check if dropped on drop zone
+    if (dropZoneRef.current && source === 'grid') {
+      const rect = dropZoneRef.current.getBoundingClientRect();
+      if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+          touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        // Add card to reordered list if not already there and under limit
+        if (!reorderedCards.some((c: any) => c.uid === card.uid) && reorderedCards.length < rearrangeCount) {
+          setReorderedCards([...reorderedCards, card]);
+        }
+      }
+    }
+
+    // Check if dropped on a reorder card position
+    if (source === 'reorder') {
+      let targetIndex: number | null = null;
+      reorderCardRefs.current.forEach((el, uid) => {
+        if (el) {
+          const cardRect = el.getBoundingClientRect();
+          if (touch.clientX >= cardRect.left && touch.clientX <= cardRect.right &&
+              touch.clientY >= cardRect.top && touch.clientY <= cardRect.bottom) {
+            const cardIndex = reorderedCards.findIndex((c: any) => c.uid === uid);
+            if (cardIndex !== -1) {
+              targetIndex = cardIndex;
+            }
+          }
+        }
+      });
+
+      if (targetIndex !== null) {
+        const dragged = reorderedCards.find((c: any) => c.uid === card.uid);
+        if (dragged) {
+          const newOrder = [...reorderedCards];
+          const draggedIndex = newOrder.findIndex((c: any) => c.uid === dragged.uid);
+          if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, dragged);
+            setReorderedCards(newOrder);
+          }
+        }
+      }
+    }
+
+    // Reset touch state
+    touchStartRef.current = null;
+    setTouchDraggedCard(null);
+    setTouchSource(null);
+    setTouchPosition(null);
+    setIsDraggingOverDropZone(false);
+    setDragOverIndex(null);
+    e.preventDefault();
+  };
+
+  const handleTouchCancel = () => {
+    touchStartRef.current = null;
+    setTouchDraggedCard(null);
+    setTouchSource(null);
+    setTouchPosition(null);
+    setIsDraggingOverDropZone(false);
+    setDragOverIndex(null);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
       <div className="grid grid-cols-5 gap-4">
         {cards.map((c, i) => {
           const isSelected = reorderedCards.some((sc: any) => sc.uid === c.uid);
+          const isTouchDragging = touchDraggedCard?.uid === c.uid && touchSource === 'grid';
           return (
             <div
               key={c.uid}
+              ref={(el) => {
+                if (el) {
+                  gridCardRefs.current.set(c.uid, el);
+                } else {
+                  gridCardRefs.current.delete(c.uid);
+                }
+              }}
               draggable={!isSelected}
               onDragStart={(e) => handleCardDragStart(e, c)}
               onDragEnd={handleCardDragEnd}
+              onTouchStart={(e) => !isSelected && handleTouchStart(e, c, 'grid')}
+              style={{ 
+                touchAction: 'none',
+                opacity: isTouchDragging ? 0.3 : undefined,
+                transform: isTouchDragging && touchPosition && touchStartRef.current 
+                  ? `translate(${touchPosition.x - touchStartRef.current.touchX}px, ${touchPosition.y - touchStartRef.current.touchY}px)` 
+                  : undefined,
+                zIndex: isTouchDragging ? 1000 : undefined
+              }}
               className={`cursor-move transition-all relative ${
                 isSelected ? 'ring-4 ring-violet-500 scale-110 opacity-50' : 'opacity-60 hover:opacity-100'
               } ${draggedCard?.uid === c.uid ? 'opacity-30' : ''}`}
@@ -152,11 +302,13 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
           Drag {rearrangeCount} card(s) here to reorder:
         </h4>
         <div
+          ref={dropZoneRef}
           onDragOver={handleDropZoneDragOver}
           onDragLeave={handleDropZoneDragLeave}
           onDrop={handleDropZoneDrop}
+          style={{ touchAction: 'none' }}
           className={`flex gap-4 items-center min-h-[140px] p-4 rounded-lg transition-all ${
-            isDraggingOverDropZone 
+            isDraggingOverDropZone || (touchDraggedCard && touchSource === 'grid')
               ? 'bg-violet-900/50 ring-4 ring-violet-400 border-2 border-violet-400' 
               : 'bg-zinc-900/50 border-2 border-dashed border-zinc-700'
           }`}
@@ -166,9 +318,18 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
               Drag {rearrangeCount} card(s) from above to select and reorder
             </div>
           ) : (
-            reorderedCards.map((card, idx) => (
+            reorderedCards.map((card, idx) => {
+              const isTouchDragging = touchDraggedCard?.uid === card.uid && touchSource === 'reorder';
+              return (
               <div
                 key={card.uid}
+                ref={(el) => {
+                  if (el) {
+                    reorderCardRefs.current.set(card.uid, el);
+                  } else {
+                    reorderCardRefs.current.delete(card.uid);
+                  }
+                }}
                 draggable
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = 'move';
@@ -182,6 +343,15 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
                 onDragOver={(e) => handleReorderDragOver(e, idx)}
                 onDragLeave={handleReorderDragLeave}
                 onDrop={(e) => handleReorderDrop(e, idx)}
+                onTouchStart={(e) => handleTouchStart(e, card, 'reorder')}
+                style={{ 
+                  touchAction: 'none',
+                  opacity: isTouchDragging ? 0.3 : undefined,
+                  transform: isTouchDragging && touchPosition && touchStartRef.current
+                    ? `translate(${touchPosition.x - touchStartRef.current.touchX}px, ${touchPosition.y - touchStartRef.current.touchY}px)` 
+                    : undefined,
+                  zIndex: isTouchDragging ? 1000 : undefined
+                }}
                 className={`flex flex-col items-center gap-2 transition-all cursor-move relative group ${
                   dragOverIndex === idx ? 'scale-110 ring-4 ring-violet-400 z-10' : ''
                 } ${draggedCard?.uid === card.uid ? 'opacity-30' : ''}`}
@@ -202,7 +372,8 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
                   <X size={10} />
                 </button>
               </div>
-            ))
+            );
+            })
           )}
         </div>
         <p className="text-zinc-400 text-sm mt-4">

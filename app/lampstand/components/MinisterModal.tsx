@@ -43,6 +43,35 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
      }
    };
 
+   // If in gift mode, render GiftModal as a separate modal (not nested)
+   if (mode === 'gift') {
+     return (
+       <GiftModal
+         giver={minister}
+         players={targets}
+         onClose={() => {
+           setMode(null);
+           setSelectedCard(null);
+           setSelectedPlayerId(null);
+           onClose();
+         }}
+         onConfirm={(card, targetId) => {
+           // Convert string ID to number if needed
+           const targetPlayer = targets.find((p: any) => p.id === targetId || p.id === Number(targetId));
+           if (targetPlayer) {
+             onGiveCard(card, typeof targetPlayer.id === 'number' ? targetPlayer.id : Number(targetPlayer.id));
+           }
+         }}
+         title="Minister"
+         borderColor="border-amber-500"
+         titleColor="text-amber-500"
+         buttonColor="bg-amber-500 hover:bg-amber-400"
+         excludeCardUid={ministerCardUid || undefined}
+         activePlayerIndex={activePlayerIndex}
+       />
+     );
+   }
+
    return (
     <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
        <div className="bg-zinc-900 border-2 border-amber-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 transition-transform duration-500" style={{ transform: modalRotation }}>
@@ -63,7 +92,7 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
                 Give Card
               </button>
             </div>
-          ) : mode === 'burden' ? (
+          ) : (
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-amber-400">Select player to remove burden from:</h3>
               <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
@@ -97,29 +126,6 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
                 <button onClick={handleRemoveBurden} disabled={selectedPlayerId === null} className="px-8 py-3 rounded-xl font-bold bg-amber-500 text-white hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">Remove Burden</button>
               </div>
             </div>
-          ) : (
-            <GiftModal
-              giver={minister}
-              players={targets}
-              onClose={() => {
-                setMode(null);
-                setSelectedCard(null);
-                setSelectedPlayerId(null);
-              }}
-              onConfirm={(card, targetId) => {
-                // Convert string ID to number if needed
-                const targetPlayer = targets.find((p: any) => p.id === targetId || p.id === Number(targetId));
-                if (targetPlayer) {
-                  onGiveCard(card, typeof targetPlayer.id === 'number' ? targetPlayer.id : Number(targetPlayer.id));
-                }
-              }}
-              title="Minister"
-              borderColor="border-amber-500"
-              titleColor="text-amber-500"
-              buttonColor="bg-amber-500 hover:bg-amber-400"
-              excludeCardUid={ministerCardUid || undefined}
-              activePlayerIndex={activePlayerIndex}
-            />
           )}
           
           <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white p-2">

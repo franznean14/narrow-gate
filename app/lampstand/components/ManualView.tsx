@@ -119,7 +119,7 @@ export const ManualView = React.memo(() => (
               <li><strong>Sandals:</strong> Patience pushes cards 5 deep instead of 3.</li>
               <li><strong>Large Shield:</strong> Auto-deflects 1 Stumble, then remains active but loses effect.</li>
               <li><strong>Helmet:</strong> Prevents 1 knockout (discard instead of losing Unity).</li>
-              <li><strong>Sword:</strong> Peek top card when shuffling.</li>
+              <li><strong>Sword:</strong> When drawing, peek at next card.</li>
             </ul>
           </div>
 
@@ -204,19 +204,20 @@ export const ManualView = React.memo(() => (
           <div>
             <h3 className="text-lg font-bold text-emerald-300 mb-2">Great Tribulation</h3>
             <p className="text-sm text-zinc-300 ml-4">
-              Placed in the lower 1/3 of the deck at game start. When drawn: Unity -1, all players lose 1 card, 
-              cannot remove burdens, only Breastplate+Shield+Helmet can play Fruit/Love, max characters = 2. 
-              <strong className="text-yellow-400"> Vanquishing requires 5 Love/Fruit cards instead of 3.</strong>
-              When drawn, remaining deck shuffles with Armageddon card. Can be ended with Days Cut Short card.
+              After the deck is fully shuffled, Great Tribulation is placed at a random location in the bottom half of the deck. 
+              When drawn: Unity -1, all players lose 1 card, cannot remove burdens, only 2 Characters + 1 Armor can play Fruit/Love, 
+              max characters = 2. <strong className="text-yellow-400"> Vanquishing requires 5 Love/Fruit cards instead of 3.</strong>
+              When drawn, the remaining deck (including Armageddon) is shuffled together. Can be ended with Days Cut Short card.
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-bold text-emerald-300 mb-2">Armageddon</h3>
             <p className="text-sm text-zinc-300 ml-4">
-              Placed at the bottom of the deck at game start. When Great Tribulation is drawn, 
-              Armageddon shuffles into the remaining deck. <strong className="text-yellow-400">Drawing Armageddon wins the game immediately, 
-              regardless of whether all Stumbles are vanquished.</strong>
+              Placed at the bottom of the deck at game start, ensuring it cannot be drawn before Great Tribulation. 
+              When Great Tribulation is drawn, Armageddon shuffles into the remaining deck (can appear anywhere). 
+              <strong className="text-yellow-400"> When Armageddon is drawn: If Unity is at maximum (Players - 1), the game is WON. 
+              If Unity is NOT at maximum, the game is LOST.</strong> Players must work hard to maintain Unity at max before drawing Armageddon!
             </p>
           </div>
 

@@ -1868,7 +1868,7 @@ export default function LampstandFinal() {
   }
 
   return (
-    <div className={`h-screen w-screen fixed inset-0 relative overflow-hidden font-sans select-none transition-colors duration-700 touch-none overscroll-none ${isStumbling ? 'bg-red-950' : 'bg-slate-950'}`} style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
+    <div className={`h-screen w-screen fixed inset-0 relative overflow-hidden font-sans select-none transition-colors duration-700 ${isStumbling ? 'bg-red-950' : 'bg-slate-950'}`}>
       
       {/* TABS */}
       <div className="absolute top-0 left-0 right-0 z-[100] flex justify-between items-center bg-black/80 backdrop-blur border-b border-zinc-800 p-2">

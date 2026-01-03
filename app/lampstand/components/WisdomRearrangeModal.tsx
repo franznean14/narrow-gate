@@ -1,10 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from './Card';
-import { X, Check, GripVertical } from 'lucide-react';
-
-import { getModalPosition } from '../utils/helpers';
+import { X, Check, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface WisdomRearrangeModalProps {
   cards: any[];
@@ -19,7 +17,43 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
   const [draggedCard, setDraggedCard] = useState<any | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
-  const modalPosition = getModalPosition(activePlayerIndex);
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(pointer: coarse)');
+    setIsCoarsePointer(mq.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsCoarsePointer(e.matches);
+    if (typeof mq.addEventListener === 'function') mq.addEventListener('change', handler);
+    // eslint-disable-next-line deprecation/deprecation
+    else if (typeof mq.addListener === 'function') mq.addListener(handler);
+
+    return () => {
+      if (typeof mq.removeEventListener === 'function') mq.removeEventListener('change', handler);
+      // eslint-disable-next-line deprecation/deprecation
+      else if (typeof mq.removeListener === 'function') mq.removeListener(handler);
+    };
+  }, []);
+
+  const handleGridCardTap = (card: any) => {
+    const isSelected = reorderedCards.some((c: any) => c.uid === card.uid);
+    if (isSelected) {
+      setReorderedCards(reorderedCards.filter((c: any) => c.uid !== card.uid));
+      return;
+    }
+    if (reorderedCards.length >= rearrangeCount) return;
+    setReorderedCards([...reorderedCards, card]);
+  };
+
+  const moveSelectedCard = (fromIndex: number, delta: number) => {
+    const toIndex = fromIndex + delta;
+    if (toIndex < 0 || toIndex >= reorderedCards.length) return;
+    const newOrder = [...reorderedCards];
+    const [moved] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, moved);
+    setReorderedCards(newOrder);
+  };
 
   const handleCardDragStart = (e: React.DragEvent, card: any) => {
     setDraggedCard(card);
@@ -134,9 +168,10 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
           return (
             <div
               key={c.uid}
-              draggable={!isSelected}
+              draggable={!isCoarsePointer && !isSelected}
               onDragStart={(e) => handleCardDragStart(e, c)}
               onDragEnd={handleCardDragEnd}
+              onClick={() => handleGridCardTap(c)}
               className={`cursor-move transition-all relative ${
                 isSelected ? 'ring-4 ring-violet-500 scale-110 opacity-50' : 'opacity-60 hover:opacity-100'
               } ${draggedCard?.uid === c.uid ? 'opacity-30' : ''}`}
@@ -149,7 +184,7 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
       
       <div className="border-t border-zinc-700 pt-4">
         <h4 className="text-violet-300 font-bold mb-4">
-          Drag {rearrangeCount} card(s) here to reorder:
+          {isCoarsePointer ? `Tap ${rearrangeCount} card(s) to select, then reorder:` : `Drag ${rearrangeCount} card(s) here to reorder:`}
         </h4>
         <div
           onDragOver={handleDropZoneDragOver}
@@ -163,13 +198,15 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
         >
           {reorderedCards.length === 0 ? (
             <div className="text-zinc-500 text-sm italic w-full text-center py-8">
-              Drag {rearrangeCount} card(s) from above to select and reorder
+              {isCoarsePointer
+                ? `Tap ${rearrangeCount} card(s) from above to select them`
+                : `Drag ${rearrangeCount} card(s) from above to select and reorder`}
             </div>
           ) : (
             reorderedCards.map((card, idx) => (
               <div
                 key={card.uid}
-                draggable
+                draggable={!isCoarsePointer}
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = 'move';
                   e.dataTransfer.setData('application/json', JSON.stringify({ uid: card.uid, source: 'reorder' }));
@@ -191,6 +228,32 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
                 </div>
                 <Card data={card} size="sm" isPlayable={false} />
                 <div className="text-xs text-violet-400 font-bold">#{idx + 1}</div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveSelectedCard(idx, -1);
+                    }}
+                    disabled={idx === 0}
+                    className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200"
+                    title="Move left"
+                    aria-label="Move left"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveSelectedCard(idx, +1);
+                    }}
+                    disabled={idx === reorderedCards.length - 1}
+                    className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200"
+                    title="Move right"
+                    aria-label="Move right"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -206,9 +269,9 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
           )}
         </div>
         <p className="text-zinc-400 text-sm mt-4">
-          {reorderedCards.length < rearrangeCount 
-            ? `Drag ${rearrangeCount - reorderedCards.length} more card(s) here` 
-            : 'Drag cards within this area to reorder them'}
+          {reorderedCards.length < rearrangeCount
+            ? `${isCoarsePointer ? 'Tap' : 'Drag'} ${rearrangeCount - reorderedCards.length} more card(s) ${isCoarsePointer ? 'above' : 'here'}`
+            : (isCoarsePointer ? 'Use the arrows to reorder (or drag on desktop)' : 'Drag cards within this area to reorder them')}
         </p>
       </div>
 

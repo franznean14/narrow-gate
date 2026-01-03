@@ -1524,7 +1524,7 @@ export default function TacticalGame() {
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-screen bg-zinc-950 overflow-hidden select-none font-sans text-zinc-100 flex items-center justify-center touch-none overscroll-none" style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
+    <div className="fixed inset-0 w-screen h-screen bg-zinc-950 overflow-hidden select-none font-sans text-zinc-100 flex items-center justify-center">
       
       {/* TABS */}
       <div className="absolute top-0 left-0 right-0 z-[100] flex justify-between items-center bg-black/80 backdrop-blur border-b border-zinc-800 p-2">

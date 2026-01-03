@@ -127,7 +127,7 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ touchAction: draggedCard ? 'none' : 'auto' }}>
       <div className="grid grid-cols-5 gap-4">
         {cards.map((c, i) => {
           const isSelected = reorderedCards.some((sc: any) => sc.uid === c.uid);

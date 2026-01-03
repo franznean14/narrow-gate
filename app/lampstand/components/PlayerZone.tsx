@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Zap, AlertTriangle, ChevronUp } from 'lucide-react';
 import { Card } from './Card';
@@ -34,174 +34,19 @@ export const PlayerZone = React.memo(({
 }: PlayerZoneProps) => {
   const [isHandHovered, setIsHandHovered] = useState(false);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
-  const [touchedCardUid, setTouchedCardUid] = useState<string | null>(null);
-  const [longPressCardUid, setLongPressCardUid] = useState<string | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [touchStartCardUid, setTouchStartCardUid] = useState<string | null>(null);
-  const [touchMovedOutside, setTouchMovedOutside] = useState(false);
   const [isActiveCardsHovered, setIsActiveCardsHovered] = useState(false);
   const [hoveredActiveCardUid, setHoveredActiveCardUid] = useState<string | null>(null);
-  const touchPositionRef = useRef<{ x: number; y: number } | null>(null);
-  
-  // Cleanup timer on unmount
+  const [supportsHover, setSupportsHover] = useState(true);
+
+  // On touch devices, there is no real "hover" - default to a readable hand layout.
   useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const update = () => setSupportsHover(mq.matches);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
   }, []);
-
-  // Function to find card under touch point
-  const findCardUnderTouch = (x: number, y: number): string | null => {
-    const target = document.elementFromPoint(x, y);
-    if (!target) return null;
-    const cardElement = target.closest('[data-card-uid]');
-    return cardElement?.getAttribute('data-card-uid') || null;
-  };
-
-  // Track if touch is active
-  const isTouchingRef = useRef(false);
-
-  // Helper to find card under touch point - checks all cards and returns the topmost one
-  const findCardUnderPoint = (x: number, y: number): string | null => {
-    const handContainer = document.querySelector('[data-card-hand="true"]');
-    if (!handContainer) return null;
-    
-    // Get all cards and check which one contains the point
-    // Check in reverse order (topmost first) since cards overlap
-    const allCards = Array.from(handContainer.querySelectorAll('[data-card-uid]')).reverse();
-    
-    for (const card of allCards) {
-      const rect = card.getBoundingClientRect();
-      // Check if point is within card bounds
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        return card.getAttribute('data-card-uid');
-      }
-    }
-    
-    // Fallback: try elementFromPoint
-    const target = document.elementFromPoint(x, y);
-    if (target) {
-      const cardElement = target.closest('[data-card-uid]');
-      if (cardElement) {
-        return cardElement.getAttribute('data-card-uid');
-      }
-    }
-    
-    return null;
-  };
-
-  // Handle touch move on container - works like hover, updates card under finger
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isTouchingRef.current) return;
-    
-    e.preventDefault(); // Prevent scrolling
-    
-    const touch = e.touches[0];
-    if (!touch) return;
-    
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find card under touch using improved detection
-    const cardUid = findCardUnderPoint(x, y);
-    
-    // Check if moved outside hand container
-    const handContainer = e.currentTarget;
-    const target = document.elementFromPoint(x, y);
-    if (target && !handContainer.contains(target as Node)) {
-      setTouchMovedOutside(true);
-      setTouchedCardUid(null);
-      return;
-    }
-    
-    // Always update highlighted card immediately (clears previous, sets new)
-    // This is the primary handler - it should always run and update the state
-    // Use function form to ensure we always update, even if React batches
-    setTouchedCardUid((prevUid) => {
-      // Always return the new cardUid - this ensures previous card is cleared
-      return cardUid;
-    });
-    setTouchMovedOutside(false);
-  };
-
-  // Handle touch enter on individual card - ensures card updates when touch moves over it
-  const handleCardTouchEnter = (cardUid: string) => {
-    if (isTouchingRef.current) {
-      // Force update to this card (clears any previous card)
-      // Use function form to ensure React always processes the update
-      setTouchedCardUid((prevUid) => {
-        // Always return the new cardUid, even if it's the same
-        // This ensures React processes the update
-        return cardUid;
-      });
-      setTouchMovedOutside(false);
-    }
-  };
-
-  // Handle touch start - like mouse enter
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-    
-    isTouchingRef.current = true;
-    setIsHandHovered(true);
-    
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find initial card under touch
-    const target = document.elementFromPoint(x, y);
-    const cardElement = target?.closest('[data-card-uid]');
-    const cardUid = cardElement?.getAttribute('data-card-uid') || null;
-    
-    if (cardUid) {
-      setTouchedCardUid(cardUid);
-      setTouchStartCardUid(cardUid);
-    }
-    setTouchMovedOutside(false);
-  };
-
-  // Handle touch end - like mouse click
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touch = e.changedTouches[0];
-    if (!touch) return;
-    
-    isTouchingRef.current = false;
-    
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Find which card touch ended on
-    const target = document.elementFromPoint(x, y);
-    const cardElement = target?.closest('[data-card-uid]');
-    const cardUid = cardElement?.getAttribute('data-card-uid') || null;
-    
-    // If touch ended on a card, show modal
-    if (cardUid && !touchMovedOutside) {
-      const card = player.hand.find((c: any) => c.uid === cardUid);
-      if (card) {
-        setTimeout(() => {
-          onCardClick(card);
-        }, 50);
-      }
-    }
-    
-    // Reset all states (like mouse leave)
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    setLongPressCardUid(null);
-    setTouchStartCardUid(null);
-    
-    setTimeout(() => {
-      setIsHandHovered(false);
-      setTouchedCardUid(null);
-      setTouchMovedOutside(false);
-    }, 100);
-  };
   
   let containerStyle = {};
   let contentClass = "flex flex-col items-center transition-transform duration-500";
@@ -329,39 +174,19 @@ export const PlayerZone = React.memo(({
         <motion.div 
           data-card-hand="true"
           className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl border-x border-b border-white/20 p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px]"
-          style={{ touchAction: 'none' }}
           onMouseEnter={() => setIsHandHovered(true)}
           onMouseLeave={() => {
             setIsHandHovered(false);
             setHoveredCardUid(null);
           }}
-          onTouchStart={(e) => {
-            handleTouchStart(e);
-          }}
-          onTouchMove={(e) => {
-            // Only handle touch move if not already handled by a card
-            // Cards handle their own touch move events
-            handleTouchMove(e);
-          }}
-          onTouchEnd={(e) => {
-            handleTouchEnd(e);
-          }}
-          onTouchCancel={() => {
-            isTouchingRef.current = false;
-            setIsHandHovered(false);
-            setTouchedCardUid(null);
-            setTouchMovedOutside(false);
-          }}
         >
             <div className={`flex transition-all duration-300 items-end h-36 ${
-              isHandHovered || touchedCardUid ? 'gap-2' : '-space-x-12'
+              isHandHovered || !supportsHover ? 'gap-2' : '-space-x-12'
             }`}>
               {player.hand.map((c: any, i: number) => {
-                const isTouched = touchedCardUid === c.uid;
                 const isHovered = hoveredCardUid === c.uid;
-                const shouldExpand = isHandHovered || isTouched;
-                const isDirectlyInteracted = isTouched || isHovered;
-                const isLongPressed = longPressCardUid === c.uid;
+                const shouldExpand = isHandHovered || !supportsHover;
+                const isDirectlyInteracted = isHovered;
                 
                 return (
                   <div 
@@ -374,42 +199,9 @@ export const PlayerZone = React.memo(({
                     }`}
                     style={{ 
                       zIndex: shouldExpand ? (isDirectlyInteracted ? 101 : 100) : i,
-                      touchAction: 'manipulation',
-                      WebkitTouchCallout: 'none',
-                      WebkitUserSelect: 'none',
-                      userSelect: 'none'
                     }}
                     onMouseEnter={() => setHoveredCardUid(c.uid)}
                     onMouseLeave={() => setHoveredCardUid(null)}
-                    onTouchStart={(e) => {
-                      // Update card when touch enters it
-                      if (!isTouchingRef.current) {
-                        handleTouchStart(e as any);
-                      }
-                      // Immediately update to this card
-                      handleCardTouchEnter(c.uid);
-                    }}
-                    onTouchMove={(e) => {
-                      // Let container handle touch move - it's the primary source of truth
-                      // Individual card handlers can cause conflicts
-                      // Just prevent default to avoid scrolling
-                      e.preventDefault();
-                    }}
-                    onTouchEnd={(e) => {
-                      // Let parent handle touch end
-                    }}
-                    onTouchCancel={() => {
-                      isTouchingRef.current = false;
-                      if (longPressTimerRef.current) {
-                        clearTimeout(longPressTimerRef.current);
-                        longPressTimerRef.current = null;
-                      }
-                      setTouchedCardUid(null);
-                      setLongPressCardUid(null);
-                      setTouchStartCardUid(null);
-                      setTouchMovedOutside(false);
-                      setIsHandHovered(false);
-                    }}
                   >
                     <Card data={c} size="md" onClick={() => onCardClick(c)} isPlayable={!player.isOut} showScripture={false} />
                   </div>

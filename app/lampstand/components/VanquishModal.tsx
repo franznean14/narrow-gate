@@ -3,16 +3,20 @@
 import React, { useState } from 'react';
 import { BookOpen, CheckCircle } from 'lucide-react';
 import { Card } from './Card';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface VanquishModalProps {
   players: any[];
   onClose: () => void;
   onConfirm: (selected: { playerId: string, cardUid: string }[]) => void;
   requiredCards?: number;
+  activePlayerIndex?: number;
 }
 
-export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3 }: VanquishModalProps) => {
+export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3, activePlayerIndex = 0 }: VanquishModalProps) => {
    const [selected, setSelected] = useState<{ playerId: string, cardUid: string }[]>([]);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
 
    const handleSelect = (playerId: string, cardUid: string) => {
       const exists = selected.find((s: { cardUid: string }) => s.cardUid === cardUid);
@@ -28,8 +32,8 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm, required
    const isSelected = (uid: string) => selected.some((s: { cardUid: string }) => s.cardUid === uid);
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-5xl w-full shadow-2xl flex flex-col gap-6 h-[85vh]">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-5xl w-full shadow-2xl flex flex-col gap-6 h-[85vh] transition-transform duration-500" style={{ transform: modalRotation }}>
           <div className="flex justify-between items-center pb-4 border-b border-zinc-800">
              <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Invoke Scripture</h2>
              <div className="text-xl font-bold text-white bg-indigo-900/50 px-4 py-2 rounded-xl border border-indigo-500/30">

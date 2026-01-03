@@ -70,7 +70,7 @@ export default function LampstandQuestionsView() {
   const hardQuestions = ALL_QUESTIONS.filter(q => q.difficulty === 'Hard');
 
   return (
-    <div className="h-full w-full bg-zinc-950 text-white overflow-y-auto pt-24 pb-8 px-8">
+    <div data-scrollable="true" className="h-full w-full bg-zinc-950 text-white overflow-y-auto pt-24 pb-8 px-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3">

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Gift } from 'lucide-react';
 import { Card } from './Card';
-import { getDistance } from '../utils/helpers';
+import { getDistance, getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface GiftModalProps {
   giver: any;
@@ -16,11 +16,14 @@ interface GiftModalProps {
   titleColor?: string;
   buttonColor?: string;
   excludeCardUid?: string | null;
+  activePlayerIndex?: number;
 }
 
-export const GiftModal = React.memo(({ giver, players, unity, onClose, onConfirm, title = 'Kindness', borderColor = 'border-pink-500', titleColor = 'text-pink-500', buttonColor = 'bg-pink-500 hover:bg-pink-400', excludeCardUid }: GiftModalProps) => {
+export const GiftModal = React.memo(({ giver, players, unity, onClose, onConfirm, title = 'Kindness', borderColor = 'border-pink-500', titleColor = 'text-pink-500', buttonColor = 'bg-pink-500 hover:bg-pink-400', excludeCardUid, activePlayerIndex = 0 }: GiftModalProps) => {
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    
    // Find giver index
    const giverIdx = players.findIndex((p: any) => p.id === giver.id);
@@ -44,8 +47,8 @@ export const GiftModal = React.memo(({ giver, players, unity, onClose, onConfirm
    const handleSend = () => { if(selectedCard && selectedPlayerId !== null) onConfirm(selectedCard, selectedPlayerId); };
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className={`bg-zinc-900 border-2 ${borderColor} p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh]`}>
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className={`bg-zinc-900 border-2 ${borderColor} p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh] transition-transform duration-500`} style={{ transform: modalRotation }}>
           <h2 className={`text-3xl font-black ${titleColor} uppercase flex items-center gap-3`}><Gift size={32}/> {title}</h2>
           <div className="flex-1 flex gap-8 min-h-0">
              <div className="flex-1 bg-zinc-800/50 rounded-2xl p-4 overflow-y-auto border border-zinc-700">

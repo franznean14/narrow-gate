@@ -24,7 +24,7 @@ const ManualView = lazy(() => import('./components/ManualView').then(m => ({ def
 import CARD_TYPES_MODULE, { FRUITS, LOVE_TRAITS } from './constants/cards';
 import { CHARACTERS_DB } from './constants/characters';
 import { TRIVIA_DB } from './constants/trivia';
-import { shuffle, getRandomTrivia, getDistance } from './utils/helpers';
+import { shuffle, getRandomTrivia, getDistance, getModalPosition, getModalRotation } from './utils/helpers';
 
 const CARD_TYPES = CARD_TYPES_MODULE as any;
 
@@ -140,7 +140,7 @@ export default function LampstandFinal() {
        newDeck.push({ ...CARD_TYPES.kindness, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.encouragement, uid: Math.random() }); 
        newDeck.push({ ...CARD_TYPES.modesty, uid: Math.random() }); 
-       newDeck.push({ ...CARD_TYPES.imitate, uid: Math.random() });
+       newDeck.push({ ...CARD_TYPES.imitate, uid: Math.random() }); 
        newDeck.push({ ...CARD_TYPES.wisdom, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.prayer, uid: Math.random() });
        newDeck.push({ ...CARD_TYPES.minister, uid: Math.random() });
@@ -208,7 +208,7 @@ export default function LampstandFinal() {
     
     // Shuffle the deck first
     newDeck = shuffle(newDeck);
-    
+
     // Place Major Events
     const gtCard = { title: 'Great Tribulation', id: 'event_gt', type: 'Event', desc: 'Unity -1, All lose 1 card, Cannot remove burdens, Only Breastplate+Shield+Helmet can play Fruit/Love, Max Characters = 2.', color: 'bg-zinc-800 border-red-500', icon: AlertTriangle };
     const armageddonCard = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', scripture: { text: 'And they gathered them together to the place that is called in Hebrew Armageddon.', ref: 'Re 16:16' }, color: 'bg-zinc-900 border-red-600', icon: Flame };
@@ -426,7 +426,7 @@ export default function LampstandFinal() {
       if (card.id === 'fruit' || card.id === 'love') {
         // Keep the card - add to hand
         setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'card', targetType: 'hand' });
-        setDeck(newDeck);
+    setDeck(newDeck);
         setPendingPrayerDraws(prev => prev - 1);
         setSkipCardDelay(false);
         // Don't end turn - let animation complete normally but skip turn end check
@@ -487,7 +487,7 @@ export default function LampstandFinal() {
        setSkipCardDelay(false);
        return;
     }
-    
+
     setDeck(newDeck);
 
     if (card.id === 'fruit' || card.id === 'love') {
@@ -1649,7 +1649,7 @@ export default function LampstandFinal() {
           }
         }, 2000);
       } else {
-        showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
+      showNotification("VANQUISH SUCCESSFUL! All questions correct!", "emerald");
       }
       
       // End the stumble drawer's turn - move to next player
@@ -1868,7 +1868,7 @@ export default function LampstandFinal() {
   }
 
   return (
-    <div className={`min-h-screen relative overflow-hidden font-sans select-none transition-colors duration-700 ${isStumbling ? 'bg-red-950' : 'bg-slate-950'}`}>
+    <div className={`h-screen w-screen fixed inset-0 relative overflow-hidden font-sans select-none transition-colors duration-700 touch-none overscroll-none ${isStumbling ? 'bg-red-950' : 'bg-slate-950'}`} style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
       
       {/* TABS */}
       <div className="absolute top-0 left-0 right-0 z-[100] flex justify-between items-center bg-black/80 backdrop-blur border-b border-zinc-800 p-2">
@@ -2094,6 +2094,7 @@ export default function LampstandFinal() {
             }} 
             onConfirm={(card, targetId) => handleGift(card, targetId)} 
             excludeCardUid={kindnessCard.uid}
+            activePlayerIndex={turnIndex}
          />
       )}
 
@@ -2103,6 +2104,7 @@ export default function LampstandFinal() {
             players={players}
             onClose={() => setIsImitating(false)}
             onConfirm={(card) => handleImitate(card)}
+            activePlayerIndex={turnIndex}
          />
       )}
       
@@ -2110,8 +2112,9 @@ export default function LampstandFinal() {
          <VanquishModal 
             players={players} 
             onClose={() => setIsVanquishing(false)} 
-            onConfirm={(cards) => handleVanquishConfirm(cards)}
+            onConfirm={(cards) => handleVanquishConfirm(cards)} 
             requiredCards={currentChallenge?.title === 'Great Tribulation' ? 5 : 3}
+            activePlayerIndex={turnIndex}
          />
       )}
 
@@ -2127,6 +2130,7 @@ export default function LampstandFinal() {
             }} 
             onRemoveBurden={handleMinisterRemoveBurden}
             onGiveCard={handleMinisterGiveCard}
+            activePlayerIndex={turnIndex}
          />
       )}
 
@@ -2142,6 +2146,7 @@ export default function LampstandFinal() {
                setEncouragementCard(null);
             }} 
             onConfirm={handleEncouragementConfirm}
+            activePlayerIndex={turnIndex}
          />
       )}
 
@@ -2156,6 +2161,7 @@ export default function LampstandFinal() {
                setGuidanceCard(null);
             }} 
             onConfirm={handleGuidanceRequest}
+            activePlayerIndex={turnIndex}
          />
       )}
 
@@ -2167,12 +2173,13 @@ export default function LampstandFinal() {
                setResurrectionCard(null);
             }} 
             onConfirm={handleResurrection}
+            activePlayerIndex={turnIndex}
          />
       )}
 
       {peekCards && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={() => setPeekCards(null)}>
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)} onClick={() => setPeekCards(null)}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex) }} onClick={(e) => e.stopPropagation()}>
              <h3 className="text-xl font-bold text-indigo-400 mb-6 flex gap-2"><Eye /> Future Sight</h3>
              <div className="flex gap-4">
                 {peekCards.map((c, i) => <div key={i} className="scale-100"><Card data={c} isPlayable={false} /></div>)}
@@ -2183,21 +2190,22 @@ export default function LampstandFinal() {
       )}
 
       {wisdomCards && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)} onClick={(e) => e.stopPropagation()}>
            <div className="bg-slate-900 p-8 rounded-2xl border-2 border-violet-500 max-w-5xl" onClick={(e) => e.stopPropagation()}>
              <h3 className="text-xl font-bold text-violet-400 mb-6 flex gap-2">Wisdom: Rearrange {unity} cards</h3>
              <WisdomRearrangeModal 
                cards={wisdomCards} 
                rearrangeCount={unity}
                onConfirm={handleWisdomRearrange}
+               activePlayerIndex={turnIndex}
              />
                </div>
         </div>
       )}
 
       {vigilanceCards && vigilanceHazards && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-purple-500">
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-purple-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex) }}>
              <h3 className="text-xl font-bold text-purple-400 mb-6 flex gap-2">Vigilance: Select burden to discard</h3>
              <div className="flex gap-4 mb-6">
                 {vigilanceCards.map((c, i) => (
@@ -2230,6 +2238,7 @@ export default function LampstandFinal() {
           question={currentQuestion} 
           onAnswer={handleQuestionAnswer}
           isActive={currentQuestion.playerId === players[turnIndex]?.id || (pendingCard && trivia && !vanquishActive)}
+          activePlayerIndex={turnIndex}
         />
       )}
       

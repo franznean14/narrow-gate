@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card } from './Card';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface CardInspectionModalProps {
   card: any;
@@ -20,18 +21,14 @@ export const CardInspectionModal = React.memo(({
   isPlayerTurn, 
   activePlayerIndex 
 }: CardInspectionModalProps) => {
-  const rotation = {
-    0: 'rotate(0deg)',
-    1: 'rotate(90deg)',
-    2: 'rotate(180deg)',
-    3: 'rotate(-90deg)'
-  }[activePlayerIndex] || 'rotate(0deg)';
+  const modalPosition = getModalPosition(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] flex bg-black/90 backdrop-blur-md p-8 animate-in fade-in" style={modalPosition} onClick={onClose}>
       <div 
         className="relative flex flex-col items-center transition-transform duration-500" 
-        style={{ transform: rotation }}
+        style={{ transform: modalRotation }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="transform scale-150 shadow-[0_0_50px_rgba(255,255,255,0.1)] mb-16">

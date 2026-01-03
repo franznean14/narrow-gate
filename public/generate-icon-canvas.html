@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator - Lampstand</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #fff;
+    }
+    canvas {
+      border: 2px solid #f59e0b;
+      border-radius: 8px;
+      display: block;
+      margin: 20px auto;
+      background: #020617;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 24px;
+      background: #f59e0b;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #fbbf24;
+    }
+    .info {
+      text-align: center;
+      color: #9ca3af;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center; color: #f59e0b;">Lampstand Icon Generator</h1>
+  <canvas id="canvas" width="192" height="192"></canvas>
+  <button onclick="downloadIcon()">Download icon-192.png</button>
+  <button onclick="downloadAllIcons()">Download All Apple Touch Icons</button>
+  
+  <div class="info">
+    <p>This will generate a classic shield icon with golden outline on dark background</p>
+    <p>After downloading, place icon-192.png in the /public folder</p>
+    <p>Then run: <code>node scripts/generate-icons.js</code></p>
+  </div>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function drawShield(size) {
+      // Clear canvas with dark background
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw shield shape
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      
+      // Shield path - classic shield design with rounded top and pointed bottom
+      ctx.beginPath();
+      
+      // Shield dimensions - more pronounced shield shape
+      const shieldWidth = size * 0.56;
+      const shieldHeight = size * 0.84;
+      const topRadius = size * 0.24;
+      
+      // Start at top center
+      ctx.moveTo(0, -shieldHeight / 2);
+      
+      // Draw pronounced rounded top arch (right side)
+      ctx.quadraticCurveTo(
+        shieldWidth / 2, -shieldHeight / 2 + topRadius,
+        shieldWidth / 2, -shieldHeight / 2 + topRadius * 1.5
+      );
+      
+      // Right side - straight down, tapering slightly
+      ctx.lineTo(shieldWidth / 2, shieldHeight * 0.15);
+      
+      // Right side taper to point
+      ctx.lineTo(shieldWidth * 0.36, shieldHeight / 2);
+      
+      // Bottom sharp point
+      ctx.lineTo(0, shieldHeight / 2);
+      
+      // Left side taper from point
+      ctx.lineTo(-shieldWidth * 0.36, shieldHeight / 2);
+      
+      // Left side - straight up, tapering slightly
+      ctx.lineTo(-shieldWidth / 2, shieldHeight * 0.15);
+      
+      // Draw pronounced rounded top arch (left side)
+      ctx.quadraticCurveTo(
+        -shieldWidth / 2, -shieldHeight / 2 + topRadius,
+        0, -shieldHeight / 2
+      );
+      
+      // Close path
+      ctx.closePath();
+      
+      // Draw golden outline
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = size * 0.055;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+    
+    function downloadCanvas(canvas, filename) {
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    }
+    
+    function downloadIcon() {
+      drawShield(192);
+      downloadCanvas(canvas, 'icon-192.png');
+    }
+    
+    function downloadAllIcons() {
+      // Generate 192x192
+      canvas.width = 192;
+      canvas.height = 192;
+      drawShield(192);
+      setTimeout(() => downloadCanvas(canvas, 'icon-192.png'), 100);
+      
+      // Generate 180x180 (apple-touch-icon)
+      canvas.width = 180;
+      canvas.height = 180;
+      drawShield(180);
+      setTimeout(() => downloadCanvas(canvas, 'apple-touch-icon.png'), 200);
+      
+      // Generate 152x152
+      canvas.width = 152;
+      canvas.height = 152;
+      drawShield(152);
+      setTimeout(() => downloadCanvas(canvas, 'apple-touch-icon-152x152.png'), 300);
+      
+      // Reset to 192
+      setTimeout(() => {
+        canvas.width = 192;
+        canvas.height = 192;
+        drawShield(192);
+      }, 400);
+    }
+    
+    // Draw initial icon
+    drawShield(192);
+  </script>
+</body>
+</html>

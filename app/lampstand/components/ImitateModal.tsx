@@ -3,23 +3,27 @@
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { Card } from './Card';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface ImitateModalProps {
   giver: any;
   players: any[];
   onClose: () => void;
   onConfirm: (card: any) => void;
+  activePlayerIndex?: number;
 }
 
-export const ImitateModal = React.memo(({ giver, players, onClose, onConfirm }: ImitateModalProps) => {
+export const ImitateModal = React.memo(({ giver, players, onClose, onConfirm, activePlayerIndex = 0 }: ImitateModalProps) => {
    const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    const targets = players.filter((p: any) => p.id !== giver.id && !p.isOut && p.activeCards.filter((c: any) => !c.id.startsWith('trial_')).length > 0);
    const getPositiveCards = (p: any) => p.activeCards.filter((c: any) => !c.id.startsWith('trial_'));
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-teal-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh]">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-teal-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh] transition-transform duration-500" style={{ transform: modalRotation }}>
           <h2 className="text-3xl font-black text-teal-500 uppercase flex items-center gap-3"><Users size={32}/> Imitate Faith</h2>
           <div className="flex-1 flex gap-8 min-h-0">
              <div className="w-1/3 bg-zinc-800/50 rounded-2xl p-4 overflow-y-auto border border-zinc-700">

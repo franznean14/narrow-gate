@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { HeartHandshake, X } from 'lucide-react';
-import { getDistance } from '../utils/helpers';
+import { getDistance, getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface EncouragementModalProps {
   encourager: any;
@@ -12,10 +12,13 @@ interface EncouragementModalProps {
   stumblingPlayerId: number | null;
   onClose: () => void;
   onConfirm: (targetPlayerId: number) => void;
+  activePlayerIndex?: number;
 }
 
-export const EncouragementModal = React.memo(({ encourager, players, unity, isStumbling, stumblingPlayerId, onClose, onConfirm }: EncouragementModalProps) => {
+export const EncouragementModal = React.memo(({ encourager, players, unity, isStumbling, stumblingPlayerId, onClose, onConfirm, activePlayerIndex = 0 }: EncouragementModalProps) => {
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    
    const encouragerIdx = players.findIndex((p: any) => p.id === encourager.id);
    if (encouragerIdx === -1) return null;
@@ -71,8 +74,8 @@ export const EncouragementModal = React.memo(({ encourager, players, unity, isSt
    };
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-amber-500 p-8 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col gap-6">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-amber-500 p-8 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col gap-6 transition-transform duration-500" style={{ transform: modalRotation }}>
           <h2 className="text-3xl font-black text-amber-500 uppercase flex items-center gap-3">
             <HeartHandshake size={32}/> Encouragement
           </h2>

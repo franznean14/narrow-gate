@@ -2,3 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent scrolling on touch devices for game pages */
+@layer base {
+  html {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: none;
+  }
+  
+  body {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: none;
+  }
+  
+  /* Allow scrolling within specific scrollable containers */
+  [data-scrollable="true"] {
+    overflow-y: auto;
+    overflow-x: hidden;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Allow touch manipulation for interactive card areas */
+  [data-card-hand] {
+    touch-action: manipulation;
+  }
+}
+

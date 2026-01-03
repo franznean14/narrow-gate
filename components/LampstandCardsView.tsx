@@ -317,7 +317,7 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
   const filterOptions: FilterOption[] = ['all', 'Character', 'Action', 'Hazard', 'Trial', 'Armor', 'Collection', 'Event'];
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
+    <div data-scrollable="true" className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center border-b border-zinc-800 pb-6">

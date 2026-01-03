@@ -2,21 +2,25 @@
 
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface QuestionCardProps {
   question: any;
   onAnswer: (isCorrect: boolean) => void;
   isActive: boolean;
+  activePlayerIndex?: number;
 }
 
-export const QuestionCard = React.memo(({ question, onAnswer, isActive }: QuestionCardProps) => {
+export const QuestionCard = React.memo(({ question, onAnswer, isActive, activePlayerIndex = 0 }: QuestionCardProps) => {
   if (!question) return null;
   
   const isHard = question.difficulty === 'HARD';
+  const modalPosition = getModalPosition(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex);
   
   return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-      <div className={`bg-zinc-900 border-2 ${isHard ? 'border-red-500' : 'border-emerald-500'} rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative overflow-hidden`}>
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+      <div className={`bg-zinc-900 border-2 ${isHard ? 'border-red-500' : 'border-emerald-500'} rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative overflow-hidden transition-transform duration-500`} style={{ transform: modalRotation }}>
         <div className="flex justify-between items-center mb-6">
           <h3 className={`text-2xl font-black ${isHard ? 'text-red-400' : 'text-emerald-400'} uppercase flex items-center gap-3`}>
             <BookOpen size={32} /> Vanquish Question

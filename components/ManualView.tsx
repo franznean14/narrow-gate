@@ -2,7 +2,7 @@ import { Compass, Target, Users, Map, Shield, Heart, Zap, AlertTriangle, BookOpe
 
 export default function ManualView() {
   return (
-    <div className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
+    <div data-scrollable="true" className="w-full h-full overflow-y-auto bg-zinc-900 text-zinc-300 p-8 pt-24 pb-20 font-sans selection:bg-indigo-500 selection:text-white animate-in fade-in">
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center border-b border-zinc-800 pb-8">

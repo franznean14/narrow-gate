@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Wrench, Gift, X } from 'lucide-react';
 import { Card } from './Card';
 import { GiftModal } from './GiftModal';
-import { getDistance } from '../utils/helpers';
+import { getDistance, getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface MinisterModalProps {
   minister: any;
@@ -14,12 +14,15 @@ interface MinisterModalProps {
   onClose: () => void;
   onRemoveBurden: (playerId: number) => void;
   onGiveCard: (card: any, playerId: number) => void;
+  activePlayerIndex?: number;
 }
 
-export const MinisterModal = React.memo(({ minister, players, unity, ministerCardUid, onClose, onRemoveBurden, onGiveCard }: MinisterModalProps) => {
+export const MinisterModal = React.memo(({ minister, players, unity, ministerCardUid, onClose, onRemoveBurden, onGiveCard, activePlayerIndex = 0 }: MinisterModalProps) => {
    const [mode, setMode] = useState<'burden' | 'gift' | null>(null);
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    
    const ministerIdx = players.findIndex((p: any) => p.id === minister.id);
    const targets = players.filter((p: any, idx: number) => {
@@ -41,8 +44,8 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
    };
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-amber-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-amber-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 transition-transform duration-500" style={{ transform: modalRotation }}>
           <h2 className="text-3xl font-black text-amber-500 uppercase flex items-center gap-3"><Wrench size={32}/> Minister</h2>
           
           {!mode ? (
@@ -115,6 +118,7 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
               titleColor="text-amber-500"
               buttonColor="bg-amber-500 hover:bg-amber-400"
               excludeCardUid={ministerCardUid || undefined}
+              activePlayerIndex={activePlayerIndex}
             />
           )}
           

@@ -18,7 +18,7 @@ export default function QuestionsView() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 overflow-y-auto">
+    <div data-scrollable="true" className="h-full w-full bg-zinc-950 text-white p-8 overflow-y-auto">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3">

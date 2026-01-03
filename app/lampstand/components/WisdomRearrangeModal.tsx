@@ -4,18 +4,22 @@ import React, { useState } from 'react';
 import { Card } from './Card';
 import { X, Check, GripVertical } from 'lucide-react';
 
+import { getModalPosition } from '../utils/helpers';
+
 interface WisdomRearrangeModalProps {
   cards: any[];
   rearrangeCount: number;
   onConfirm: (reorderedCards: any[]) => void;
   onCancel?: () => void; // Optional, modal is uncancellable
+  activePlayerIndex?: number;
 }
 
-export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCancel }: WisdomRearrangeModalProps) => {
+export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCancel, activePlayerIndex = 0 }: WisdomRearrangeModalProps) => {
   const [reorderedCards, setReorderedCards] = useState<any[]>([]);
   const [draggedCard, setDraggedCard] = useState<any | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
+  const modalPosition = getModalPosition(activePlayerIndex);
 
   const handleCardDragStart = (e: React.DragEvent, card: any) => {
     setDraggedCard(card);

@@ -2,15 +2,19 @@
 
 import React, { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface ResurrectionModalProps {
   players: any[];
   onClose: () => void;
   onConfirm: (playerId: number) => void;
+  activePlayerIndex?: number;
 }
 
-export const ResurrectionModal = React.memo(({ players, onClose, onConfirm }: ResurrectionModalProps) => {
+export const ResurrectionModal = React.memo(({ players, onClose, onConfirm, activePlayerIndex = 0 }: ResurrectionModalProps) => {
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    
    // Filter to only show knocked out players
    const knockedOutPlayers = players.filter((p: any) => p.isOut);
@@ -22,8 +26,8 @@ export const ResurrectionModal = React.memo(({ players, onClose, onConfirm }: Re
    };
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-rose-500 p-8 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col gap-6">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-rose-500 p-8 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col gap-6 transition-transform duration-500" style={{ transform: modalRotation }}>
           <h2 className="text-3xl font-black text-rose-400 uppercase flex items-center gap-3">
             <RotateCcw size={32}/> Resurrection
           </h2>

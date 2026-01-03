@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { HandHeart } from 'lucide-react';
 import { Card } from './Card';
-import { getDistance } from '../utils/helpers';
+import { getDistance, getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface RequestCardModalProps {
   requester: any;
@@ -11,11 +11,14 @@ interface RequestCardModalProps {
   unity: number;
   onClose: () => void;
   onConfirm: (selectedCard: any, selectedPlayerId: number) => void;
+  activePlayerIndex?: number;
 }
 
-export const RequestCardModal = React.memo(({ requester, players, unity, onClose, onConfirm }: RequestCardModalProps) => {
+export const RequestCardModal = React.memo(({ requester, players, unity, onClose, onConfirm, activePlayerIndex = 0 }: RequestCardModalProps) => {
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
+   const modalPosition = getModalPosition(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex);
    
    // Find requester index - handle both object and index cases
    const requesterIdx = typeof requester === 'object' && requester !== null 
@@ -49,8 +52,8 @@ export const RequestCardModal = React.memo(({ requester, players, unity, onClose
    };
 
    return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
-       <div className="bg-zinc-900 border-2 border-purple-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh]">
+    <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
+       <div className="bg-zinc-900 border-2 border-purple-500 p-8 rounded-3xl max-w-4xl w-full shadow-2xl flex flex-col gap-6 h-[80vh] transition-transform duration-500" style={{ transform: modalRotation }}>
           <h2 className="text-3xl font-black text-purple-400 uppercase flex items-center gap-3">
             <HandHeart size={32}/> Guidance
           </h2>

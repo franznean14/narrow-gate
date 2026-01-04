@@ -91,7 +91,7 @@ export const ManualView = React.memo(() => (
               <Shield size={20} /> Action Cards
             </h3>
             <ul className="text-sm text-zinc-300 ml-6 space-y-1">
-              <li><strong className="text-emerald-400">Shield of Faith:</strong> Defuse a Stumble. <strong className="text-red-400">Only playable when the active player stumbles.</strong></li>
+              <li><strong className="text-emerald-400">Shield of Faith:</strong> Defuse a Stumble. <strong className="text-red-400">Only playable when someone stumbles.</strong> <strong className="text-violet-400">Abraham: Can use Faith on others.</strong></li>
               <li><strong className="text-amber-400">Encouragement:</strong> Save a friend from Stumble OR remove a burden from yourself/friend. Removing a burden does not end your turn.</li>
               <li><strong className="text-indigo-400">Insight:</strong> See top 3 cards (5 with Belt of Truth).</li>
               <li><strong className="text-purple-400">Guidance:</strong> Request a card from a player within range (Unity Level).</li>
@@ -257,7 +257,7 @@ export const ManualView = React.memo(() => (
         <ul className="space-y-2 text-sm text-zinc-300">
           <li>• Work together! Help friends in range avoid Stumbles.</li>
           <li>• Balance equipping armor with keeping action cards for emergencies. <strong className="text-amber-400">Armor requires a character to be active first.</strong></li>
-          <li>• Save Faith cards for Stumbles - they're your primary defense. <strong className="text-red-400">Faith can only be played during a stumble.</strong></li>
+          <li>• Save Faith cards for Stumbles - they're your primary defense. <strong className="text-red-400">Faith can only be played during a stumble.</strong> <strong className="text-violet-400">With Abraham active, you can use Faith on others who stumble.</strong></li>
           <li>• Use Encouragement strategically to remove burdens or save friends. Removing burdens doesn't end your turn.</li>
           <li>• Characters provide powerful immunities - activate them when facing specific threats.</li>
           <li>• Unity Range is crucial - protect it from Discord. <strong className="text-red-400">Unity-dependent cards cannot be played at Unity 0.</strong></li>

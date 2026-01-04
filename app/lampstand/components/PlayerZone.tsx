@@ -185,9 +185,14 @@ export const PlayerZone = React.memo(({
                   ) : (
                     // Collapsed: Show only icon
                     <div 
-                      className={`w-12 h-16 rounded-lg flex items-center justify-center cursor-pointer transition-all hover:scale-110 ${cardColor} border-2 border-white/20 shadow-lg`}
+                      className={`relative w-12 h-16 rounded-lg flex items-center justify-center cursor-pointer transition-all hover:scale-110 ${cardColor} border-2 border-white/20 shadow-lg ${c.isUsed ? 'opacity-50 grayscale' : ''}`}
                       onClick={() => onActiveCardClick(c)}
                     >
+                      {c.isUsed && (
+                        <div className="absolute top-0 right-0 bg-red-600 text-white text-[6px] font-bold px-1 py-0.5 rounded-bl-lg z-10 border border-white/50">
+                          USED
+                        </div>
+                      )}
                       {(() => {
                         // Use the exact same approach as Card component which works correctly
                         // Check merged.icon first, then fallback to def.icon (same as Card component does)

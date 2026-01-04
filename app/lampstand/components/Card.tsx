@@ -54,6 +54,14 @@ export const Card = React.memo(({ data, onClick, isPlayable = true, size = 'md',
   const scriptureText = merged.scripture?.text || (typeof merged.scripture === 'string' ? merged.scripture : null);
   const scriptureRef = merged.scripture?.ref || null;
 
+  const isUsed = data.isUsed === true;
+  const usedIndicatorClass = isUsed ? 'opacity-50 grayscale' : '';
+  const usedBadge = isUsed ? (
+    <div className="absolute top-2 right-2 bg-red-600 text-white text-[8px] font-bold px-2 py-1 rounded-full z-10 border-2 border-white/50">
+      USED
+    </div>
+  ) : null;
+
   return (
     <div 
       onClick={(e) => { 
@@ -62,8 +70,9 @@ export const Card = React.memo(({ data, onClick, isPlayable = true, size = 'md',
             onClick(); 
         } 
       }}
-      className={`relative ${sizeClasses} ${interactClasses} ${merged.color} ${specialClass} ${tempClass} ${selectedClass} rounded-xl shadow-xl flex flex-col overflow-hidden transition-all duration-300 border-2 border-white/20 select-none ${merged.textColor || 'text-white'}`}
+      className={`relative ${sizeClasses} ${interactClasses} ${merged.color} ${specialClass} ${tempClass} ${selectedClass} ${usedIndicatorClass} rounded-xl shadow-xl flex flex-col overflow-hidden transition-all duration-300 border-2 border-white/20 select-none ${merged.textColor || 'text-white'}`}
     >
+      {usedBadge}
       {/* Top Section: Title */}
       <div className={`flex flex-col items-center justify-center pt-4 pb-3 px-2 text-center pointer-events-none ${merged.textColor || ''}`}>
         <h3 className={`font-black uppercase leading-tight ${titleSize} ${merged.textColor || 'text-white'}`}>{merged.subTitle || merged.title}</h3>

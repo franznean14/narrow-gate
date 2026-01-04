@@ -645,18 +645,36 @@ export default function LampstandFinal() {
                updatedPlayers[targetPlayerIndex].activeCards.push(card);
 
                if (card.id === 'trial_anxiety') {
-                  const positives = updatedPlayers[targetPlayerIndex].activeCards.filter((c: any) => !c.id.startsWith('trial_'));
+                  // Only process if this Anxiety card hasn't already triggered (safety check)
+                  const positives = updatedPlayers[targetPlayerIndex].activeCards.filter((c: any) => !c.id.startsWith('trial_') && c.uid !== card.uid);
                   if (positives.length > 0) {
-                     const targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => !c.id.startsWith('trial_'));
+                     // Prioritize armor cards over character cards
+                     const armorCards = positives.filter((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
+                     const characterCards = positives.filter((c: any) => c.id.startsWith('char_'));
+                     
+                     // Find target: armor first, then character (ONLY ONE CARD)
+                     let targetIdx = -1;
+                     if (armorCards.length > 0) {
+                       // Find first armor card in activeCards (excluding the Anxiety card itself)
+                       targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id) && c.uid !== card.uid);
+                     } else if (characterCards.length > 0) {
+                       // Find first character card in activeCards (excluding the Anxiety card itself)
+                       targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id.startsWith('char_') && c.uid !== card.uid);
+                     }
+                     
+                     // Only discard ONE card
                      if (targetIdx !== -1) {
                         const lost = updatedPlayers[targetPlayerIndex].activeCards.splice(targetIdx, 1)[0];
                         setDiscardPile(prev => [lost, ...prev]);
                         showNotification(`Anxiety discarded ${lost.title}!`, "red");
+                        // Remove Anxiety card itself
                         const anxietyIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.id === 'trial_anxiety' && c.uid === card.uid);
                         if (anxietyIdx !== -1) {
                           const anxietyCard = updatedPlayers[targetPlayerIndex].activeCards.splice(anxietyIdx, 1)[0];
                           setDiscardPile(prev => [anxietyCard, ...prev]);
                         }
+                        // Return early to prevent any further processing
+                        return updatedPlayers;
                      }
                   }
                }
@@ -873,13 +891,41 @@ export default function LampstandFinal() {
             
             // Handle Anxiety case - discard both cards
             if (animatingCard.secondaryCard) {
-              const anxietyIdx = player.activeCards.findIndex((c: any) => c.uid === animatingCard.secondaryCard.uid);
-              if (anxietyIdx !== -1) {
-                const anxietyCard = player.activeCards.splice(anxietyIdx, 1)[0];
-                setDiscardPile(prev => [card, anxietyCard, ...prev]);
-                showNotification(`Anxiety discarded ${card.title}!`, "red");
-        } else {
-                setDiscardPile(prev => [card, ...prev]);
+              // Prioritize armor cards over character cards
+              const positives = player.activeCards.filter((c: any) => !c.id.startsWith('trial_') && c.uid !== card.uid);
+              const armorCards = positives.filter((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
+              const characterCards = positives.filter((c: any) => c.id.startsWith('char_'));
+              
+              // Find target: armor first, then character
+              let targetIdx = -1;
+              if (armorCards.length > 0) {
+                // Find first armor card in activeCards (excluding the card being added)
+                targetIdx = player.activeCards.findIndex((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id) && c.uid !== card.uid);
+              } else if (characterCards.length > 0) {
+                // Find first character card in activeCards (excluding the card being added)
+                targetIdx = player.activeCards.findIndex((c: any) => c.id.startsWith('char_') && c.uid !== card.uid);
+              }
+              
+              if (targetIdx !== -1) {
+                // Discard the target card (not the card being added - that will be added below)
+                const discardedCard = player.activeCards.splice(targetIdx, 1)[0];
+                const anxietyIdx = player.activeCards.findIndex((c: any) => c.uid === animatingCard.secondaryCard.uid);
+                if (anxietyIdx !== -1) {
+                  const anxietyCard = player.activeCards.splice(anxietyIdx, 1)[0];
+                  setDiscardPile(prev => [discardedCard, anxietyCard, ...prev]);
+                  showNotification(`Anxiety discarded ${discardedCard.title}!`, "red");
+                  // Card being added is still added to activeCards (below)
+                }
+              } else {
+                // No target found, just discard anxiety (card being added is still added)
+                const anxietyIdx = player.activeCards.findIndex((c: any) => c.uid === animatingCard.secondaryCard.uid);
+                if (anxietyIdx !== -1) {
+                  const anxietyCard = player.activeCards.splice(anxietyIdx, 1)[0];
+                  setDiscardPile(prev => [anxietyCard, ...prev]);
+                  showNotification(`Anxiety: No active card to discard.`, "zinc");
+                } else {
+                  setDiscardPile(prev => [card, ...prev]);
+                }
               }
             } else {
               setDiscardPile(prev => [card, ...prev]);
@@ -1344,8 +1390,10 @@ export default function LampstandFinal() {
     if (gameState === 'stumbling') {
        const ownerIdx = players.findIndex((p: any) => p.hand.some((c: any) => c.uid === card.uid));
        const isVictim = players[ownerIdx].id === stumblingPlayerId;
+       const hasAbraham = players[ownerIdx].activeCards.some((c: any) => c.id === 'char_abraham');
        
-       if (card.id === 'faith' && isVictim) {
+       // Faith can be played by: 1) the victim themselves, or 2) any player with Abraham active
+       if (card.id === 'faith' && (isVictim || hasAbraham)) {
           // Save stumblingPlayerId before clearing it
           const currentStumblingPlayerId = stumblingPlayerId;
           // Don't animate - directly remove card to prevent animation completion handler from calling checkTurnEnd()
@@ -1359,7 +1407,7 @@ export default function LampstandFinal() {
             setDiscardPile(prev => [cardToRemove, ...prev]);
           }
           returnStumbleToDeck();
-          showNotification("Faith Used!", "emerald");
+          showNotification(isVictim ? "Faith Used!" : `${players[ownerIdx].name}'s Faith (Abraham) used on ${players.find((p: any) => p.id === currentStumblingPlayerId)?.name}!`, "emerald");
           setIsDrawing(false);
           setGameState('playing');
           setStumblingPlayerId(null);
@@ -1919,13 +1967,44 @@ export default function LampstandFinal() {
           if (moveToActive) {
              const hasAnxiety = p.activeCards.some((c: any) => c.id === 'trial_anxiety');
              if (hasAnxiety) {
-                const anxietyIdx = p.activeCards.findIndex((c: any) => c.id === 'trial_anxiety');
-                if (anxietyIdx !== -1) {
-                   const anxietyCard = p.activeCards[anxietyIdx];
-                   const newActiveCards = p.activeCards.filter((c: any, idx: number) => idx !== anxietyIdx);
-                   setDiscardPile(prevD => [removedCard, anxietyCard, ...prevD]);
-                   showNotification(`Anxiety discarded ${removedCard.title}!`, "red");
-                   return { ...p, hand: newHand, activeCards: newActiveCards };
+                // Prioritize armor cards over character cards
+                const armorCards = p.activeCards.filter((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
+                const characterCards = p.activeCards.filter((c: any) => c.id.startsWith('char_'));
+                
+                // Find target: armor first, then character
+                let targetIdx = -1;
+                if (armorCards.length > 0) {
+                  // Find first armor card in activeCards
+                  targetIdx = p.activeCards.findIndex((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
+                } else if (characterCards.length > 0) {
+                  // Find first character card in activeCards
+                  targetIdx = p.activeCards.findIndex((c: any) => c.id.startsWith('char_'));
+                }
+                
+                if (targetIdx !== -1) {
+                  // Discard the target card (not the card being added - that will be added below)
+                  const discardedCard = p.activeCards[targetIdx];
+                  const newActiveCards = p.activeCards.filter((c: any, idx: number) => idx !== targetIdx);
+                  const anxietyIdx = newActiveCards.findIndex((c: any) => c.id === 'trial_anxiety');
+                  if (anxietyIdx !== -1) {
+                    const anxietyCard = newActiveCards[anxietyIdx];
+                    const finalActiveCards = newActiveCards.filter((c: any, idx: number) => idx !== anxietyIdx);
+                    setDiscardPile(prevD => [discardedCard, anxietyCard, ...prevD]);
+                    showNotification(`Anxiety discarded ${discardedCard.title}!`, "red");
+                    // Card being added (removedCard) is still added to activeCards
+                    return { ...p, hand: newHand, activeCards: [...finalActiveCards, removedCard] };
+                  }
+                } else {
+                  // No target found, just discard anxiety (card being added is still added)
+                  const anxietyIdx = p.activeCards.findIndex((c: any) => c.id === 'trial_anxiety');
+                  if (anxietyIdx !== -1) {
+                    const anxietyCard = p.activeCards[anxietyIdx];
+                    const newActiveCards = p.activeCards.filter((c: any, idx: number) => idx !== anxietyIdx);
+                    setDiscardPile(prevD => [anxietyCard, ...prevD]);
+                    showNotification(`Anxiety: No active card to discard.`, "zinc");
+                    // Card being added (removedCard) is still added to activeCards
+                    return { ...p, hand: newHand, activeCards: [...newActiveCards, removedCard] };
+                  }
                 }
              }
              return { ...p, hand: newHand, activeCards: [...p.activeCards, removedCard] };
@@ -1972,15 +2051,19 @@ export default function LampstandFinal() {
   const handleKnockout = (): void => {
      const victimIdx = players.findIndex((p: any) => p.id === stumblingPlayerId);
      const victim = players[victimIdx];
-     const helmetIdx = victim.activeCards.findIndex((c: any) => c.id === 'helmet');
+     const helmetIdx = victim.activeCards.findIndex((c: any) => c.id === 'helmet' && !c.isUsed);
      
      if (helmetIdx !== -1) {
         const newPlayers = [...players];
-        newPlayers[victimIdx].activeCards.splice(helmetIdx, 1);
+        // Mark helmet as used instead of removing it
+        newPlayers[victimIdx].activeCards[helmetIdx] = {
+          ...newPlayers[victimIdx].activeCards[helmetIdx],
+          isUsed: true
+        };
         setPlayers(newPlayers);
         setStumblingPlayerId(null);
         setGameState('playing');
-        showNotification("Helmet cracked! You stayed conscious.", "blue");
+        showNotification("Helmet cracked! You stayed conscious. (Helmet remains but is now inactive)", "blue");
         returnStumbleToDeck();
         return;
      }
@@ -2303,7 +2386,7 @@ export default function LampstandFinal() {
             onClose={() => setInspectingCard(null)} 
             onPlay={() => playCard(inspectingCard)}
             canPlay={
-               (gameState === 'stumbling' && inspectingCard.id === 'faith' && players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) === players.findIndex((p: any) => p.id === stumblingPlayerId)) ||
+               (gameState === 'stumbling' && inspectingCard.id === 'faith' && (players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) === players.findIndex((p: any) => p.id === stumblingPlayerId) || players[players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid))].activeCards.some((c: any) => c.id === 'char_abraham'))) ||
                (gameState === 'stumbling' && inspectingCard.id === 'encouragement' && getDistance(players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)), players.findIndex((p: any) => p.id === stumblingPlayerId), players.length) <= unity) ||
                (gameState === 'playing' && turnIndex === players.findIndex((p: any) => p.hand.some((c: any) => c.uid === inspectingCard.uid)) && inspectingCard.id !== 'faith')
             }

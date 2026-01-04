@@ -53,6 +53,7 @@ export default function TacticalGame() {
 
   const [inspectingCard, setInspectingCard] = useState<any>(null);
   const [viewingHand, setViewingHand] = useState<any>(null); // Player whose hand is being viewed
+  const [openHandIndices, setOpenHandIndices] = useState<Set<number>>(new Set([0])); // Start with player 1's hand open
   const [inspectingNode, setInspectingNode] = useState<any>(null);
   const [selectedCard, setSelectedCard] = useState<any>(null); 
   const [selectedPrayerCards, setSelectedPrayerCards] = useState<any[]>([]); // For prayer combinations
@@ -62,27 +63,7 @@ export default function TacticalGame() {
   const [prayerChoiceCount, setPrayerChoiceCount] = useState<number>(0);
   const [peaceDiscardChoice, setPeaceDiscardChoice] = useState<{playerId: number, peaceCard: any} | null>(null);
   
-  // Timer settings
-  const [roundTimerMinutes, setRoundTimerMinutes] = useState(3);
-  const [gtTimerMinutes, setGtTimerMinutes] = useState(15);
-  const [armageddonTimerMinutes, setArmageddonTimerMinutes] = useState(30);
-  const [roundTimerActive, setRoundTimerActive] = useState(false);
-  const [gtTimerActive, setGtTimerActive] = useState(false);
-  const [armageddonTimerActive, setArmageddonTimerActive] = useState(false);
-  const [roundTimerRemaining, setRoundTimerRemaining] = useState(0);
-  const [gtTimerRemaining, setGtTimerRemaining] = useState(0);
-  const [armageddonTimerRemaining, setArmageddonTimerRemaining] = useState(0);
-  const [timersPaused, setTimersPaused] = useState(false);
-  const [gtTriggered, setGtTriggered] = useState(false);
-  const [armageddonTriggered, setArmageddonTriggered] = useState(false);
   const [gtGateActive, setGtGateActive] = useState(false); // Gate requiring 7 unity
-  
-  // Refs to track latest timer state for interval callback
-  const roundTimerActiveRef = useRef(roundTimerActive);
-  const gtTimerActiveRef = useRef(gtTimerActive);
-  const gtTriggeredRef = useRef(gtTriggered);
-  const armageddonTimerActiveRef = useRef(armageddonTimerActive);
-  const armageddonTriggeredRef = useRef(armageddonTriggered);
   
   // Ref to track if fresh zeal was just activated (prevents auto-end turn)
   const freshZealJustActivatedRef = useRef(false);
@@ -112,20 +93,6 @@ export default function TacticalGame() {
     });
   };
   
-  // Update refs when state changes
-  useEffect(() => {
-    roundTimerActiveRef.current = roundTimerActive;
-  }, [roundTimerActive]);
-
-  useEffect(() => {
-    gtTimerActiveRef.current = gtTimerActive;
-    gtTriggeredRef.current = gtTriggered;
-  }, [gtTimerActive, gtTriggered]);
-
-  useEffect(() => {
-    armageddonTimerActiveRef.current = armageddonTimerActive;
-    armageddonTriggeredRef.current = armageddonTriggered;
-  }, [armageddonTimerActive, armageddonTriggered]);
 
   const startGame = (numPlayers: number) => {
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
@@ -164,22 +131,8 @@ export default function TacticalGame() {
     // Set random starting Unity between 4-7
     setUnity(Math.floor(Math.random() * 4) + 4);
     
-    // Initialize timers if enabled
-    if (gtTimerMinutes > 0) {
-      setGtTimerActive(true);
-      setGtTimerRemaining(gtTimerMinutes * 60);
-      setGtTriggered(false);
-    } else {
-      setGtTimerActive(false);
-    }
-    
-    if (armageddonTimerMinutes > 0) {
-      setArmageddonTimerActive(true);
-      setArmageddonTimerRemaining(armageddonTimerMinutes * 60);
-      setArmageddonTriggered(false);
-    } else {
-      setArmageddonTimerActive(false);
-    }
+    // Start with player 1's hand open (like Lampstand)
+    setOpenHandIndices(new Set([0]));
     
     setGameState('playing');
   };
@@ -247,14 +200,8 @@ export default function TacticalGame() {
     setTurnIndex(0);
     setHasMoved(false);
     setPeterAbilityUsed(false); // Reset Peter's ability at start of round
-    
-    // Start round timer if enabled
-    if (roundTimerMinutes > 0) {
-      setRoundTimerActive(true);
-      setRoundTimerRemaining(roundTimerMinutes * 60);
-    } else {
-      setRoundTimerActive(false);
-    }
+    // Auto-open first player's hand
+    setOpenHandIndices(prev => new Set([...prev, 0]));
   };
 
   useEffect(() => {
@@ -1095,31 +1042,33 @@ export default function TacticalGame() {
         if (challengeOvercome || isSpecialEvent) {
           // Challenge overcome (only if AP exhausted) or special event - end the round
           endRound();
-          } else {
-            // Challenge not overcome or AP not exhausted - continue the round, cycle back to first player
-            setTurnIndex(0);
-            setActionPoints(getMaxAP());
-            // Note: hasMoved resets at start of round (for Moses), not when cycling turns
-          }
+        } else {
+          // Challenge not overcome or AP not exhausted - continue the round, cycle back to first player
+          setTurnIndex(0);
+          setActionPoints(getMaxAP());
+          // Auto-open first player's hand
+          setOpenHandIndices(prev => new Set([...prev, 0]));
+          // Note: hasMoved resets at start of round (for Moses), not when cycling turns
+        }
         isEndingTurnRef.current = false;
       }, 50);
     } else {
       // Not last player - move to next player
-      setTurnIndex(prev => prev + 1);
+      const nextIndex = turnIndex + 1;
+      setTurnIndex(nextIndex);
       setActionPoints(getMaxAP());
+      // Auto-open next player's hand
+      setOpenHandIndices(prev => new Set([...prev, nextIndex]));
       // Note: hasMoved resets at start of round (for Moses), not turn
       
-      // Reset flag after rotation animation completes (1000ms transition + buffer)
+      // Reset flag
       setTimeout(() => {
         isEndingTurnRef.current = false;
-      }, 1100);
+      }, 100);
     }
   };
 
   const endRound = (isTimeout: boolean = false) => {
-    // Stop round timer
-    setRoundTimerActive(false);
-    
     setRoundPhase('END');
     // Apply circumstance multiplier to requirement
     const baseReq = currentChallenge?.req || 0;
@@ -1127,18 +1076,14 @@ export default function TacticalGame() {
     const adjustedReq = Math.ceil(baseReq * multiplier);
     // Use ref value to ensure we have the latest challenge progress after all state updates
     const finalProgress = challengeProgressRef.current;
-    const success = !isTimeout && finalProgress >= adjustedReq;
+    const success = finalProgress >= adjustedReq;
     if (success) {
       showNotification("Overcome!", "emerald");
       setUnity(u => Math.min(10, u + 1));
       setTrialDeck(prev => prev.slice(1));
       setCircumstanceDeck(prev => prev.slice(1));
     } else {
-      if (isTimeout) {
-        showNotification("Time's Up! Challenge Failed!", "red");
-      } else {
-        showNotification("Failed!", "red");
-      }
+      showNotification("Failed!", "red");
       // Parse Unity penalty from challenge
       const penalty = currentChallenge?.penalty || '';
       const unityMatch = penalty.match(/Unity\s*-(\d+)/i);
@@ -1311,101 +1256,10 @@ export default function TacticalGame() {
     return oneDistanceMoves;
   }, [currentPlayer, actionPoints, gameState, mapNodes, mapConnections, peterAbilityUsed]); 
 
-  const tableRotation = -turnIndex * 90;
-  
   const isCardPlayable = inspectingCard && currentPlayer.hand.some((c: any) => c.uniqueId === inspectingCard.uniqueId);
 
   // --- RENDER ---
 
-  const triggerGtFromTimer = () => {
-    if (gtTriggered) return;
-    setGtTriggered(true);
-    setGtTimerActive(false);
-    
-    // Get random GT variation
-    const { greatTribulation } = selectEventVariations();
-    
-    // Trigger GT effects immediately
-    triggerGreatTribulation();
-    
-    // Apply variant-specific negative effects
-    if (greatTribulation.variant === 'scattering') {
-      setUnity(prev => Math.max(0, prev - 1));
-    } else if (greatTribulation.variant === 'persecution') {
-      const updatedPlayers = [...players];
-      updatedPlayers.forEach(p => {
-        if (p.hand.length > 0) p.hand.pop();
-      });
-      setPlayers(updatedPlayers);
-    }
-    
-    // Activate GT gate - require 7 unity before turns can start
-    setGtGateActive(true);
-    showNotification("GREAT TRIBULATION! Unity Gate: 7 Required!", "red");
-  };
-
-  const triggerArmageddonFromTimer = () => {
-    if (armageddonTriggered) return;
-    setArmageddonTriggered(true);
-    setArmageddonTimerActive(false);
-    
-    // Get random Armageddon variation
-    const { armageddon } = selectEventVariations();
-    
-    // Set as current challenge
-    setCurrentChallenge({ ...armageddon, progress: 0 });
-    setMaxCharacters(99);
-    showNotification("ARMAGEDDON! Final Stand!", "red");
-  };
-
-  // Timer countdown effect - placed after trigger functions
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    
-    const interval = setInterval(() => {
-      // Skip countdown if timers are paused
-      if (timersPaused) return;
-      
-      // Round Timer - use refs to get latest values
-      setRoundTimerRemaining(prev => {
-        if (roundTimerActiveRef.current && prev > 0) {
-          if (prev <= 1) {
-            // Time's up - end round as failure
-            endRound(true);
-            return 0;
-          }
-          return prev - 1;
-        }
-        return prev;
-      });
-      
-      // GT Timer - use refs to get latest values
-      setGtTimerRemaining(prev => {
-        if (gtTimerActiveRef.current && prev > 0 && !gtTriggeredRef.current) {
-          if (prev <= 1) {
-            triggerGtFromTimer();
-            return 0;
-          }
-          return prev - 1;
-        }
-        return prev;
-      });
-      
-      // Armageddon Timer - use refs to get latest values
-      setArmageddonTimerRemaining(prev => {
-        if (armageddonTimerActiveRef.current && prev > 0 && !armageddonTriggeredRef.current) {
-          if (prev <= 1) {
-            triggerArmageddonFromTimer();
-            return 0;
-          }
-          return prev - 1;
-        }
-        return prev;
-      });
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [gameState]);
 
   const handleSacrificeCard = (playerId: number, cardIndex: number) => {
     if (!gtGateActive) return;
@@ -1469,52 +1323,6 @@ export default function TacticalGame() {
           <h1 className="text-4xl font-black uppercase tracking-tighter">Covenant<br/>Tactical</h1>
           <p className="text-zinc-400">Cooperative Tabletop Mode</p>
           
-          {/* Timer Settings */}
-          <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-700 space-y-4">
-            <h3 className="text-lg font-bold text-white mb-4">Timer Settings (Optional)</h3>
-            
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-bold text-zinc-400 mb-2">Round Timer (minutes) - Prevents stalling</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="60"
-                  value={roundTimerMinutes}
-                  onChange={(e) => setRoundTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
-                  className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
-                />
-                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 3). Round fails if timer expires.</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-zinc-400 mb-2">Great Tribulation Timer (minutes)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="60"
-                  value={gtTimerMinutes}
-                  onChange={(e) => setGtTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
-                  className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
-                />
-                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 15)</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-zinc-400 mb-2">Armageddon Timer (minutes)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="60"
-                  value={armageddonTimerMinutes}
-                  onChange={(e) => setArmageddonTimerMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
-                  className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-center text-xl font-bold"
-                />
-                <p className="text-xs text-zinc-500 mt-1">0 = Disabled (Default: 30)</p>
-              </div>
-            </div>
-          </div>
-          
           <div className="flex gap-4 justify-center">
             <button onClick={() => startGame(4)} className="w-16 h-16 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold text-xl border border-zinc-700">Start 4P</button>
           </div>
@@ -1558,64 +1366,30 @@ export default function TacticalGame() {
         )}
 
         {/* DECKS (TOP LEFT) */}
-        <div className="absolute top-24 left-8 flex flex-col gap-4 z-40 pointer-events-auto">
-           <div className="flex gap-4">
+        <div className="absolute top-16 left-4 flex flex-col gap-3 z-40 pointer-events-auto">
+           <div className="flex gap-3">
               <div className="relative group" onClick={() => handleInspectCard('trial_back')}>
-                 <div className="absolute top-1 left-1 text-[10px] font-bold text-red-500 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded z-10">TRIAL</div>
-                 <Card data="trial_back" isFaceUp={false} size="lg" onClick={()=>{}} />
-                 <div className="absolute -bottom-2 -right-2 bg-red-600 text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{trialDeck.length}</div>
+                 <div className="absolute top-0.5 left-0.5 text-[8px] font-bold text-red-500 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded z-10">TRIAL</div>
+                 <Card data="trial_back" isFaceUp={false} size="md" onClick={()=>{}} />
+                 <div className="absolute -bottom-1 -right-1 bg-red-600 text-[8px] font-bold w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{trialDeck.length}</div>
               </div>
               <div className="relative group" onClick={() => handleInspectCard('circumstance_back')}>
-                 <div className="absolute top-1 left-1 text-[10px] font-bold text-slate-400 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded z-10">COND.</div>
-                 <Card data="circumstance_back" isFaceUp={false} size="lg" onClick={()=>{}} />
-                 <div className="absolute -bottom-2 -right-2 bg-slate-500 text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{circumstanceDeck.length}</div>
+                 <div className="absolute top-0.5 left-0.5 text-[8px] font-bold text-slate-400 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded z-10">COND.</div>
+                 <Card data="circumstance_back" isFaceUp={false} size="md" onClick={()=>{}} />
+                 <div className="absolute -bottom-1 -right-1 bg-slate-500 text-[8px] font-bold w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{circumstanceDeck.length}</div>
               </div>
               <div className="relative group cursor-pointer active:scale-95 transition-transform" onClick={handleDrawCard}>
-                 <div className="absolute top-1 left-1 text-[10px] font-bold text-indigo-400 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded z-10">PROVISIONS</div>
-                 <Card data="supply_back" isFaceUp={false} size="lg" onClick={()=>{}} />
-                 <div className="absolute -bottom-2 -right-2 bg-indigo-600 text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{supplyDeck.length}</div>
-                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-sm rounded text-[10px] font-bold text-white transition-opacity text-center z-20">DRAW<br/>{getActionCost(1, 'draw')} AP</div>
+                 <div className="absolute top-0.5 left-0.5 text-[8px] font-bold text-indigo-400 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded z-10">PROVISIONS</div>
+                 <Card data="supply_back" isFaceUp={false} size="md" onClick={()=>{}} />
+                 <div className="absolute -bottom-1 -right-1 bg-indigo-600 text-[8px] font-bold w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-zinc-900 shadow-lg z-10">{supplyDeck.length}</div>
+                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-sm rounded text-[8px] font-bold text-white transition-opacity text-center z-20">DRAW<br/>{getActionCost(1, 'draw')} AP</div>
               </div>
            </div>
-           <div className="flex gap-4 mt-2">
-              {currentChallenge ? <div className="relative animate-in slide-in-from-top-4" onClick={() => handleInspectCard(currentChallenge)}><div className="absolute top-1 left-1 text-[10px] font-bold text-red-500 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded flex items-center gap-1 z-10"><AlertTriangle size={8} /> THREAT</div><Card data={currentChallenge} isFaceUp={true} size="lg" onClick={()=>{}} /></div> : <div className="w-24 h-40 border border-zinc-700/50 rounded flex items-center justify-center text-[10px] text-zinc-600">SAFE</div>}
-              {currentCircumstance ? <div className="relative animate-in slide-in-from-top-4 delay-100" onClick={() => handleInspectCard(currentCircumstance)}><div className="absolute top-1 left-1 text-[10px] font-bold text-slate-400 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded flex items-center gap-1 z-10"><Layers size={8} /> COND.</div><Card data={currentCircumstance} isFaceUp={true} size="lg" onClick={()=>{}} /></div> : <div className="w-24 h-40 border border-dashed border-zinc-700/50 rounded flex items-center justify-center text-[10px] text-zinc-600">NORMAL</div>}
+           <div className="flex gap-3 mt-1">
+              {currentChallenge ? <div className="relative animate-in slide-in-from-top-4" onClick={() => handleInspectCard(currentChallenge)}><div className="absolute top-0.5 left-0.5 text-[8px] font-bold text-red-500 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center gap-1 z-10"><AlertTriangle size={6} /> THREAT</div><Card data={currentChallenge} isFaceUp={true} size="md" onClick={()=>{}} /></div> : <div className="w-20 h-32 border border-zinc-700/50 rounded flex items-center justify-center text-[8px] text-zinc-600">SAFE</div>}
+              {currentCircumstance ? <div className="relative animate-in slide-in-from-top-4 delay-100" onClick={() => handleInspectCard(currentCircumstance)}><div className="absolute top-0.5 left-0.5 text-[8px] font-bold text-slate-400 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center gap-1 z-10"><Layers size={6} /> COND.</div><Card data={currentCircumstance} isFaceUp={true} size="md" onClick={()=>{}} /></div> : <div className="w-20 h-32 border border-dashed border-zinc-700/50 rounded flex items-center justify-center text-[8px] text-zinc-600">NORMAL</div>}
            </div>
         </div>
-
-        {/* Timer Display */}
-        {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
-          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-auto flex gap-4">
-            {roundTimerActive && roundPhase === 'ACTION' && (
-              <div className={`backdrop-blur border-2 px-4 py-2 rounded-lg shadow-xl ${
-                roundTimerRemaining <= 30 ? 'bg-red-900/80 border-red-600' : 
-                roundTimerRemaining <= 60 ? 'bg-orange-900/80 border-orange-600' : 
-                'bg-blue-900/80 border-blue-600'
-              }`}>
-                <div className="text-xs font-bold uppercase text-white">Round Timer</div>
-                <div className="text-xl font-black text-white">
-                  {Math.floor(roundTimerRemaining / 60)}:{(roundTimerRemaining % 60).toString().padStart(2, '0')}
-                </div>
-              </div>
-            )}
-            {gtTimerActive && !gtTriggered && (
-              <div className="bg-red-900/80 backdrop-blur border-2 border-red-600 px-4 py-2 rounded-lg shadow-xl">
-                <div className="text-xs font-bold text-red-200 uppercase">GT Timer</div>
-                <div className="text-xl font-black text-white">
-                  {Math.floor(gtTimerRemaining / 60)}:{(gtTimerRemaining % 60).toString().padStart(2, '0')}
-                </div>
-              </div>
-            )}
-            {armageddonTimerActive && !armageddonTriggered && (
-              <div className="bg-purple-900/80 backdrop-blur border-2 border-purple-600 px-4 py-2 rounded-lg shadow-xl">
-                <div className="text-xs font-bold text-purple-200 uppercase">Armageddon</div>
-                <div className="text-xl font-black text-white">
-                  {Math.floor(armageddonTimerRemaining / 60)}:{(armageddonTimerRemaining % 60).toString().padStart(2, '0')}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* GT Gate UI */}
         {gtGateActive && (
@@ -1688,7 +1462,7 @@ export default function TacticalGame() {
         )}
 
         {/* HUD (TOP RIGHT) */}
-        <div className="absolute top-16 right-8 z-40 pointer-events-auto flex flex-col items-end">
+        <div className="absolute top-16 right-4 z-40 pointer-events-auto flex flex-col items-end">
            {currentChallenge && (
               <div className="bg-black/60 backdrop-blur border border-zinc-700 p-4 rounded-xl text-right shadow-2xl animate-in slide-in-from-right">
                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1 flex items-center justify-end gap-2"><CloudLightning size={12} className="text-amber-500" /> Faith Required</div>
@@ -1723,76 +1497,10 @@ export default function TacticalGame() {
                  {[1,2,3,4,5,6,7,8,9,10].map(i => <div key={i} className={`w-1.5 h-4 rounded-full transition-all ${i <= unity ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-zinc-800'}`} />)}
                </div>
            </div>
-           
-           {/* Timer Display - Stacked below Unity */}
-           {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
-             <div className="mt-4 flex flex-col items-end gap-2">
-               {roundTimerActive && roundPhase === 'ACTION' && (
-                 <div className={`backdrop-blur border-2 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2 ${
-                   roundTimerRemaining <= 30 ? 'bg-red-900/80 border-red-600' : 
-                   roundTimerRemaining <= 60 ? 'bg-orange-900/80 border-orange-600' : 
-                   'bg-blue-900/80 border-blue-600'
-                 }`}>
-                   <div className="text-[10px] font-bold uppercase text-white">Round</div>
-                   <div className="text-lg font-black text-white">
-                     {Math.floor(roundTimerRemaining / 60)}:{(roundTimerRemaining % 60).toString().padStart(2, '0')}
-                   </div>
-                 </div>
-               )}
-               {gtTimerActive && !gtTriggered && (
-                 <div className="bg-red-900/80 backdrop-blur border-2 border-red-600 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2">
-                   <div className="text-[10px] font-bold text-red-200 uppercase">GT</div>
-                   <div className="text-lg font-black text-white">
-                     {Math.floor(gtTimerRemaining / 60)}:{(gtTimerRemaining % 60).toString().padStart(2, '0')}
-                   </div>
-                 </div>
-               )}
-               {armageddonTimerActive && !armageddonTriggered && gtTriggered && (
-                 <div className="bg-purple-900/80 backdrop-blur border-2 border-purple-600 px-3 py-1.5 rounded-lg shadow-xl flex items-center gap-2">
-                   <div className="text-[10px] font-bold text-purple-200 uppercase">Armageddon</div>
-                   <div className="text-lg font-black text-white">
-                     {Math.floor(armageddonTimerRemaining / 60)}:{(armageddonTimerRemaining % 60).toString().padStart(2, '0')}
-                   </div>
-                 </div>
-               )}
-               {/* Pause Button */}
-               {(roundTimerActive || gtTimerActive || armageddonTimerActive) && (
-                 <button
-                   onClick={() => setTimersPaused(!timersPaused)}
-                   className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
-                     timersPaused 
-                       ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                       : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700'
-                   }`}
-                 >
-                   {timersPaused ? '▶ Resume' : '⏸ Pause'}
-                 </button>
-               )}
-             </div>
-           )}
         </div>
 
         {/* PLAYER STATUS & ACTIVE CARDS (BOTTOM LEFT) */}
         <div className="absolute bottom-8 left-8 z-40 flex flex-col gap-4 pointer-events-auto">
-           {/* Active Characters */}
-           <div className="flex flex-col gap-2">
-             <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Active Characters</div>
-             <div className="flex gap-2">
-               {currentPlayer.activeCharacters.map((char: any, i: number) => {
-                 const IconComponent = char.icon;
-                 return (
-                 <div key={i} className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-3 shadow-lg min-w-[220px]">
-                    <div className="bg-amber-600/20 text-amber-500 p-2 rounded-full">{IconComponent ? <IconComponent size={16} /> : <UserPlus size={16} />}</div>
-                    <div>
-                      <div className="text-sm font-black text-white">{char.name}</div>
-                      <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">{char.ability}</div>
-                      <div className="text-[9px] text-zinc-300 leading-tight mt-1">{char.desc}</div>
-                    </div>
-                 </div>
-               )})}
-             </div>
-           </div>
-
            {/* Active Cards (Tableau) */}
            <div className="relative p-2 bg-black/40 rounded-xl backdrop-blur-sm border border-white/5 w-20 min-h-[100px] flex items-center overflow-visible">
               {currentPlayer.activeCards.length > 0 ? (
@@ -1830,14 +1538,36 @@ export default function TacticalGame() {
            </div>
         </div>
 
-        {/* ROTATING TABLE (CENTER) */}
-        <div className="relative w-[100vmin] h-[100vmin] transition-transform duration-1000 ease-in-out mx-auto mt-12" style={{ transform: `rotate(${tableRotation}deg)` }}>
+        {/* TABLE (CENTER) */}
+        <div className="relative w-[100vmin] h-[100vmin] mx-auto">
           <div className="absolute inset-0 m-auto w-[80vmin] h-[80vmin] rounded-full bg-zinc-900/50 border-4 border-zinc-800 shadow-2xl overflow-hidden backdrop-blur-sm">
-            <NodeMap players={players} nodes={mapNodes} connections={mapConnections} validMoves={validMoves} onNodeClick={handleNodeInteraction} tableRotation={tableRotation} />
+            <NodeMap players={players} nodes={mapNodes} connections={mapConnections} validMoves={validMoves} onNodeClick={handleNodeInteraction} />
           </div>
-          {/* PLAYER HANDS - Inside rotating container (following gemini.jsx logic) */}
+          {/* PLAYER HANDS */}
           {players.map((p: any, i: number) => (
-            <PlayerHand key={p.id} player={p} isActive={turnIndex === i} rotation={i} tableRotation={tableRotation} onHandClick={() => setViewingHand(p)} />
+            <PlayerHand 
+              key={p.id} 
+              player={p} 
+              isActive={turnIndex === i} 
+              rotation={i} 
+              onHandClick={() => setViewingHand(p)} 
+              onCardClick={(card: any) => setInspectingCard(card)}
+              isOpen={openHandIndices.has(i)}
+              toggleHand={(e?: any) => {
+                if (e) e.stopPropagation();
+                setOpenHandIndices(prev => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(i)) {
+                    newSet.delete(i);
+                  } else {
+                    newSet.add(i);
+                  }
+                  return newSet;
+                });
+              }}
+              isStumbling={false}
+              canHelp={false}
+            />
           ))}
         </div>
 

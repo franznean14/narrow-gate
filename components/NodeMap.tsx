@@ -6,10 +6,9 @@ interface NodeMapProps {
   connections: any[];
   onNodeClick: (nodeId: string) => void;
   validMoves: string[];
-  tableRotation?: number;
 }
 
-export default function NodeMap({ players, nodes, connections, onNodeClick, validMoves, tableRotation = 0 }: NodeMapProps) {
+export default function NodeMap({ players, nodes, connections, onNodeClick, validMoves }: NodeMapProps) {
   return (
     <div className="absolute inset-0 z-0">
       <svg className="w-full h-full pointer-events-none z-0">
@@ -56,15 +55,14 @@ export default function NodeMap({ players, nodes, connections, onNodeClick, vali
           <div key={node.id} onClick={() => isClickable && onNodeClick(node.id)} className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${isClickable ? 'cursor-pointer' : 'pointer-events-none'} ${isValidMove ? 'scale-125 z-20' : 'z-10'}`} style={{ left: `${node.x}%`, top: `${node.y}%` }}>
             <div className={`${containerSize} absolute flex items-center justify-center`}>
                 <div className={`${nodeSize} rounded-full ${nodeColor} ${isValidMove ? 'animate-pulse ring-2 ring-emerald-400' : ringClass} flex items-center justify-center transition-all`}>
-                    {node.type === 'kingdom_hall' && <Home size={iconSize} className="text-zinc-900" style={{ transform: `rotate(${-tableRotation}deg)` }} />}
-                    {isInnerRoom && <DoorOpen size={iconSize} className="text-white" style={{ transform: `rotate(${-tableRotation}deg)` }} />}
-                    {isTrap && <TrapIcon size={iconSize} className="text-white" style={{ transform: `rotate(${-tableRotation}deg)` }} />}
+                    {node.type === 'kingdom_hall' && <Home size={iconSize} className="text-zinc-900" />}
+                    {isInnerRoom && <DoorOpen size={iconSize} className="text-white" />}
+                    {isTrap && <TrapIcon size={iconSize} className="text-white" />}
                 </div>
             </div>
             {(isSpecial || isStart || isInnerRoom || isTrap) && (
               <div 
                 className="absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold text-zinc-400 whitespace-nowrap uppercase tracking-wider bg-zinc-950/80 px-2 py-0.5 rounded pointer-events-none border border-zinc-800 shadow-md"
-                style={{ transform: `translateX(-50%) rotate(${-tableRotation}deg)` }}
               >
                 {node.label}
               </div>
@@ -82,7 +80,7 @@ export default function NodeMap({ players, nodes, connections, onNodeClick, vali
                      className="w-4 h-4 rounded-full border border-white text-[6px] font-bold flex items-center justify-center shadow-md absolute transition-all" 
                      style={{ 
                        backgroundColor: p.color, 
-                       transform: `translate(${offsetX}px, ${offsetY}px) rotate(${-tableRotation}deg)`, 
+                       transform: `translate(${offsetX}px, ${offsetY}px)`, 
                        zIndex: 30 + i 
                      }}
                    >

@@ -452,6 +452,137 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
             </button>
           </div>
         )}
+
+        {/* Expansion Pack Ideas */}
+        <div className="mt-16 pt-8 border-t border-zinc-800">
+          <h2 className="text-3xl font-bold text-white mb-6">Expansion Pack Ideas</h2>
+          <div className="space-y-8 text-zinc-300 text-sm leading-relaxed">
+            
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">1. "The Prophets" Expansion</h3>
+              <p className="mb-2">• New characters: Isaiah, Jeremiah, Ezekiel, Daniel (enhanced), Elijah, Elisha</p>
+              <p className="mb-2">• New mechanic: Prophecy cards — peek at future cards or manipulate deck order</p>
+              <p className="mb-2">• New trial: False Prophecy — blocks prophecy effects</p>
+              <p>• New armor: Mantle of Prophecy — draw 2, keep 1</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">2. "The Apostles" Expansion</h3>
+              <p className="mb-2">• New characters: Peter (enhanced), Paul, John, James, Matthew, Thomas</p>
+              <p className="mb-2">• New mechanic: Mission cards — team objectives for bonus rewards</p>
+              <p className="mb-2">• New action: Preach — share cards with all players within Unity range</p>
+              <p>• New trial: Persecution — lose Unity if not removed quickly</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">3. "The Judges" Expansion</h3>
+              <p className="mb-2">• New characters: Deborah, Gideon (enhanced), Samson, Jephthah</p>
+              <p className="mb-2">• New mechanic: Cycle of Apostasy — periodic Unity penalties that must be overcome</p>
+              <p className="mb-2">• New action: Deliverance — remove all trials from one player</p>
+              <p>• New trial: Idolatry — blocks character abilities</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">4. "The Kings" Expansion</h3>
+              <p className="mb-2">• New characters: Saul, David (enhanced), Solomon, Hezekiah, Josiah</p>
+              <p className="mb-2">• New mechanic: Kingdom building — permanent upgrades that persist across games</p>
+              <p className="mb-2">• New action: Wisdom of Kings — look at top 5 cards, rearrange any 3</p>
+              <p>• New trial: Pride — prevents Unity gains</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">5. "The Women of Faith" Expansion</h3>
+              <p className="mb-2">• New characters: Ruth (enhanced), Esther (enhanced), Sarah (enhanced), Rahab, Mary, Lydia</p>
+              <p className="mb-2">• New mechanic: Legacy cards — pass benefits to the next player</p>
+              <p className="mb-2">• New action: Intercession — help any player regardless of Unity range</p>
+              <p>• New trial: Injustice — affects all players equally</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">6. "The Wilderness" Expansion</h3>
+              <p className="mb-2">• New mechanic: Journey system — players progress through stages with escalating challenges</p>
+              <p className="mb-2">• New cards: Oasis (restore Unity), Miracles (powerful one-time effects), Temptation (new trial type)</p>
+              <p className="mb-2">• New characters: Moses (enhanced), Joshua, Caleb</p>
+              <p>• New action: Manna — draw cards equal to Unity level</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">7. "The End Times" Expansion</h3>
+              <p className="mb-2">• New mechanic: Seals/Trumpets/Bowls — three phases with unique challenges</p>
+              <p className="mb-2">• New characters: The Two Witnesses, The 144,000</p>
+              <p className="mb-2">• New action: Seal of God — temporary immunity to trials</p>
+              <p>• New trial: Mark of the Beast — cannot be removed, only mitigated</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">8. "The Parables" Expansion</h3>
+              <p className="mb-2">• New mechanic: Teaching moments — mini-games that reward correct choices</p>
+              <p className="mb-2">• New action: Parable cards — conditional effects based on game state</p>
+              <p className="mb-2">• New characters: The Good Samaritan, The Prodigal Son (as character abilities)</p>
+              <p>• New trial: Hardened Heart — blocks understanding of parables</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">9. "The Miracles" Expansion</h3>
+              <p className="mb-2">• New mechanic: Miracle tokens — collect to perform powerful one-time effects</p>
+              <p className="mb-2">• New action: Miracle cards — game-changing effects (multiply cards, restore all Unity, etc.)</p>
+              <p className="mb-2">• New characters: Miracle workers (enhanced versions of existing characters)</p>
+              <p>• New trial: Unbelief — prevents miracle effects</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">10. "The Covenants" Expansion</h3>
+              <p className="mb-2">• New mechanic: Covenant system — choose a covenant at game start for unique benefits</p>
+              <p className="mb-2">• New cards: Covenant cards — powerful but require specific conditions</p>
+              <p className="mb-2">• New characters: Noah (enhanced), Abraham (enhanced), Moses (enhanced), David (enhanced)</p>
+              <p>• New action: Covenant Renewal — restore Unity and remove all trials</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">11. "The Psalms" Expansion</h3>
+              <p className="mb-2">• New mechanic: Worship system — play worship cards to gain temporary buffs</p>
+              <p className="mb-2">• New action: Psalm cards — emotional support that helps all players</p>
+              <p className="mb-2">• New characters: David (enhanced as Psalmist), Asaph</p>
+              <p>• New trial: Despair — blocks worship effects</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">12. "The Exodus" Expansion</h3>
+              <p className="mb-2">• New mechanic: Plagues system — 10 escalating challenges that must be overcome</p>
+              <p className="mb-2">• New action: Passover — skip one trial/stumble</p>
+              <p className="mb-2">• New characters: Moses (enhanced), Aaron, Miriam</p>
+              <p>• New trial: Hardened Pharaoh — requires multiple players to overcome</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">13. "The Early Church" Expansion</h3>
+              <p className="mb-2">• New mechanic: Fellowship — players can share resources more easily</p>
+              <p className="mb-2">• New action: Acts of the Apostles — powerful cooperative effects</p>
+              <p className="mb-2">• New characters: All 12 apostles with unique abilities</p>
+              <p>• New trial: Division — splits the team temporarily</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">14. "The Promised Land" Expansion</h3>
+              <p className="mb-2">• New mechanic: Territory system — claim territories for permanent benefits</p>
+              <p className="mb-2">• New action: Conquest cards — powerful but risky</p>
+              <p className="mb-2">• New characters: Joshua (enhanced), Caleb (enhanced), Rahab (enhanced)</p>
+              <p>• New trial: Giants — requires multiple players to overcome</p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">15. "The Revelation" Expansion</h3>
+              <p className="mb-2">• New mechanic: Vision system — see multiple future outcomes</p>
+              <p className="mb-2">• New action: Apocalyptic cards — extremely powerful endgame effects</p>
+              <p className="mb-2">• New characters: The 24 Elders, The Four Living Creatures</p>
+              <p>• New trial: Dragon's Wrath — affects entire team</p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-zinc-800">
+              <p className="text-zinc-400 italic">Each expansion could include: 6-8 new character cards, 10-15 new action/trial cards, 1-2 new game mechanics, updated manual pages, new trivia questions related to the theme, and optional variant rules for experienced players.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

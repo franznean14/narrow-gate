@@ -11,12 +11,43 @@ interface VanquishModalProps {
   onConfirm: (selected: { playerId: string, cardUid: string }[]) => void;
   requiredCards?: number;
   activePlayerIndex?: number;
+  stumblingPlayerId?: number | null;
+  unity?: number;
+  getDistance?: (helperIdx: number, victimIdx: number, totalPlayers: number) => number;
 }
 
-export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3, activePlayerIndex = 0 }: VanquishModalProps) => {
+export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3, activePlayerIndex = 0, stumblingPlayerId, unity = 1, getDistance }: VanquishModalProps) => {
    const [selected, setSelected] = useState<{ playerId: string, cardUid: string }[]>([]);
    const modalPosition = getModalPosition(activePlayerIndex);
    const modalRotation = getModalRotation(activePlayerIndex);
+   
+   // Filter players who can help (within unity range)
+   const getPlayersWhoCanHelp = () => {
+     if (!stumblingPlayerId || !getDistance) return players;
+     
+     const victimIdx = players.findIndex((p: any) => p.id === stumblingPlayerId);
+     if (victimIdx === -1) return players;
+     
+     const victim = players[victimIdx];
+     const hasBadAssociation = victim.activeCards.some((c: any) => c.id === 'trial_associations');
+     const isJob = victim.activeCards.some((c: any) => c.id === 'char_job');
+     
+     return players.filter((p: any, i: number) => {
+       // Stumbling player can always contribute
+       if (p.id === stumblingPlayerId) return true;
+       
+       // Check if player is within help range
+       const dist = getDistance(i, victimIdx, players.length);
+       const canHelp = dist <= unity || isJob;
+       
+       // Also check if they have fruit/love cards
+       const hasFruitLove = p.hand.some((c: any) => c.id === 'fruit' || c.id === 'love');
+       
+       return canHelp && hasFruitLove && !hasBadAssociation;
+     });
+   };
+   
+   const eligiblePlayers = getPlayersWhoCanHelp();
 
    const handleSelect = (playerId: string, cardUid: string) => {
       const exists = selected.find((s: { cardUid: string }) => s.cardUid === cardUid);
@@ -33,28 +64,28 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm, required
 
    return (
     <div className="fixed inset-0 z-[250] flex bg-black/95 backdrop-blur-md p-4 animate-in fade-in" style={modalPosition}>
-       <div className="bg-zinc-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-5xl w-full shadow-2xl flex flex-col gap-6 h-[85vh] transition-transform duration-500" style={{ transform: modalRotation }}>
+       <div className="bg-zinc-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-5xl w-full shadow-2xl flex flex-col gap-6 h-[70vh] transition-transform duration-500" style={{ transform: modalRotation }}>
           <div className="flex justify-between items-center pb-4 border-b border-zinc-800">
-             <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Invoke Scripture</h2>
+             <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Overcome</h2>
              <div className="text-xl font-bold text-white bg-indigo-900/50 px-4 py-2 rounded-xl border border-indigo-500/30">
                Selected: <span className={selected.length === requiredCards ? "text-emerald-400" : "text-amber-400"}>{selected.length}</span> / {requiredCards}
              </div>
           </div>
           
           <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-             {players.map((p: any) => {
+             {eligiblePlayers.map((p: any) => {
                 const validCards = p.hand.filter((c: any) => c.id === 'fruit' || c.id === 'love');
                 if (validCards.length === 0) return null;
 
                 return (
                    <div key={p.id} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700">
                       <div className="font-bold text-zinc-400 mb-3 uppercase text-xs tracking-wider border-b border-zinc-700 pb-2">{p.name}</div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-3">
                          {validCards.map((c: any) => (
-                            <div key={c.uid} className="transform scale-90 origin-top-left cursor-pointer relative" onClick={() => handleSelect(p.id, c.uid)}>
+                            <div key={c.uid} className="cursor-pointer relative" onClick={() => handleSelect(p.id, c.uid)}>
                                <Card 
                                   data={c} 
-                                  size="sm" 
+                                  size="md" 
                                   isPlayable={false} 
                                   isSelected={isSelected(c.uid)}
                                />
@@ -65,8 +96,11 @@ export const VanquishModal = React.memo(({ players, onClose, onConfirm, required
                    </div>
                 );
              })}
-             {players.every((p: any) => p.hand.filter((c: any) => c.id === 'fruit' || c.id === 'love').length === 0) && (
-                <div className="col-span-full text-center text-zinc-500 py-10 font-bold">No Fruitage or Love cards available in any hand.</div>
+             {eligiblePlayers.length === 0 && (
+                <div className="col-span-full text-center text-zinc-500 py-10 font-bold">No players within help range have Fruitage or Love cards available.</div>
+             )}
+             {eligiblePlayers.length > 0 && eligiblePlayers.every((p: any) => p.hand.filter((c: any) => c.id === 'fruit' || c.id === 'love').length === 0) && (
+                <div className="col-span-full text-center text-zinc-500 py-10 font-bold">No Fruitage or Love cards available in eligible hands.</div>
              )}
           </div>
 

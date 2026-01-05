@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'motion/react';
 import { Card } from './Card';
 import { X, Check, GripVertical } from 'lucide-react';
 
-import { getModalPosition } from '../utils/helpers';
+import { getModalPosition, getModalRotation } from '../utils/helpers';
 
 interface WisdomRearrangeModalProps {
   cards: any[];
@@ -20,107 +21,160 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
   const modalPosition = getModalPosition(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex);
   
-  // Touch support
-  const [touchDraggedCard, setTouchDraggedCard] = useState<any | null>(null);
-  const [touchSource, setTouchSource] = useState<'grid' | 'reorder' | null>(null);
-  const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
-  const touchStartRef = useRef<{ card: any; source: 'grid' | 'reorder'; elementX: number; elementY: number; touchX: number; touchY: number } | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const reorderCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const gridCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-
-  const handleCardDragStart = (e: React.DragEvent, card: any) => {
-    setDraggedCard(card);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/json', JSON.stringify({ uid: card.uid, source: 'grid' }));
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5';
+  const modalContainerRef = useRef<HTMLDivElement>(null);
+  const rotatedParentRef = useRef<HTMLDivElement | null>(null);
+  const draggingCardRef = useRef<{ card: any; source: 'grid' | 'reorder' } | null>(null);
+  
+  // Get the rotated parent container (the one with the transform)
+  React.useEffect(() => {
+    if (modalContainerRef.current) {
+      // The rotated parent is the direct parent (the div with the transform style)
+      const parent = modalContainerRef.current.parentElement;
+      if (parent) {
+        rotatedParentRef.current = parent as HTMLDivElement;
+      }
     }
+  }, []);
+  
+  // Check if a point is within a drop zone
+  const isPointInDropZone = (x: number, y: number): boolean => {
+    if (!dropZoneRef.current) return false;
+    const rect = dropZoneRef.current.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
   };
 
-  const handleCardDragEnd = (e: React.DragEvent) => {
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1';
+  // Check if a point is over a reorder card and return its index
+  const getReorderCardIndexAtPoint = (x: number, y: number): number | null => {
+    let foundIndex: number | null = null;
+    reorderCardRefs.current.forEach((el, uid) => {
+      if (el) {
+        const cardRect = el.getBoundingClientRect();
+        if (x >= cardRect.left && x <= cardRect.right && y >= cardRect.top && y <= cardRect.bottom) {
+          const cardIndex = reorderedCards.findIndex((c: any) => c.uid === uid);
+          if (cardIndex !== -1) {
+            foundIndex = cardIndex;
+          }
+        }
+      }
+    });
+    return foundIndex;
+  };
+
+  // Parse rotation to determine drag axis inversion
+  const rotationMatch = modalRotation.match(/rotate\((-?\d+)deg\)/);
+  const rotationDeg = rotationMatch ? parseFloat(rotationMatch[1]) : 0;
+  
+  // Transform screen coordinates to modal-local coordinates based on rotation
+  const transformToLocalCoords = (screenX: number, screenY: number, element: HTMLElement) => {
+    if (!rotatedParentRef.current) return { x: screenX, y: screenY };
+    
+    const parentRect = rotatedParentRef.current.getBoundingClientRect();
+    const centerX = parentRect.left + parentRect.width / 2;
+    const centerY = parentRect.top + parentRect.height / 2;
+    
+    // Get relative position from center
+    const relX = screenX - centerX;
+    const relY = screenY - centerY;
+    
+    // Transform based on rotation (inverse rotation)
+    let localX = relX;
+    let localY = relY;
+    
+    if (rotationDeg === 90) {
+      // 90deg rotation: (x, y) -> (y, -x)
+      localX = relY;
+      localY = -relX;
+    } else if (rotationDeg === 180) {
+      // 180deg rotation: (x, y) -> (-x, -y)
+      localX = -relX;
+      localY = -relY;
+    } else if (rotationDeg === -90) {
+      // -90deg rotation: (x, y) -> (-y, x)
+      localX = -relY;
+      localY = relX;
     }
+    
+    return { x: localX, y: localY };
+  };
+
+  // Motion drag handlers for grid cards
+  const handleGridDragStart = (event: PointerEvent, card: any) => {
+    draggingCardRef.current = { card, source: 'grid' };
+    setDraggedCard(card);
+  };
+
+  const handleGridDrag = (event: PointerEvent, info: any) => {
+    if (!draggingCardRef.current) return;
+    
+    const point = info.point;
+    const isOverDropZone = isPointInDropZone(point.x, point.y);
+    setIsDraggingOverDropZone(isOverDropZone);
+  };
+
+  const handleGridDragEnd = (event: PointerEvent, info: any) => {
+    if (!draggingCardRef.current) return;
+    
+    const { card } = draggingCardRef.current;
+    const point = info.point;
+    
+    // Check if dropped on drop zone
+    if (isPointInDropZone(point.x, point.y)) {
+      // Add card to reordered list if not already there and under limit
+      if (!reorderedCards.some((c: any) => c.uid === card.uid) && reorderedCards.length < rearrangeCount) {
+        setReorderedCards([...reorderedCards, card]);
+      }
+    }
+    
+    // Reset state
+    draggingCardRef.current = null;
+    setDraggedCard(null);
+    setIsDraggingOverDropZone(false);
+  };
+
+  // Motion drag handlers for reorder cards
+  const handleReorderDragStart = (event: PointerEvent, card: any) => {
+    draggingCardRef.current = { card, source: 'reorder' };
+    setDraggedCard(card);
+  };
+
+  const handleReorderDrag = (event: PointerEvent, info: any) => {
+    if (!draggingCardRef.current) return;
+    
+    const point = info.point;
+    const targetIndex = getReorderCardIndexAtPoint(point.x, point.y);
+    setDragOverIndex(targetIndex);
+  };
+
+  const handleReorderDragEnd = (event: PointerEvent, info: any) => {
+    if (!draggingCardRef.current) return;
+    
+    const { card } = draggingCardRef.current;
+    const point = info.point;
+    const targetIndex = getReorderCardIndexAtPoint(point.x, point.y);
+    
+    if (targetIndex !== null) {
+      const dragged = reorderedCards.find((c: any) => c.uid === card.uid);
+      if (dragged) {
+        const newOrder = [...reorderedCards];
+        const draggedIndex = newOrder.findIndex((c: any) => c.uid === dragged.uid);
+        if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
+          newOrder.splice(draggedIndex, 1);
+          newOrder.splice(targetIndex, 0, dragged);
+          setReorderedCards(newOrder);
+        }
+      }
+    }
+    
+    // Reset state
+    draggingCardRef.current = null;
     setDraggedCard(null);
     setDragOverIndex(null);
-    setIsDraggingOverDropZone(false);
   };
 
-  const handleDropZoneDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
-    setIsDraggingOverDropZone(true);
-  };
-
-  const handleDropZoneDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOverDropZone(false);
-  };
-
-  const handleDropZoneDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingOverDropZone(false);
-    
-    try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      const dragged = cards.find((c: any) => c.uid === data.uid);
-      
-      if (!dragged) return;
-      
-      // Check if card is already in reordered list
-      if (reorderedCards.some((c: any) => c.uid === dragged.uid)) {
-        return; // Already selected
-      }
-      
-      // Add card to end if under limit
-      if (reorderedCards.length < rearrangeCount) {
-        setReorderedCards([...reorderedCards, dragged]);
-      }
-    } catch (err) {
-      console.error('Error parsing drag data:', err);
-    }
-  };
-
-  const handleReorderDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
-  };
-
-  const handleReorderDragLeave = () => {
-    setDragOverIndex(null);
-  };
-
-  const handleReorderDrop = (e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOverIndex(null);
-    
-    try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      const dragged = reorderedCards.find((c: any) => c.uid === data.uid);
-      
-      if (!dragged) return;
-
-      const newOrder = [...reorderedCards];
-      const draggedIndex = newOrder.findIndex((c: any) => c.uid === dragged.uid);
-      
-      if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
-        // Remove from old position and insert at new position
-        newOrder.splice(draggedIndex, 1);
-        newOrder.splice(targetIndex, 0, dragged);
-        setReorderedCards(newOrder);
-      }
-    } catch (err) {
-      console.error('Error parsing drag data:', err);
-    }
-  };
 
   const handleRemoveCard = (card: any) => {
     setReorderedCards(reorderedCards.filter((c: any) => c.uid !== card.uid));
@@ -135,164 +189,182 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
     }
   };
 
-  // Touch handlers
-  const handleTouchStart = (e: React.TouchEvent, card: any, source: 'grid' | 'reorder') => {
-    const touch = e.touches[0];
-    const element = e.currentTarget as HTMLElement;
-    const rect = element.getBoundingClientRect();
-    touchStartRef.current = {
-      card,
-      source,
-      elementX: rect.left,
-      elementY: rect.top,
-      touchX: touch.clientX,
-      touchY: touch.clientY
-    };
-    setTouchDraggedCard(card);
-    setTouchSource(source);
-    setTouchPosition({ x: touch.clientX, y: touch.clientY });
-    e.preventDefault();
-  };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.touches[0];
-    setTouchPosition({ x: touch.clientX, y: touch.clientY });
+  // Component for draggable card with rotation-aware drag
+  const DraggableCard = ({ card, isSelected, rotationDeg, draggedCard, onDragStart, onDrag, onDragEnd }: any) => {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const lastDeltaRef = useRef({ x: 0, y: 0 });
     
-    // Check if over drop zone
-    if (dropZoneRef.current) {
-      const rect = dropZoneRef.current.getBoundingClientRect();
-      const isOverDropZone = touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                            touch.clientY >= rect.top && touch.clientY <= rect.bottom;
-      setIsDraggingOverDropZone(isOverDropZone);
-      
-      // Check if over a reorder card
-      let overIndex: number | null = null;
-      reorderCardRefs.current.forEach((el, uid) => {
-        if (el) {
-          const cardRect = el.getBoundingClientRect();
-          if (touch.clientX >= cardRect.left && touch.clientX <= cardRect.right &&
-              touch.clientY >= cardRect.top && touch.clientY <= cardRect.bottom) {
-            const cardIndex = reorderedCards.findIndex((c: any) => c.uid === uid);
-            if (cardIndex !== -1) {
-              overIndex = cardIndex;
-            }
+    return (
+      <motion.div
+        drag={!isSelected}
+        dragMomentum={false}
+        dragConstraints={false}
+        style={{ x, y }}
+        onDragStart={(event, info) => {
+          x.set(0);
+          y.set(0);
+          lastDeltaRef.current = { x: 0, y: 0 };
+          onDragStart(event, card);
+        }}
+        onDrag={(event, info) => {
+          // Get the delta since last frame
+          const deltaX = info.delta.x - lastDeltaRef.current.x;
+          const deltaY = info.delta.y - lastDeltaRef.current.y;
+          lastDeltaRef.current = { x: info.delta.x, y: info.delta.y };
+          
+          // Transform the delta based on rotation
+          let transformedDeltaX = deltaX;
+          let transformedDeltaY = deltaY;
+          
+          if (rotationDeg === 90) {
+            // 90deg: right becomes down, down becomes left
+            [transformedDeltaX, transformedDeltaY] = [-deltaY, deltaX];
+          } else if (rotationDeg === 180) {
+            // 180deg: invert both
+            transformedDeltaX = -deltaX;
+            transformedDeltaY = -deltaY;
+          } else if (rotationDeg === -90) {
+            // -90deg: right becomes up, down becomes right
+            [transformedDeltaX, transformedDeltaY] = [deltaY, -deltaX];
           }
-        }
-      });
-      setDragOverIndex(overIndex);
-    }
-    e.preventDefault();
+          
+          // Apply the transformed delta
+          const currentX = x.get();
+          const currentY = y.get();
+          x.set(currentX + transformedDeltaX);
+          y.set(currentY + transformedDeltaY);
+          
+          // Call the parent handler
+          onDrag(event, info);
+        }}
+        onDragEnd={(event, info) => {
+          x.set(0);
+          y.set(0);
+          lastDeltaRef.current = { x: 0, y: 0 };
+          onDragEnd(event, info);
+        }}
+        whileDrag={{
+          scale: 1.1,
+          zIndex: 1000,
+          opacity: 0.8
+        }}
+        className={`cursor-move transition-all relative ${
+          isSelected ? 'ring-4 ring-violet-500 scale-110 opacity-50' : 'opacity-60 hover:opacity-100'
+        } ${draggedCard?.uid === card.uid ? 'opacity-30' : ''}`}
+      >
+        <Card data={card} isPlayable={false} />
+      </motion.div>
+    );
   };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) {
-      setTouchDraggedCard(null);
-      setTouchSource(null);
-      setTouchPosition(null);
-      setIsDraggingOverDropZone(false);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const touch = e.changedTouches[0];
-    const { card, source } = touchStartRef.current;
-
-    // Check if dropped on drop zone
-    if (dropZoneRef.current && source === 'grid') {
-      const rect = dropZoneRef.current.getBoundingClientRect();
-      if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-          touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-        // Add card to reordered list if not already there and under limit
-        if (!reorderedCards.some((c: any) => c.uid === card.uid) && reorderedCards.length < rearrangeCount) {
-          setReorderedCards([...reorderedCards, card]);
-        }
-      }
-    }
-
-    // Check if dropped on a reorder card position
-    if (source === 'reorder') {
-      let targetIndex: number | null = null;
-      reorderCardRefs.current.forEach((el, uid) => {
-        if (el) {
-          const cardRect = el.getBoundingClientRect();
-          if (touch.clientX >= cardRect.left && touch.clientX <= cardRect.right &&
-              touch.clientY >= cardRect.top && touch.clientY <= cardRect.bottom) {
-            const cardIndex = reorderedCards.findIndex((c: any) => c.uid === uid);
-            if (cardIndex !== -1) {
-              targetIndex = cardIndex;
-            }
+  
+  // Component for draggable reorder card with rotation-aware drag
+  const DraggableReorderCard = ({ card, idx, rotationDeg, draggedCard, dragOverIndex, onDragStart, onDrag, onDragEnd, onRemove, reorderCardRefs }: any) => {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const lastDeltaRef = useRef({ x: 0, y: 0 });
+    
+    return (
+      <motion.div
+        ref={(el) => {
+          if (el) {
+            reorderCardRefs.current.set(card.uid, el);
+          } else {
+            reorderCardRefs.current.delete(card.uid);
           }
-        }
-      });
-
-      if (targetIndex !== null) {
-        const dragged = reorderedCards.find((c: any) => c.uid === card.uid);
-        if (dragged) {
-          const newOrder = [...reorderedCards];
-          const draggedIndex = newOrder.findIndex((c: any) => c.uid === dragged.uid);
-          if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
-            newOrder.splice(draggedIndex, 1);
-            newOrder.splice(targetIndex, 0, dragged);
-            setReorderedCards(newOrder);
+        }}
+        drag
+        dragMomentum={false}
+        dragConstraints={false}
+        style={{ x, y }}
+        onDragStart={(event, info) => {
+          x.set(0);
+          y.set(0);
+          lastDeltaRef.current = { x: 0, y: 0 };
+          onDragStart(event, card);
+        }}
+        onDrag={(event, info) => {
+          // Get the delta since last frame
+          const deltaX = info.delta.x - lastDeltaRef.current.x;
+          const deltaY = info.delta.y - lastDeltaRef.current.y;
+          lastDeltaRef.current = { x: info.delta.x, y: info.delta.y };
+          
+          // Transform the delta based on rotation
+          let transformedDeltaX = deltaX;
+          let transformedDeltaY = deltaY;
+          
+          if (rotationDeg === 90) {
+            [transformedDeltaX, transformedDeltaY] = [-deltaY, deltaX];
+          } else if (rotationDeg === 180) {
+            transformedDeltaX = -deltaX;
+            transformedDeltaY = -deltaY;
+          } else if (rotationDeg === -90) {
+            [transformedDeltaX, transformedDeltaY] = [deltaY, -deltaX];
           }
-        }
-      }
-    }
-
-    // Reset touch state
-    touchStartRef.current = null;
-    setTouchDraggedCard(null);
-    setTouchSource(null);
-    setTouchPosition(null);
-    setIsDraggingOverDropZone(false);
-    setDragOverIndex(null);
-    e.preventDefault();
-  };
-
-  const handleTouchCancel = () => {
-    touchStartRef.current = null;
-    setTouchDraggedCard(null);
-    setTouchSource(null);
-    setTouchPosition(null);
-    setIsDraggingOverDropZone(false);
-    setDragOverIndex(null);
+          
+          // Apply the transformed delta
+          const currentX = x.get();
+          const currentY = y.get();
+          x.set(currentX + transformedDeltaX);
+          y.set(currentY + transformedDeltaY);
+          
+          // Call the parent handler
+          onDrag(event, info);
+        }}
+        onDragEnd={(event, info) => {
+          x.set(0);
+          y.set(0);
+          lastDeltaRef.current = { x: 0, y: 0 };
+          onDragEnd(event, info);
+        }}
+        whileDrag={{
+          scale: 1.1,
+          zIndex: 1000,
+          opacity: 0.8
+        }}
+        animate={{
+          scale: dragOverIndex === idx ? 1.1 : 1,
+        }}
+        className={`flex flex-col items-center gap-2 transition-all cursor-move relative group ${
+          dragOverIndex === idx ? 'ring-4 ring-violet-400 z-10' : ''
+        } ${draggedCard?.uid === card.uid ? 'opacity-30' : ''}`}
+      >
+        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical size={16} />
+        </div>
+        <Card data={card} size="sm" isPlayable={false} />
+        <div className="text-xs text-violet-400 font-bold">#{idx + 1}</div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(card);
+          }}
+          className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Remove"
+        >
+          <X size={10} />
+        </button>
+      </motion.div>
+    );
   };
 
   return (
-    <div className="space-y-6" onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
+    <div ref={modalContainerRef} className="space-y-6">
       <div className="grid grid-cols-5 gap-4">
         {cards.map((c, i) => {
           const isSelected = reorderedCards.some((sc: any) => sc.uid === c.uid);
-          const isTouchDragging = touchDraggedCard?.uid === c.uid && touchSource === 'grid';
           return (
-            <div
+            <DraggableCard
               key={c.uid}
-              ref={(el) => {
-                if (el) {
-                  gridCardRefs.current.set(c.uid, el);
-                } else {
-                  gridCardRefs.current.delete(c.uid);
-                }
-              }}
-              draggable={!isSelected}
-              onDragStart={(e) => handleCardDragStart(e, c)}
-              onDragEnd={handleCardDragEnd}
-              onTouchStart={(e) => !isSelected && handleTouchStart(e, c, 'grid')}
-              style={{ 
-                touchAction: 'none',
-                opacity: isTouchDragging ? 0.3 : undefined,
-                transform: isTouchDragging && touchPosition && touchStartRef.current 
-                  ? `translate(${touchPosition.x - touchStartRef.current.touchX}px, ${touchPosition.y - touchStartRef.current.touchY}px)` 
-                  : undefined,
-                zIndex: isTouchDragging ? 1000 : undefined
-              }}
-              className={`cursor-move transition-all relative ${
-                isSelected ? 'ring-4 ring-violet-500 scale-110 opacity-50' : 'opacity-60 hover:opacity-100'
-              } ${draggedCard?.uid === c.uid ? 'opacity-30' : ''}`}
-            >
-              <Card data={c} isPlayable={false} />
-            </div>
+              card={c}
+              isSelected={isSelected}
+              rotationDeg={rotationDeg}
+              draggedCard={draggedCard}
+              onDragStart={handleGridDragStart}
+              onDrag={handleGridDrag}
+              onDragEnd={handleGridDragEnd}
+            />
           );
         })}
       </div>
@@ -303,12 +375,8 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
         </h4>
         <div
           ref={dropZoneRef}
-          onDragOver={handleDropZoneDragOver}
-          onDragLeave={handleDropZoneDragLeave}
-          onDrop={handleDropZoneDrop}
-          style={{ touchAction: 'none' }}
           className={`flex gap-4 items-center min-h-[140px] p-4 rounded-lg transition-all ${
-            isDraggingOverDropZone || (touchDraggedCard && touchSource === 'grid')
+            isDraggingOverDropZone
               ? 'bg-violet-900/50 ring-4 ring-violet-400 border-2 border-violet-400' 
               : 'bg-zinc-900/50 border-2 border-dashed border-zinc-700'
           }`}
@@ -319,60 +387,21 @@ export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCance
             </div>
           ) : (
             reorderedCards.map((card, idx) => {
-              const isTouchDragging = touchDraggedCard?.uid === card.uid && touchSource === 'reorder';
               return (
-              <div
-                key={card.uid}
-                ref={(el) => {
-                  if (el) {
-                    reorderCardRefs.current.set(card.uid, el);
-                  } else {
-                    reorderCardRefs.current.delete(card.uid);
-                  }
-                }}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = 'move';
-                  e.dataTransfer.setData('application/json', JSON.stringify({ uid: card.uid, source: 'reorder' }));
-                  setDraggedCard(card);
-                  if (e.currentTarget instanceof HTMLElement) {
-                    e.currentTarget.style.opacity = '0.5';
-                  }
-                }}
-                onDragEnd={handleCardDragEnd}
-                onDragOver={(e) => handleReorderDragOver(e, idx)}
-                onDragLeave={handleReorderDragLeave}
-                onDrop={(e) => handleReorderDrop(e, idx)}
-                onTouchStart={(e) => handleTouchStart(e, card, 'reorder')}
-                style={{ 
-                  touchAction: 'none',
-                  opacity: isTouchDragging ? 0.3 : undefined,
-                  transform: isTouchDragging && touchPosition && touchStartRef.current
-                    ? `translate(${touchPosition.x - touchStartRef.current.touchX}px, ${touchPosition.y - touchStartRef.current.touchY}px)` 
-                    : undefined,
-                  zIndex: isTouchDragging ? 1000 : undefined
-                }}
-                className={`flex flex-col items-center gap-2 transition-all cursor-move relative group ${
-                  dragOverIndex === idx ? 'scale-110 ring-4 ring-violet-400 z-10' : ''
-                } ${draggedCard?.uid === card.uid ? 'opacity-30' : ''}`}
-              >
-                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GripVertical size={16} />
-                </div>
-                <Card data={card} size="sm" isPlayable={false} />
-                <div className="text-xs text-violet-400 font-bold">#{idx + 1}</div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveCard(card);
-                  }}
-                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove"
-                >
-                  <X size={10} />
-                </button>
-              </div>
-            );
+                <DraggableReorderCard
+                  key={card.uid}
+                  card={card}
+                  idx={idx}
+                  rotationDeg={rotationDeg}
+                  draggedCard={draggedCard}
+                  dragOverIndex={dragOverIndex}
+                  onDragStart={handleReorderDragStart}
+                  onDrag={handleReorderDrag}
+                  onDragEnd={handleReorderDragEnd}
+                  onRemove={handleRemoveCard}
+                  reorderCardRefs={reorderCardRefs}
+                />
+              );
             })
           )}
         </div>

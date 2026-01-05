@@ -43,7 +43,7 @@ export const ImitateModal = React.memo(({ giver, players, onClose, onConfirm, ac
                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                       {getPositiveCards(selectedPlayer).map((c: any) => (
                          <div key={c.uid} onClick={() => setSelectedCard(c)} className={`cursor-pointer transition-all ${selectedCard?.uid === c.uid ? 'ring-4 ring-teal-500 scale-105 z-10' : 'opacity-80 hover:opacity-100'}`}>
-                            <Card data={c} size="sm" isPlayable={false} />
+                            <Card data={c} size="md" isPlayable={false} />
                          </div>
                       ))}
                    </div>

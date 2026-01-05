@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Allow cross-origin requests from other devices on the network
+  allowedDevOrigins: ['192.168.254.104'],
   // PWA configuration
   async headers() {
     return [

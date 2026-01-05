@@ -82,7 +82,7 @@ export const ManualView = React.memo(() => (
             </h3>
             <ul className="text-sm text-zinc-300 ml-6 space-y-1">
               <li><strong className="text-red-400">The Stumble:</strong> If drawn, you must play Faith or be saved by Encouragement, or lose Unity/be knocked out.</li>
-              <li><strong className="text-orange-400">Discord:</strong> Reduces Unity Range by 1 (unless you have Breastplate).</li>
+              <li><strong className="text-orange-400">Division:</strong> Reduces Unity Range by 1 (unless you have Breastplate).</li>
             </ul>
           </div>
 
@@ -115,7 +115,7 @@ export const ManualView = React.memo(() => (
             <p className="text-sm text-zinc-300 ml-6 mb-2">Equip these to your active area for ongoing benefits. <strong className="text-amber-400">Requires a character card to be active first.</strong></p>
             <ul className="text-sm text-zinc-300 ml-6 space-y-1">
               <li><strong>Belt of Truth:</strong> Insight reveals 5 cards instead of 3.</li>
-              <li><strong>Breastplate:</strong> Fruit cards heal Unity. Protects from Discord.</li>
+              <li><strong>Breastplate:</strong> Fruit cards heal Unity. Protects from Division.</li>
               <li><strong>Sandals:</strong> Patience pushes cards 5 deep instead of 3.</li>
               <li><strong>Large Shield:</strong> Auto-deflects 1 Stumble, then remains active but loses effect.</li>
               <li><strong>Helmet:</strong> Prevents 1 knockout (discard instead of losing Unity).</li>
@@ -135,7 +135,7 @@ export const ManualView = React.memo(() => (
               <li><strong>Esther:</strong> Draw 1 extra card.</li>
               <li><strong>Abraham:</strong> Can use Faith on others.</li>
               <li><strong>Daniel:</strong> Immune to Materialism.</li>
-              <li><strong>Noah:</strong> Immune to Bad Company & Materialism.</li>
+              <li><strong>Noah:</strong> Immune to Bad Association & Materialism.</li>
               <li><strong>Sarah:</strong> Immune to Doubt on draw. Removes ALL active Doubt cards when activated.</li>
               <li><strong>Job:</strong> Can be helped by anyone (ignores Unity range).</li>
             </ul>
@@ -151,7 +151,7 @@ export const ManualView = React.memo(() => (
               <li><strong>Unwise Time:</strong> Skip your next turn (removed when turn starts).</li>
               <li><strong>Materialism:</strong> Lose 1 Fruit to deck, then removed.</li>
               <li><strong>Doubt:</strong> Cannot play Faith or Encouragement.</li>
-              <li><strong>Bad Company:</strong> Cannot receive help from others.</li>
+              <li><strong>Bad Association:</strong> Cannot receive help from others.</li>
             </ul>
           </div>
 
@@ -178,7 +178,7 @@ export const ManualView = React.memo(() => (
             <h3 className="text-lg font-bold text-emerald-300 mb-2">Unity Range</h3>
             <p className="text-sm text-zinc-300 ml-4">
               Determines how many players you can help counter-clockwise. Range 1 = neighbor only. 
-              Discord reduces Unity. Love cards increase Unity. Unity can't exceed (Players - 1).
+              Division reduces Unity. Love cards increase Unity. Unity can't exceed (Players - 1).
               <strong className="text-red-400"> Cards that depend on Unity Level cannot be played when Unity is 0.</strong>
             </p>
           </div>
@@ -192,12 +192,12 @@ export const ManualView = React.memo(() => (
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-emerald-300 mb-2">Vanquish (Invoke Scripture)</h3>
+            <h3 className="text-lg font-bold text-emerald-300 mb-2">Overcome</h3>
             <p className="text-sm text-zinc-300 ml-4">
-              During a stumble, players can contribute Love/Fruit cards to vanquish the Stumble forever. 
+              During a stumble, players can contribute Love/Fruit cards to overcome the Stumble forever. 
               <strong className="text-yellow-400"> Requires 3 cards normally, 5 cards during Great Tribulation.</strong>
               Contributors must answer trivia questions correctly. If anyone fails, the Stumble returns to the deck.
-              <strong className="text-red-400"> All stumble outcomes (vanquish success/fail, defused, encouraged) end the turn.</strong>
+              <strong className="text-red-400"> All stumble outcomes (overcome success/fail, defused, encouraged) end the turn.</strong>
             </p>
           </div>
 
@@ -206,7 +206,7 @@ export const ManualView = React.memo(() => (
             <p className="text-sm text-zinc-300 ml-4">
               After the deck is fully shuffled, Great Tribulation is placed at a random location in the bottom half of the deck. 
               When drawn: Unity -1, all players lose 1 card, cannot remove burdens, only 2 Characters + 1 Armor can play Fruit/Love, 
-              max characters = 2. <strong className="text-yellow-400"> Vanquishing requires 5 Love/Fruit cards instead of 3.</strong>
+              max characters = 2. <strong className="text-yellow-400"> Overcoming requires 5 Love/Fruit cards instead of 3.</strong>
               When drawn, the remaining deck (including Armageddon) is shuffled together. Can be ended with Days Cut Short card.
             </p>
           </div>
@@ -260,8 +260,8 @@ export const ManualView = React.memo(() => (
           <li>• Save Faith cards for Stumbles - they're your primary defense. <strong className="text-red-400">Faith can only be played during a stumble.</strong> <strong className="text-violet-400">With Abraham active, you can use Faith on others who stumble.</strong></li>
           <li>• Use Encouragement strategically to remove burdens or save friends. Removing burdens doesn't end your turn.</li>
           <li>• Characters provide powerful immunities - activate them when facing specific threats.</li>
-          <li>• Unity Range is crucial - protect it from Discord. <strong className="text-red-400">Unity-dependent cards cannot be played at Unity 0.</strong></li>
-          <li>• Vanquish is powerful but risky - coordinate with teammates. Requires 5 cards during Great Tribulation.</li>
+          <li>• Unity Range is crucial - protect it from Division. <strong className="text-red-400">Unity-dependent cards cannot be played at Unity 0.</strong></li>
+          <li>• Overcome is powerful but risky - coordinate with teammates. Requires 5 cards during Great Tribulation.</li>
           <li>• Use Discernment with PEEK cards (Insight, Vigilance) for strategic deck control.</li>
           <li>• Large Shield stays active after auto-defuse - useful for Great Tribulation mechanics.</li>
         </ul>

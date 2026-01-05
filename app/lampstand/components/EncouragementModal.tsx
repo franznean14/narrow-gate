@@ -38,7 +38,7 @@ export const EncouragementModal = React.memo(({ encourager, players, unity, isSt
        const isRuth = encourager.activeCards.some((c: any) => c.id === 'char_ruth');
        const hasBadCompany = victim.activeCards.some((c: any) => c.id === 'trial_associations');
        
-       if (hasBadCompany) return []; // Can't help if Bad Company
+       if (hasBadCompany) return []; // Can't help if Bad Association
        if (isJob || isRuth || dist <= unity) {
          return [victim];
        }
@@ -90,7 +90,7 @@ export const EncouragementModal = React.memo(({ encourager, players, unity, isSt
             {availableTargets.length === 0 ? (
               <div className="p-6 rounded-xl bg-zinc-800 text-zinc-400 text-center">
                 {isStumbling 
-                  ? 'No valid targets available. Check Unity Level or Bad Company burden.'
+                  ? 'No valid targets available. Check Unity Level or Bad Association burden.'
                   : 'No players with burdens in range.'}
               </div>
             ) : (

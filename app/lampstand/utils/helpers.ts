@@ -12,9 +12,15 @@ export const shuffle = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-export const getRandomTrivia = (difficulty: 'EASY' | 'HARD') => {
+export const getRandomTrivia = (difficulty: 'EASY' | 'MEDIUM' | 'HARD') => {
   const pool = TRIVIA_DB[difficulty];
-  return pool[Math.floor(Math.random() * pool.length)];
+  const question = pool[Math.floor(Math.random() * pool.length)];
+  // Shuffle options to randomize correct answer position
+  const shuffledOptions = shuffle([...question.options]);
+  return {
+    ...question,
+    options: shuffledOptions
+  };
 };
 
 export const getDistance = (helperIdx: number, victimIdx: number, totalPlayers: number): number => {

@@ -11,7 +11,7 @@ type ViewQuestion = {
 };
 
 export default function LampstandQuestionsView() {
-  const [expandedDifficulty, setExpandedDifficulty] = useState<Set<string>>(new Set(['easy', 'hard']));
+  const [expandedDifficulty, setExpandedDifficulty] = useState<Set<string>>(new Set(['easy', 'medium', 'hard']));
 
   const toggleDifficulty = (difficulty: string) => {
     const newExpanded = new Set(expandedDifficulty);
@@ -28,12 +28,17 @@ export default function LampstandQuestionsView() {
     answer: q.a,
     source: q.source
   }));
+  const mediumQuestions: ViewQuestion[] = (TRIVIA_DB.MEDIUM as any[]).map((q: any) => ({
+    question: q.q,
+    answer: q.a,
+    source: q.source
+  }));
   const hardQuestions: ViewQuestion[] = (TRIVIA_DB.HARD as any[]).map((q: any) => ({
     question: q.q,
     answer: q.a,
     source: q.source
   }));
-  const totalCount = easyQuestions.length + hardQuestions.length;
+  const totalCount = easyQuestions.length + mediumQuestions.length + hardQuestions.length;
 
   return (
     <div data-scrollable="true" className="h-full w-full bg-zinc-950 text-white overflow-y-auto pt-24 pb-8 px-8">
@@ -64,6 +69,51 @@ export default function LampstandQuestionsView() {
                 {easyQuestions.map((q, i) => (
                   <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
                     <div className="text-sm font-bold text-emerald-400 mb-2">Q{i + 1}</div>
+                    <p className="text-white mb-2">{q.question}</p>
+                    <div className="text-xs text-zinc-400 mb-2">
+                      <span className="font-bold">Answer: </span>
+                      <span className="text-zinc-300">{q.answer}</span>
+                    </div>
+                    {q.source && (
+                      <div className="text-xs mt-2">
+                        <a 
+                          href={q.source} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 underline flex items-center gap-1 inline-flex"
+                        >
+                          <span>Source: wol.jw.org</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Medium Questions */}
+        <div className="mb-6">
+          <button
+            onClick={() => toggleDifficulty('medium')}
+            className="w-full bg-yellow-900/50 border-2 border-yellow-600 rounded-lg p-4 flex items-center justify-between hover:bg-yellow-900/70 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-black text-yellow-400">Medium</span>
+              <span className="text-sm text-zinc-400">({mediumQuestions.length} questions)</span>
+            </div>
+            {expandedDifficulty.has('medium') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+          {expandedDifficulty.has('medium') && (
+            <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
+              <div className="grid gap-4">
+                {mediumQuestions.map((q, i) => (
+                  <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+                    <div className="text-sm font-bold text-yellow-400 mb-2">Q{i + 1}</div>
                     <p className="text-white mb-2">{q.question}</p>
                     <div className="text-xs text-zinc-400 mb-2">
                       <span className="font-bold">Answer: </span>
@@ -138,7 +188,7 @@ export default function LampstandQuestionsView() {
 
         <div className="mt-8 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
           <p className="text-sm text-zinc-400">
-            <strong className="text-white">Vanquish:</strong> Questions are drawn sequentially from the Questions pile. All must be answered correctly to vanquish. First wrong answer fails the vanquish.
+            <strong className="text-white">Overcome:</strong> Questions are drawn sequentially from the Questions pile. All must be answered correctly to overcome. First wrong answer fails the overcome.
           </p>
         </div>
       </div>

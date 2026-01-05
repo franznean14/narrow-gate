@@ -34,7 +34,7 @@ const CHARACTERS_DB = [
   { id: 'char_esther', title: 'Esther', desc: 'Active: Draw 1 extra card.', color: 'bg-violet-600 border-violet-400', icon: <Crown size={24} /> },
   { id: 'char_abraham', title: 'Abraham', desc: 'Active: Can use "Faith" on others.', color: 'bg-violet-600 border-violet-400', icon: <Star size={24} /> },
   { id: 'char_daniel', title: 'Daniel', desc: 'Active: Immune to "Materialism".', color: 'bg-violet-600 border-violet-400', icon: <Lock size={24} /> },
-  { id: 'char_noah', title: 'Noah', desc: 'Active: Immune to "Bad Company".', color: 'bg-violet-600 border-violet-400', icon: <Anchor size={24} /> },
+  { id: 'char_noah', title: 'Noah', desc: 'Active: Immune to "Bad Association".', color: 'bg-violet-600 border-violet-400', icon: <Anchor size={24} /> },
   { id: 'char_sarah', title: 'Sarah', desc: 'Active: Immune to "Doubt".', color: 'bg-violet-600 border-violet-400', icon: <Smile size={24} /> },
   { id: 'char_job', title: 'Job', desc: 'Active: Can be helped by anyone.', color: 'bg-violet-600 border-violet-400', icon: <Sun size={24} /> },
 ];
@@ -42,7 +42,7 @@ const CHARACTERS_DB = [
 const CARD_TYPES = {
   // HAZARDS
   stumble: { id: 'stumble', title: 'The Stumble', color: 'bg-red-600', icon: <AlertTriangle size={24} /> },
-  discord: { id: 'discord', title: 'Discord', desc: 'Unity -1 (Reduces Help Range).', color: 'bg-orange-700', icon: <Spline size={24} /> },
+  discord: { id: 'discord', title: 'Division', desc: 'Unity -1 (Reduces Help Range).', color: 'bg-orange-700', icon: <Spline size={24} /> },
   
   // ACTIONS
   faith: { id: 'faith', title: 'Shield of Faith', desc: 'Defuse a Stumble.', color: 'bg-emerald-600', icon: <Shield size={24} /> },
@@ -64,7 +64,7 @@ const CARD_TYPES = {
   trial_time: { id: 'trial_time', title: 'Unwise Time', desc: 'Burden: Skip Next Turn.', color: 'bg-zinc-700 border-red-500', icon: <Clock size={24} /> },
   trial_materialism: { id: 'trial_materialism', title: 'Materialism', desc: 'Burden: Lose 1 Fruit to Deck.', color: 'bg-zinc-700 border-red-500', icon: <Gem size={24} /> },
   trial_doubt: { id: 'trial_doubt', title: 'Doubt', desc: 'Burden: Cannot play Faith/Encourage.', color: 'bg-zinc-700 border-red-500', icon: <CloudRain size={24} /> },
-  trial_associations: { id: 'trial_associations', title: 'Bad Company', desc: 'Burden: Cannot Receive Help.', color: 'bg-zinc-700 border-red-500', icon: <Users size={24} /> },
+  trial_associations: { id: 'trial_associations', title: 'Bad Association', desc: 'Burden: Cannot Receive Help.', color: 'bg-zinc-700 border-red-500', icon: <Users size={24} /> },
 
   // ARMOR
   belt: { id: 'belt', title: 'Belt of Truth', desc: 'Active: Insight reveals 5.', color: 'bg-slate-500 border-indigo-400', icon: <Octagon size={24} /> },
@@ -273,7 +273,7 @@ const VanquishModal = ({ players, onClose, onConfirm }) => {
     <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in">
        <div className="bg-zinc-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-5xl w-full shadow-2xl flex flex-col gap-6 h-[85vh]">
           <div className="flex justify-between items-center pb-4 border-b border-zinc-800">
-             <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Invoke Scripture</h2>
+             <h2 className="text-3xl font-black text-indigo-400 uppercase flex items-center gap-3"><BookOpen size={32}/> Overcome</h2>
              <div className="text-xl font-bold text-white bg-indigo-900/50 px-4 py-2 rounded-xl border border-indigo-500/30">
                Selected: <span className={selected.length === 3 ? "text-emerald-400" : "text-amber-400"}>{selected.length}</span> / 3
              </div>
@@ -663,7 +663,7 @@ export default function LampstandFinal() {
        } else {
           setDiscardPile(prev => [...prev, card]);
           setUnity(prev => Math.max(0, prev - 1));
-          showNotification("Discord! Unity decreased (-1 Range)", "orange");
+          showNotification("Division! Unity decreased (-1 Range)", "orange");
        }
        checkTurnEnd();
        return;
@@ -1122,12 +1122,13 @@ export default function LampstandFinal() {
                  
                  {/* Updated Vanquish Button */}
                  <button onClick={openVanquishModal} className="bg-indigo-600 hover:bg-indigo-500 text-white w-full py-4 mb-3 rounded-xl font-bold uppercase tracking-widest shadow-lg border-2 border-indigo-400 flex items-center justify-center gap-2">
-                     <BookOpen size={20} /> Invoke Scripture (Vanquish)
+                     <BookOpen size={20} /> Overcome
                      <span className="text-[10px] opacity-70 ml-2">Requires 3 Love/Fruit</span>
                  </button>
 
-                 <button onClick={handleKnockout} className="bg-red-600 hover:bg-red-500 text-white w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-lg">
-                    {unity > 0 ? `Lose 1 Unity (Current: ${unity})` : "Accept Darkness"}
+                 <button onClick={handleKnockout} className="bg-red-600 hover:bg-red-500 text-white w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-lg flex flex-col items-center">
+                    <span>{unity > 0 ? "Allow" : "Accept Darkness"}</span>
+                    {unity > 0 && <span className="text-xs font-normal opacity-80 mt-1">lost 1 unity, current: {unity}</span>}
                  </button>
                </div>
             </div>

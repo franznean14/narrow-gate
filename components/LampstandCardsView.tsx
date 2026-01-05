@@ -151,7 +151,7 @@ const getCardQuantity = (cardId: string, cardType: string, fruits: string[], lov
     return '6';
   }
   
-  // Discord: 4 copies
+  // Division: 4 copies
   if (cardId === 'discord') {
     return '4';
   }
@@ -226,7 +226,7 @@ export default function LampstandCardsView({ cardTypes, charactersDb, fruits, lo
     cards.push({ 
       id: 'event_gt', 
       title: 'Great Tribulation', 
-      desc: 'Unity -1. All players lose 1 card. Cannot remove burdens. Only players with 2 Characters + 1 Armor can play Fruit/Love. Max Characters = 2. Vanquishing requires 5 Love/Fruit cards.', 
+      desc: 'Unity -1. All players lose 1 card. Cannot remove burdens. Only players with 2 Characters + 1 Armor can play Fruit/Love. Max Characters = 2. Overcoming requires 5 Love/Fruit cards.', 
       scripture: { text: 'For then there will be great tribulation such as has not occurred since the world\'s beginning until now, no, nor will occur again.', ref: 'Mt 24:21' },
       color: 'bg-zinc-800 border-red-500', 
       icon: AlertTriangle, 

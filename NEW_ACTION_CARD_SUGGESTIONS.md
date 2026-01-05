@@ -115,7 +115,7 @@
 - **Synergy**: Encouragement + card draw
 
 ### 15. **Vigilance** 🔍
-- **Effect**: Look at top 7 cards, discard 1 hazard (Stumble/Discord/Trial) if found
+- **Effect**: Look at top 7 cards, discard 1 hazard (Stumble/Division/Trial) if found
 - **Theme**: Threat removal
 - **Color**: Dark Purple/Violet
 - **Icon**: Eye with shield or Searchlight

@@ -107,7 +107,7 @@ export const RequestCardModal = React.memo(({ requester, players, unity, onClose
                                 : 'opacity-80 hover:opacity-100'
                             }`}
                          >
-                            <Card data={c} size="sm" isPlayable={false} />
+                            <Card data={c} size="md" isPlayable={false} />
                          </div>
                       ))}
                    </div>

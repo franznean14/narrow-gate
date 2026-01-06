@@ -287,6 +287,18 @@ export default function LampstandFinal() {
           p2.hand.push({ ...imitateCard, uid: Math.random() });
         }
       }
+
+      // Give all players Prayer and Vigilance cards in test mode
+      const prayerCard = (CARD_TYPES as any).prayer;
+      const vigilanceCard = (CARD_TYPES as any).vigilance;
+      newPlayers.forEach((player) => {
+        if (prayerCard && !player.hand.some((c: any) => c.id === 'prayer')) {
+          player.hand.push({ ...prayerCard, uid: Math.random() });
+        }
+        if (vigilanceCard && !player.hand.some((c: any) => c.id === 'vigilance')) {
+          player.hand.push({ ...vigilanceCard, uid: Math.random() });
+        }
+      });
     }
 
     // Place Major Events
@@ -404,7 +416,7 @@ export default function LampstandFinal() {
     setTurnIndex(0);
     setGameState('playing');
     setStumblingPlayerId(null);
-    setUnity(numPlayers - 1);
+    setUnity(isTestMode ? 10 : numPlayers - 1);
     setActivePlayCount(0);
     // Check if first player has Esther active - allows drawing 1 extra card
     const firstPlayer = newPlayers[0];
@@ -624,36 +636,22 @@ export default function LampstandFinal() {
         // Don't end turn - let animation complete normally but skip turn end check
         return;
       } else {
-        // Shuffle back into deck with special handling for Great Tribulation and Armageddon
+        // Insert card at random location without shuffling the rest of the deck
         let finalDeck: any[];
         
         if (card.id === 'event_gt' && !gtHasOccurred) {
-          // Great Tribulation drawn but hasn't occurred - put it back at the top (not shuffled)
+          // Great Tribulation drawn but hasn't occurred - put it back at the top
           finalDeck = [card, ...newDeck];
           setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'prayer_shuffle_back', targetType: 'deck' });
+        } else if (card.id === 'event_armageddon' && !gtHasOccurred) {
+          // Armageddon drawn but Great Tribulation hasn't occurred - put it back at the bottom
+          finalDeck = [...newDeck, card];
+          setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'prayer_shuffle_back', targetType: 'deck' });
         } else {
-          // Normal shuffle, but preserve Armageddon at bottom if Great Tribulation hasn't occurred
-          if (!gtHasOccurred) {
-            // Find and remove Armageddon from deck
-            const armageddonIndex = newDeck.findIndex((c: any) => c.id === 'event_armageddon');
-            let armageddonCard = null;
-            let deckWithoutArmageddon = [...newDeck];
-            
-            if (armageddonIndex !== -1) {
-              armageddonCard = deckWithoutArmageddon.splice(armageddonIndex, 1)[0];
-            }
-            
-            // Shuffle everything else (including the drawn card and Great Tribulation if it's in there)
-            const toShuffle = [...deckWithoutArmageddon, card];
-            const shuffled = shuffle(toShuffle);
-            
-            // Put Armageddon back at the bottom
-            finalDeck = armageddonCard ? [...shuffled, armageddonCard] : shuffled;
-          } else {
-            // Great Tribulation has occurred - normal shuffle (Armageddon can be anywhere)
-            finalDeck = shuffle([...newDeck, card]);
-          }
-          
+          // Insert card at random position in the remaining deck without shuffling
+          const insertAt = Math.floor(Math.random() * (newDeck.length + 1));
+          finalDeck = [...newDeck];
+          finalDeck.splice(insertAt, 0, card);
           setAnimatingCard({ card, targetPlayerIndex: turnIndex, type: 'prayer_shuffle_back', targetType: 'deck' });
         }
         

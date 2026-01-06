@@ -1,9 +1,7 @@
 export const TRIVIA_DB = {
   EASY: [
-    { q: "Who built the Ark?", a: "Noah", options: ["Moses", "Noah", "David"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Noah%20built%20ark%20Genesis%206%3A14" },
     { q: "How many apostles did Jesus have?", a: "12", options: ["10", "12", "7"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=twelve%20apostles%20Matthew%2010%3A2" },
     { q: "Where was Jesus born?", a: "Bethlehem", options: ["Nazareth", "Bethlehem", "Jerusalem"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jesus%20born%20Bethlehem%20Matthew%202%3A1" },
-    { q: "Who defeated Goliath?", a: "David", options: ["Saul", "Jonathan", "David"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=David%20defeated%20Goliath%201%20Samuel%2017%3A50" },
     { q: "First book of the Bible?", a: "Genesis", options: ["Exodus", "Genesis", "Job"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Genesis%20first%20book%20Bible" },
     { q: "Who spoke to the burning bush?", a: "Moses", options: ["Moses", "Aaron", "Joshua"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Moses%20burning%20bush%20Exodus%203%3A2" },
     { q: "Which apostle walked on water briefly?", a: "Peter", options: ["Peter", "John", "James"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Peter%20walked%20on%20water%20Matthew%2014%3A29" },
@@ -11,7 +9,6 @@ export const TRIVIA_DB = {
     { q: "Which prophet was thrown into a lions' den?", a: "Daniel", options: ["Daniel", "Jeremiah", "Ezekiel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Daniel%20lions%27%20den%20Daniel%206%3A16" },
     { q: "Who built an ark to save his family?", a: "Noah", options: ["Noah", "Moses", "Abraham"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Noah%20built%20ark%20save%20family%20Genesis%206%3A14" },
     { q: "Which prophet was swallowed by a great fish?", a: "Jonah", options: ["Jonah", "Ezekiel", "Isaiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jonah%20swallowed%20great%20fish%20Jonah%201%3A17" },
-    { q: "Who defeated Goliath with a sling?", a: "David", options: ["David", "Saul", "Jonathan"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=David%20Goliath%20sling%201%20Samuel%2017%3A50" },
     { q: "Who was the father of many nations?", a: "Abraham", options: ["Abraham", "Isaac", "Jacob"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Abraham%20father%20many%20nations%20Genesis%2017%3A5" },
     { q: "Which woman helped hide the spies in Jericho?", a: "Rahab", options: ["Rahab", "Ruth", "Esther"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Rahab%20hid%20spies%20Jericho%20Joshua%202%3A1" },
     { q: "Who was called the \"Rock\" by Jesus?", a: "Peter", options: ["Peter", "John", "James"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Peter%20Rock%20Jesus%20Matthew%2016%3A18" },
@@ -31,7 +28,6 @@ export const TRIVIA_DB = {
     { q: "Who was thrown into a fiery furnace?", a: "Shadrach, Meshach, and Abednego", options: ["Shadrach, Meshach, and Abednego", "Daniel", "Moses"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Shadrach%20Meshach%20Abednego%20fiery%20furnace%20Daniel%203%3A21" },
     { q: "What was the name of the river Jesus was baptized in?", a: "Jordan", options: ["Jordan", "Nile", "Euphrates"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jesus%20baptized%20Jordan%20Matthew%203%3A13" },
     { q: "Who was the first disciple Jesus called?", a: "Peter", options: ["Peter", "John", "Andrew"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jesus%20called%20Peter%20first%20disciple%20Matthew%204%3A18" },
-    { q: "What was the name of the city where Jesus was nailed and hanged on a stake?", a: "Jerusalem", options: ["Jerusalem", "Bethlehem", "Nazareth"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jesus%20nailed%20hanged%20stake%20Jerusalem%20Matthew%2027%3A33" },
     { q: "Who was the wisest king of Israel?", a: "Solomon", options: ["Solomon", "David", "Saul"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Solomon%20wisest%20king%201%20Kings%203%3A12" },
     // Added questions (with distinct supporting links on wol.jw.org)
     { q: "How many plagues did Jehovah send upon Egypt?", a: "Ten", options: ["Ten", "Seven", "Twelve"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=ten%20plagues%20Egypt%20Exodus" },
@@ -100,7 +96,6 @@ export const TRIVIA_DB = {
     { q: "What was the name of the city where Paul was born?", a: "Tarsus", options: ["Tarsus", "Antioch", "Damascus"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Paul%20born%20in%20Tarsus%20Acts%2021%3A39" },
     { q: "What was the name of the man who replaced Judas as an apostle?", a: "Matthias", options: ["Matthias", "Barnabas", "Silas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Matthias%20replaced%20Judas%20Acts%201%3A26" },
     { q: "What was the name of the mountain where Abraham was told to sacrifice Isaac?", a: "Moriah", options: ["Moriah", "Sinai", "Zion"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=land%20of%20Moriah%20Genesis%2022%3A2" },
-    { q: "What was the name of the high priest who tore his garments at Jesus' trial?", a: "Caiaphas", options: ["Caiaphas", "Annas", "Pilate"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Caiaphas%20tore%20garments%20Matthew%2026%3A65" },
     { q: "Which prophet was told to marry a prostitute as a sign?", a: "Hosea", options: ["Hosea", "Amos", "Micah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Hosea%20marry%20prostitute%20Hosea%201%3A2" },
     { q: "What was the name of the Roman centurion who said 'Truly this was God's Son'?", a: "Centurion", options: ["Centurion", "Pilate", "Herod"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=centurion%20Truly%20this%20was%20God%27s%20Son%20Matthew%2027%3A54" },
     { q: "Who was the prophet who was thrown into a cistern?", a: "Jeremiah", options: ["Jeremiah", "Ezekiel", "Daniel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jeremiah%20thrown%20cistern%20Jeremiah%2038%3A6" },

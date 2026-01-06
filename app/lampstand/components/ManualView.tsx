@@ -98,13 +98,14 @@ export const ManualView = React.memo(() => (
               <li><strong className="text-blue-400">Patience:</strong> Move top card down 3 spots (5 with Sandals).</li>
               <li><strong className="text-cyan-400">Modesty:</strong> Skip your turn. Next player draws 2 cards.</li>
               <li><strong className="text-pink-400">Kindness:</strong> Give a card from your hand to a friend within range (Unity Level).</li>
-              <li><strong className="text-teal-400">Imitate Faith:</strong> Copy a buff from another player for 1 turn.</li>
+              <li><strong className="text-teal-400">Imitate Faith:</strong> Copy a buff from another player for 1 turn. <strong className="text-violet-400">If copying Esther, you gain the extra draw ability for that turn.</strong></li>
               <li><strong className="text-violet-400">Wisdom:</strong> Look at top cards (Unity Level), rearrange same number. Cannot be cancelled.</li>
               <li><strong className="text-yellow-400">Prayer:</strong> Draw 1. If Fruit/Love, keep. Else shuffle back.</li>
               <li><strong className="text-amber-500">Minister:</strong> Remove 1 burden OR give 1 card.</li>
               <li><strong className="text-purple-500">Vigilance:</strong> Look at top cards (Unity Level), discard 1 burden.</li>
-              <li><strong className="text-cyan-400">Discernment:</strong> Discard the next card drawn (except Stumble).</li>
+              <li><strong className="text-cyan-400">Discernment:</strong> Discard the next card drawn (except Stumble). <strong className="text-violet-400">Works with Esther: If Esther grants extra draws, Discernment only consumes one draw and your turn continues.</strong></li>
               <li><strong className="text-rose-400">Resurrection:</strong> Revive a knocked out player.</li>
+              <li><strong className="text-amber-400">Days Cut Short:</strong> Divine Intervention: End Great Tribulation immediately. <strong className="text-violet-400">If Unity is above normal maximum when cut short, that high level is retained but cannot be increased further. If Unity drops below normal max, it reverts to standard cap.</strong></li>
             </ul>
           </div>
 
@@ -132,7 +133,7 @@ export const ManualView = React.memo(() => (
               <li><strong>Moses:</strong> Immune to Unwise Time.</li>
               <li><strong>Ruth:</strong> Help range is infinite.</li>
               <li><strong>David:</strong> Immune to Anxiety.</li>
-              <li><strong>Esther:</strong> Draw 1 extra card.</li>
+              <li><strong>Esther:</strong> Draw 1 extra card per turn. <strong className="text-violet-400">If you stumble and are defused on the first draw, you still get your second draw. Works seamlessly with Discernment.</strong></li>
               <li><strong>Abraham:</strong> Can use Faith on others.</li>
               <li><strong>Daniel:</strong> Immune to Materialism.</li>
               <li><strong>Noah:</strong> Immune to Bad Association & Materialism.</li>
@@ -178,7 +179,10 @@ export const ManualView = React.memo(() => (
             <h3 className="text-lg font-bold text-emerald-300 mb-2">Unity Range</h3>
             <p className="text-sm text-zinc-300 ml-4">
               Determines how many players you can help counter-clockwise. Range 1 = neighbor only. 
-              Division reduces Unity. Love cards increase Unity. Unity can't exceed (Players - 1).
+              Division reduces Unity. Love/Fruit cards increase Unity. 
+              <strong className="text-yellow-400"> Normally, Unity cannot exceed (Players - 1).</strong>
+              <strong className="text-violet-400"> During Great Tribulation, Unity can exceed this maximum to incentivize keeping the phase active.</strong>
+              <strong className="text-amber-400"> If Great Tribulation is cut short while Unity is above the normal maximum, that high level is retained but cannot be increased further. If Unity drops below the normal maximum after being cut short, it reverts to the standard cap.</strong>
               <strong className="text-red-400"> Cards that depend on Unity Level cannot be played when Unity is 0.</strong>
             </p>
           </div>
@@ -207,6 +211,7 @@ export const ManualView = React.memo(() => (
               After the deck is fully shuffled, Great Tribulation is placed at a random location in the bottom half of the deck. 
               When drawn: Unity -1, all players lose 1 card, cannot remove burdens, only 2 Characters + 1 Armor can play Fruit/Love, 
               max characters = 2. <strong className="text-yellow-400"> Overcoming requires 5 Love/Fruit cards instead of 3.</strong>
+              <strong className="text-violet-400"> During Great Tribulation, Unity can exceed the normal maximum (Players - 1), providing incentive to keep the phase active.</strong>
               When drawn, the remaining deck (including Armageddon) is shuffled together. Can be ended with Days Cut Short card.
             </p>
           </div>
@@ -237,16 +242,45 @@ export const ManualView = React.memo(() => (
         <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
           <Crown className="text-amber-500" size={24} /> Victory & Defeat
         </h2>
-        <ul className="space-y-3 text-base">
-          <li className="flex items-start gap-3">
-            <span className="text-amber-400 font-bold">✓</span>
-            <span><strong className="text-amber-300">Victory:</strong> Survive until the deck runs out of cards.</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-red-400 font-bold">✗</span>
-            <span><strong className="text-red-300">Defeat:</strong> All players are knocked out.</span>
-          </li>
-        </ul>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-amber-300 mb-2">Victory Condition</h3>
+            <p className="text-sm text-zinc-300 ml-4 mb-3">
+              <strong className="text-yellow-400">The game is won when Armageddon is drawn:</strong>
+            </p>
+            <ul className="space-y-2 text-sm text-zinc-300 ml-4">
+              <li className="flex items-start gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span><strong className="text-amber-300">Victory Requirements (ALL must be true):</strong></span>
+              </li>
+              <li className="ml-6">• Unity Level is at maximum (Players - 1)</li>
+              <li className="ml-6">• <strong>ALL players are NOT knocked out</strong> (everyone must be alive)</li>
+            </ul>
+            <p className="text-xs text-zinc-400 ml-4 mt-3 italic">
+              <strong>Note:</strong> This is why maintaining Unity at maximum AND keeping all players alive during Great Tribulation is critical!
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-red-300 mb-2">Defeat Conditions</h3>
+            <p className="text-sm text-zinc-300 ml-4 mb-3">
+              <strong className="text-red-400">The game is lost if ANY of these occur:</strong>
+            </p>
+            <ul className="space-y-2 text-sm text-zinc-300 ml-4">
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 font-bold">✗</span>
+                <span><strong className="text-red-300">All Players Knocked Out:</strong> If all players are knocked out at any point, the game is immediately lost.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 font-bold">✗</span>
+                <span><strong className="text-red-300">Armageddon Drawn with Defeat Conditions:</strong> When Armageddon is drawn, you lose if:</span>
+              </li>
+              <li className="ml-6">• Unity Level is less than maximum (Players - 1), OR</li>
+              <li className="ml-6">• At least one player is knocked out</li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Tips */}
@@ -265,6 +299,111 @@ export const ManualView = React.memo(() => (
           <li>• Use Discernment with PEEK cards (Insight, Vigilance) for strategic deck control.</li>
           <li>• Large Shield stays active after auto-defuse - useful for Great Tribulation mechanics.</li>
         </ul>
+      </section>
+
+      {/* Card Combinations */}
+      <section className="bg-zinc-800/50 rounded-xl p-6 border border-violet-500/30">
+        <h2 className="text-2xl font-bold text-violet-400 mb-4 flex items-center gap-2">
+          <Zap className="text-violet-500" size={24} /> Powerful Card Combinations
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Esther + Discernment</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Play Discernment, then activate Esther. When you draw, Discernment discards the first card, but Esther's extra draw still triggers. 
+              You get to see and discard a bad card while still drawing your full complement. <strong className="text-violet-400">Perfect for filtering out hazards.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Esther + Sword</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With both active, you draw 2 cards and peek at the next card after each draw. This gives you maximum information 
+              about upcoming cards, allowing you to plan your turn strategically. <strong className="text-violet-400">Great for setting up future turns.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Imitate Faith + Esther</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Use Imitate Faith to copy another player's Esther. You immediately gain the extra draw ability for that turn, 
+              even if you don't have Esther yourself. <strong className="text-violet-400">Excellent for players who need card advantage.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Insight + Belt of Truth + Discernment</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With Belt of Truth, Insight reveals 5 cards. Use Discernment to discard a bad card from those 5, then use Wisdom 
+              to rearrange the remaining cards. <strong className="text-violet-400">Maximum deck control combo.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Breastplate + Fruit Cards</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With Breastplate active, playing Fruit cards heals Unity instead of just being collected. During Great Tribulation, 
+              this combo can push Unity above the normal maximum. <strong className="text-violet-400">Essential for maintaining high Unity during Great Tribulation.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Abraham + Faith Cards</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With Abraham active, you can use Faith to save other players who stumble, not just yourself. This extends your 
+              defensive capabilities to your entire team. <strong className="text-violet-400">Critical for team survival.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Sarah + Doubt Protection</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Activating Sarah removes ALL active Doubt cards from your area. If you're facing multiple Doubt cards, Sarah 
+              provides a complete cleanse. <strong className="text-violet-400">Best counter to Doubt-heavy situations.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Ruth + Guidance/Kindness</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Ruth's infinite help range means you can use Guidance or Kindness on ANY player, regardless of Unity level. 
+              This makes Ruth incredibly valuable for coordinating team resources. <strong className="text-violet-400">Perfect for resource distribution.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Vigilance + High Unity</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With high Unity, Vigilance lets you see many top cards and discard a burden. The more Unity you have, 
+              the more cards you can see. <strong className="text-violet-400">Scales powerfully with Unity level.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Prayer + High Unity (Great Tribulation)</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              During Great Tribulation, if you have 2 Characters + 1 Armor, you can play Fruit/Love to increase Unity above normal max. 
+              Use Prayer to draw cards, and if you get Fruit/Love, you can immediately play it to boost Unity further. 
+              <strong className="text-violet-400">Powerful Unity-building loop during Great Tribulation.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Large Shield + Great Tribulation</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              Large Shield auto-deflects one Stumble and stays active afterward. During Great Tribulation, having this protection 
+              is invaluable since Stumbles are more dangerous. <strong className="text-violet-400">Essential Great Tribulation defense.</strong>
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-violet-300 mb-2">Wisdom + Patience + Sandals</h3>
+            <p className="text-sm text-zinc-300 ml-4">
+              With Sandals, Patience pushes cards 5 deep. Use Wisdom to rearrange the top cards (Unity Level), then use Patience 
+              to push a specific card even deeper. <strong className="text-violet-400">Ultimate deck manipulation combo.</strong>
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   </div>

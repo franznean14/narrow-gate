@@ -262,13 +262,57 @@ export default function LampstandFinal() {
     // Fully shuffle the deck first
     newDeck = shuffle(newDeck);
 
+    // TEST MODE: Ensure Player 1 starts with Esther, Sword, and Discernment
+    // and Player 2 starts with an Imitate card
+    if (isTestMode && newPlayers.length > 0) {
+      const p1 = newPlayers[0];
+      const esther = CHARACTERS_DB.find((char: any) => char.id === 'char_esther');
+      if (esther && !p1.hand.some((c: any) => c.id === 'char_esther')) {
+        p1.hand.push({ ...esther, uid: Math.random() });
+      }
+      const swordCard = (CARD_TYPES as any).sword;
+      if (swordCard && !p1.hand.some((c: any) => c.id === 'sword')) {
+        p1.hand.push({ ...swordCard, uid: Math.random() });
+      }
+      const discernmentCard = (CARD_TYPES as any).discernment;
+      if (discernmentCard && !p1.hand.some((c: any) => c.id === 'discernment')) {
+        p1.hand.push({ ...discernmentCard, uid: Math.random() });
+      }
+
+      // Give Player 2 an Imitate card in hand for testing
+      if (newPlayers.length > 1) {
+        const p2 = newPlayers[1];
+        const imitateCard = (CARD_TYPES as any).imitate;
+        if (imitateCard && !p2.hand.some((c: any) => c.id === 'imitate')) {
+          p2.hand.push({ ...imitateCard, uid: Math.random() });
+        }
+      }
+    }
+
     // Place Major Events
     const gtCard = { title: 'Great Tribulation', id: 'event_gt', type: 'Event', desc: 'Unity -1. All players lose 1 card. Cannot remove burdens. Only players with 2 Characters + 1 Armor can play Fruit/Love. Max Characters = 2. Overcoming requires 5 Love/Fruit cards.', color: 'bg-zinc-800 border-red-500', icon: AlertTriangle };
     const armageddonCard = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', scripture: { text: 'And they gathered them together to the place that is called in Hebrew Armageddon.', ref: 'Re 16:16' }, color: 'bg-zinc-900 border-red-600', icon: Flame };
     
     if (isTestMode) {
-      // TEST MODE: Place Anxiety at 10th position, Great Tribulation at 14th position
-      // First, find and remove Anxiety from deck if it exists
+      // TEST MODE: Place Stumble at 6th position, Anxiety at 10th position, Great Tribulation at 14th position
+      // First, find and remove Stumble from deck if it exists
+      const stumbleIndex = newDeck.findIndex((c: any) => c.id === 'stumble');
+      let stumbleCard;
+      if (stumbleIndex !== -1) {
+        stumbleCard = newDeck.splice(stumbleIndex, 1)[0];
+      } else {
+        stumbleCard = { ...CARD_TYPES.stumble, uid: Math.random() };
+      }
+      
+      // Ensure deck is large enough (at least 6 cards before inserting Stumble at position 5)
+      while (newDeck.length < 6) {
+        newDeck.push({ ...CARD_TYPES.faith, uid: Math.random() }); // Add filler cards if needed
+      }
+      
+      // Place Stumble at position 6 (0-indexed: 5)
+      newDeck.splice(5, 0, stumbleCard);
+      
+      // Find and remove Anxiety from deck if it exists
       const anxietyIndex = newDeck.findIndex((c: any) => c.id === 'trial_anxiety');
       let anxietyCard;
       if (anxietyIndex !== -1) {
@@ -658,8 +702,14 @@ export default function LampstandFinal() {
         }
         showNotification(`Discernment: ${card.title || card.id} returned to top of deck`, "cyan");
         setIsDrawing(false);
-        // End turn after Discernment handles the card
-        nextTurn();
+        // After Discernment handles the card, respect extra draw effects (e.g., Esther)
+        if (drawsRequired > 1) {
+          setDrawsRequired(prev => prev - 1);
+          showNotification(`Must draw ${drawsRequired - 1} more!`, "blue");
+        } else {
+          // All draws complete, end the turn
+          nextTurn();
+        }
         return;
       } else {
         // Discard all other cards
@@ -673,8 +723,14 @@ export default function LampstandFinal() {
         }
         showNotification(`Discernment: ${card.title || card.id} discarded`, "cyan");
         setIsDrawing(false);
-        // End turn after Discernment discards a card
-        nextTurn();
+        // After Discernment discards a card, respect extra draw effects (e.g., Esther)
+        if (drawsRequired > 1) {
+          setDrawsRequired(prev => prev - 1);
+          showNotification(`Must draw ${drawsRequired - 1} more!`, "blue");
+        } else {
+          // All draws complete, end the turn
+          nextTurn();
+        }
         return;
       }
     }
@@ -1397,6 +1453,12 @@ export default function LampstandFinal() {
      currentPlayer.activeCards.push(clonedCard);
      setPlayers(updatedPlayers);
      showNotification(`Imitating ${targetCard.title}!`, "teal");
+
+     // If imitating Esther, immediately grant extra draw for this turn (similar to activating Esther)
+     if (targetCard.id === 'char_esther' && !isDrawing && drawsRequired === 1) {
+       setDrawsRequired(2);
+       showNotification("Esther (Imitated): Draw 1 extra card!", "violet");
+     }
   };
 
   const handleMinisterRemoveBurden = (targetPlayerId: number) => {
@@ -1688,9 +1750,9 @@ export default function LampstandFinal() {
           if (stumblingPlayerIdx !== -1) {
             setTurnIndex(stumblingPlayerIdx);
           }
-          // End the turn immediately after Faith is played - move to next player
+          // After Faith defuses the stumble, respect remaining required draws (e.g., Esther)
           setTimeout(() => {
-            nextTurn();
+            checkTurnEnd();
           }, 100);
        }
        else if (card.id === 'encouragement') {

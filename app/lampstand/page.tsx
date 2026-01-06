@@ -1229,7 +1229,22 @@ export default function LampstandFinal() {
               
               // Check for Breastplate effect
               if (card.id === 'fruit' && updatedPlayers[targetPlayerIndex].activeCards.some((c: any) => c.id === 'breastplate')) {
-                setUnity(prev => Math.min(players.length - 1, prev + 1));
+                const isGreatTribulation = currentChallenge?.title === 'Great Tribulation';
+                const normalMaxUnity = players.length - 1;
+
+                if (!isGreatTribulation) {
+                  // After Days Cut Short, if Unity is above normal max, it cannot increase further
+                  if (cutShort && unity > normalMaxUnity) {
+                    showNotification("Unity cannot increase further after Days Cut Short.", "zinc");
+                    return updatedPlayers;
+                  }
+                  // In normal play (or post-cut-short below max), cap at normal max
+                  setUnity(prev => Math.min(normalMaxUnity, prev + 1));
+                } else {
+                  // During Great Tribulation, Unity can exceed normal max
+                  setUnity(prev => prev + 1);
+                }
+
                 showNotification("Fruit collected! Breastplate heals Unity!", "emerald");
               } else {
                 showNotification("Correct! Card added.", "emerald");
@@ -1830,15 +1845,24 @@ export default function LampstandFinal() {
        setIsImitating(true);
        return;
     }
-    if (card.id === 'fruit') {
-        const maxUnity = players.length - 1;
-        if (unity >= maxUnity) {
+    if (card.id === 'fruit' || card.id === 'love') {
+        const isGreatTribulation = currentChallenge?.title === 'Great Tribulation';
+        const normalMaxUnity = players.length - 1;
+
+        if (!isGreatTribulation) {
+          // After Days Cut Short, if Unity is above normal max, it cannot increase further
+          if (cutShort && unity > normalMaxUnity) {
+            showNotification("Unity cannot increase further after Days Cut Short.", "zinc");
+            return;
+          }
+
+          // In normal play (or post-cut-short below max), cap at normal max
+          if (unity >= normalMaxUnity) {
             showNotification("Unity is already max!", "zinc");
             return;
-        }
-        
-        // During Great Tribulation, only players with 2 characters + 1 armor can play fruit/love
-        if (currentChallenge?.title === 'Great Tribulation') {
+          }
+        } else {
+          // During Great Tribulation, only players with 2 characters + 1 armor can play fruit/love
           const player = players[turnIndex];
           const characterCount = player.activeCards.filter((c: any) => c.id.startsWith('char_')).length;
           const hasArmor = player.activeCards.some((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
@@ -1850,34 +1874,17 @@ export default function LampstandFinal() {
         }
         
         removeCardFromHand(turnIndex, card.uid, false, true);
-        setUnity(prev => Math.min(players.length - 1, prev + 1));
-        showNotification("Fruit played! Unity +1", "emerald");
-        // Fruit doesn't end turn
+
+        if (isGreatTribulation) {
+          // During Great Tribulation, Unity can exceed normal max
+          setUnity(prev => prev + 1);
+        } else {
+          setUnity(prev => Math.min(normalMaxUnity, prev + 1));
+        }
+
+        showNotification(card.id === 'fruit' ? "Fruit played! Unity +1" : "Love builds up! Unity +1", card.id === 'fruit' ? "emerald" : "pink");
+        // Fruit/Love doesn't end turn
        return;
-    }
-    if (card.id === 'love') {
-        const maxUnity = players.length - 1;
-        if (unity >= maxUnity) {
-            showNotification("Unity is already max!", "zinc");
-            return;
-        }
-        
-        // During Great Tribulation, only players with 2 characters + 1 armor can play fruit/love
-        if (currentChallenge?.title === 'Great Tribulation') {
-          const player = players[turnIndex];
-          const characterCount = player.activeCards.filter((c: any) => c.id.startsWith('char_')).length;
-          const hasArmor = player.activeCards.some((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
-          
-          if (characterCount < 2 || !hasArmor) {
-            showNotification("Great Tribulation: Need 2 Characters + 1 Armor to play Fruit/Love!", "red");
-            return;
-          }
-        }
-        
-        removeCardFromHand(turnIndex, card.uid, false, true);
-        setUnity(prev => prev + 1);
-        showNotification("Love builds up! Unity +1", "pink");
-        return;
     }
 
     if (card.id === 'days_cut_short') {

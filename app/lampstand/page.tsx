@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { 
   Flame, AlertTriangle, X, RefreshCcw, HelpCircle, UserX, 
-  Zap, ChevronUp, Info, Users, Eye, BookOpen, MessageCircle,
-  Home, Gamepad2
+  Zap, ChevronUp, ChevronDown, Info, Users, Eye, BookOpen, MessageCircle,
+  Home, Gamepad2, Sun, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -65,6 +65,7 @@ export default function LampstandFinal() {
 
   const [activeTab, setActiveTab] = useState('game'); 
   const [gameState, setGameState] = useState('setup');
+  const [topbarVisible, setTopbarVisible] = useState(true);
   const [deck, setDeck] = useState<any[]>([]);
   const [discardPile, setDiscardPile] = useState<any[]>([]);
   const [questionsDeck, setQuestionsDeck] = useState<any[]>([]);
@@ -168,7 +169,8 @@ export default function LampstandFinal() {
     }
     
     const armorTypes = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
-    const armorCount = 1; // Reduced from Math.floor(numPlayers / 2) to 1 each
+    // Armor: 1 each for 2-4 players, 2 each for 5-6 players
+    const armorCount = numPlayers >= 5 ? 2 : 1;
     
     // TEST MODE: Extract test cards before adding to deck
     let testCards: any[] = [];
@@ -217,17 +219,27 @@ export default function LampstandFinal() {
     // Add 1 DCS
     newDeck.push({ ...(CARD_TYPES as any).days_cut_short, uid: Math.random() });
 
-    // Add Fruit/Love cards: 1x each (reduced from 2x)
-    // This gives 9 fruit + 9 love = 18 total cards (enough for 6 vanquishes)
-    FRUITS.forEach(f => {
-      newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: f, uid: Math.random() });
-    });
-    LOVE_TRAITS.forEach(l => {
-      newDeck.push({ ...(CARD_TYPES as any).love, subTitle: l, uid: Math.random() });
-    });
+    // Add Fruit/Love cards: Scales with player count
+    // 2-4 players: 9 fruit + 9 love = 18 total
+    // 5 players: 11 fruit + 11 love = 22 total
+    // 6 players: 12 fruit + 12 love = 24 total
+    const fruitLoveCount = numPlayers <= 4 ? 9 : numPlayers === 5 ? 11 : 12;
+    // Use all unique fruits/love, then repeat to reach target count
+    for (let i = 0; i < fruitLoveCount; i++) {
+      const fruitIndex = i % FRUITS.length;
+      const loveIndex = i % LOVE_TRAITS.length;
+      newDeck.push({ ...(CARD_TYPES as any).fruit, subTitle: FRUITS[fruitIndex], uid: Math.random() });
+      newDeck.push({ ...(CARD_TYPES as any).love, subTitle: LOVE_TRAITS[loveIndex], uid: Math.random() });
+    }
 
+    // Trials: 2 each for 2-4 players, 3 each for 5-6 players
+    const trialCount = numPlayers >= 5 ? 3 : 2;
     const trials = ['trial_anxiety', 'trial_time', 'trial_materialism', 'trial_doubt', 'trial_associations'];
-    trials.forEach(t => { for(let i=0; i<2; i++) newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() }); }); // Reduced from 3 to 2
+    trials.forEach(t => { 
+      for(let i=0; i<trialCount; i++) {
+        newDeck.push({ ...(CARD_TYPES as any)[t], uid: Math.random() });
+      }
+    });
 
     newDeck = shuffle(newDeck);
     
@@ -255,9 +267,20 @@ export default function LampstandFinal() {
       newDeck = shuffle([...safe, ...hazards, ...events]);
     });
     
-    // Add stumbles and divisions first
-    for (let i = 0; i < 6; i++) newDeck.push({ ...CARD_TYPES.stumble, uid: Math.random() }); // Reduced from 8 to 6
-    for (let i = 0; i < 4; i++) newDeck.push({ ...CARD_TYPES.discord, uid: Math.random() });
+    // Add stumbles and divisions - scales with player count for balanced difficulty
+    // 2 players: 4 stumbles + 2 divisions = 6 hazards (3 per player)
+    // 3 players: 5 stumbles + 3 divisions = 8 hazards (~2.7 per player)
+    // 4 players: 6 stumbles + 4 divisions = 10 hazards (2.5 per player)
+    // 5 players: 8 stumbles + 5 divisions = 13 hazards (2.6 per player)
+    // 6 players: 9 stumbles + 6 divisions = 15 hazards (2.5 per player)
+    const stumbleCount = numPlayers === 2 ? 4 : numPlayers === 3 ? 5 : numPlayers === 4 ? 6 : numPlayers === 5 ? 8 : 9;
+    const discordCount = numPlayers === 2 ? 2 : numPlayers === 3 ? 3 : numPlayers === 4 ? 4 : numPlayers === 5 ? 5 : 6;
+    for (let i = 0; i < stumbleCount; i++) {
+      newDeck.push({ ...CARD_TYPES.stumble, uid: Math.random() });
+    }
+    for (let i = 0; i < discordCount; i++) {
+      newDeck.push({ ...CARD_TYPES.discord, uid: Math.random() });
+    }
     
     // Fully shuffle the deck first
     newDeck = shuffle(newDeck);
@@ -306,24 +329,7 @@ export default function LampstandFinal() {
     const armageddonCard = { title: 'Armageddon', id: 'event_armageddon', type: 'Event', desc: 'Activate ALL Characters. Stand Firm!', scripture: { text: 'And they gathered them together to the place that is called in Hebrew Armageddon.', ref: 'Re 16:16' }, color: 'bg-zinc-900 border-red-600', icon: Flame };
     
     if (isTestMode) {
-      // TEST MODE: Place Stumble at 6th position, Anxiety at 10th position, Great Tribulation at 14th position
-      // First, find and remove Stumble from deck if it exists
-      const stumbleIndex = newDeck.findIndex((c: any) => c.id === 'stumble');
-      let stumbleCard;
-      if (stumbleIndex !== -1) {
-        stumbleCard = newDeck.splice(stumbleIndex, 1)[0];
-      } else {
-        stumbleCard = { ...CARD_TYPES.stumble, uid: Math.random() };
-      }
-      
-      // Ensure deck is large enough (at least 6 cards before inserting Stumble at position 5)
-      while (newDeck.length < 6) {
-        newDeck.push({ ...CARD_TYPES.faith, uid: Math.random() }); // Add filler cards if needed
-      }
-      
-      // Place Stumble at position 6 (0-indexed: 5)
-      newDeck.splice(5, 0, stumbleCard);
-      
+      // TEST MODE: Custom placements (no fixed Stumble placement)
       // Find and remove Anxiety from deck if it exists
       const anxietyIndex = newDeck.findIndex((c: any) => c.id === 'trial_anxiety');
       let anxietyCard;
@@ -333,13 +339,13 @@ export default function LampstandFinal() {
         anxietyCard = { ...CARD_TYPES.trial_anxiety, uid: Math.random() };
       }
       
-      // Ensure deck is large enough (at least 13 cards before inserting Anxiety at position 9)
-      while (newDeck.length < 13) {
+      // Ensure deck is large enough (at least 7 cards before inserting Anxiety at position 6)
+      while (newDeck.length < 7) {
         newDeck.push({ ...CARD_TYPES.faith, uid: Math.random() }); // Add filler cards if needed
       }
       
-      // Place Anxiety at position 10 (0-indexed: 9)
-      newDeck.splice(9, 0, anxietyCard);
+      // Place Anxiety at position 7 (0-indexed: 6)
+      newDeck.splice(6, 0, anxietyCard);
       
       // Place Great Tribulation at position 14 (0-indexed: 13, but after Anxiety insertion it's now 14)
       // Ensure deck is large enough after Anxiety insertion
@@ -436,19 +442,22 @@ export default function LampstandFinal() {
     showNotification(`Unity Range: ${numPlayers - 1}`, "white");
   };
 
-  const nextTurn = (skipReset: boolean = false) => {
+  const nextTurn = (skipReset: boolean = false, fromIndex?: number) => {
     if (vanquishActive) return;
     if (players.length === 0) return;
     
+    // Use provided index or current turnIndex
+    const currentTurnIndex = fromIndex !== undefined ? fromIndex : turnIndex;
+    
     const updatedPlayers = [...players];
-    const currentP = updatedPlayers[turnIndex];
+    const currentP = updatedPlayers[currentTurnIndex];
     if (currentP && currentP.activeCards && currentP.activeCards.some((c: any) => c.isTemporary)) {
        currentP.activeCards = currentP.activeCards.filter((c: any) => !c.isTemporary);
        setPlayers(updatedPlayers);
        showNotification("Imitation faded.", "zinc");
     }
 
-    let nextIdx = (turnIndex + 1) % players.length;
+    let nextIdx = (currentTurnIndex + 1) % players.length;
     let loopCount = 0;
     while (players[nextIdx] && players[nextIdx].isOut && loopCount < players.length) {
        nextIdx = (nextIdx + 1) % players.length;
@@ -590,11 +599,12 @@ export default function LampstandFinal() {
       
       // Victory conditions:
       // 1. All stumbles vanquished (0 stumbles remaining) OR
-      // 2. Unity Level is high enough (>= 3) and no players are knocked out
+      // 2. Unity Level >= maxUnity (or above, since Great Tribulation can exceed max) AND all players are alive
       const allPlayersAlive = players.every((p: any) => !p.isOut);
       const allStumblesVanquished = remainingStumbles === 0;
+      const maxUnity = players.length - 1;
       
-      if (allStumblesVanquished || (unity >= 3 && allPlayersAlive && totalHazardsRemaining <= 2)) {
+      if (allStumblesVanquished || (unity >= maxUnity && allPlayersAlive)) {
         setGameState('won');
         showNotification("The Lampstand Shines Bright! Unity Prevails!", "emerald");
       } else {
@@ -880,11 +890,32 @@ export default function LampstandFinal() {
                   }
                   
                   if (targetCard) {
-                     // Discard the target card and Anxiety together (ONLY 1 active card removed)
-                     const targetIdx = updatedPlayers[targetPlayerIndex].activeCards.findIndex((c: any) => c.uid === targetCard.uid);
+                     // IMPORTANT: do immutable updates here because `PlayerZone` is memoized.
+                     // If we mutate the existing player object in place, the UI can "stick" on old activeCards.
+                     const prevActiveCards = updatedPlayers[targetPlayerIndex].activeCards || [];
+                     const isAnxiety = (c: any) => c?.id === 'trial_anxiety' || c?.title === 'Anxiety';
+
+                     const targetIdx = prevActiveCards.findIndex((c: any) => c.uid === targetCard.uid);
                      if (targetIdx !== -1) {
-                        const lost = updatedPlayers[targetPlayerIndex].activeCards.splice(targetIdx, 1)[0];
-                        setDiscardPile(prev => [lost, card, ...prev]);
+                        const lost = prevActiveCards[targetIdx];
+                        const removedAnxieties = prevActiveCards.filter(isAnxiety);
+
+                        // Remove: the one target card, any Anxiety cards, and (defensively) the just-drawn Anxiety uid.
+                        const nextActiveCards = prevActiveCards.filter((c: any, idx: number) => {
+                          if (idx === targetIdx) return false;
+                          if (isAnxiety(c)) return false;
+                          if (c?.uid === card?.uid) return false;
+                          return true;
+                        });
+
+                        updatedPlayers[targetPlayerIndex] = {
+                          ...updatedPlayers[targetPlayerIndex],
+                          activeCards: nextActiveCards
+                        };
+
+                        // Discard the target card, the Anxiety card being drawn, and any existing Anxiety cards
+                        const cardsToDiscard = [lost, card, ...removedAnxieties];
+                        setDiscardPile(prev => [...cardsToDiscard, ...prev]);
                         showNotification(`Anxiety discarded ${lost.title}!`, "red");
                         // Don't add Anxiety to activeCards - it's already discarded
                         return updatedPlayers;
@@ -984,14 +1015,16 @@ export default function LampstandFinal() {
              }
           } else if (card.id === 'event_armageddon') {
              // Check Unity level when Armageddon is drawn
+             // Unity >= maxUnity (or above, since Great Tribulation can exceed max) AND all players alive = victory
              const maxUnity = players.length - 1;
+             const allPlayersAlive = players.every((p: any) => !p.isOut);
              setTimeout(() => {
-               if (unity === maxUnity) {
-                 // Unity is max - game is won
+               if (unity >= maxUnity && allPlayersAlive) {
+                 // Unity is at or above max and all players alive - game is won
                  setGameState('won');
                  showNotification("VICTORY! The Final Battle is Won! The Lampstand Stands Firm!", "emerald");
                } else {
-                 // Unity is NOT max - game is lost
+                 // Unity is NOT at/above max OR players are knocked out - game is lost
                  setGameState('lost');
                  showNotification(`DEFEAT! Unity was ${unity}/${maxUnity}. The Lampstand fell...`, "red");
                }
@@ -1009,6 +1042,65 @@ export default function LampstandFinal() {
             const handIdx = player.hand.findIndex((c: any) => c.uid === card.uid);
             if (handIdx !== -1) {
               player.hand.splice(handIdx, 1);
+            }
+            
+            // Handle Anxiety case - discard ONE card (armor first, then character), then remove Anxiety
+            // Check if Anxiety is active BEFORE adding the new card
+            const isCharacterOrArmor = card.id.startsWith('char_') || ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(card.id);
+            if (isCharacterOrArmor) {
+              const anxietyCard = player.activeCards.find((c: any) => c.id === 'trial_anxiety');
+              if (anxietyCard) {
+                // Anxiety is active - need to discard one card (armor first, then character) and remove Anxiety
+                const positives = player.activeCards.filter((c: any) => !c.id.startsWith('trial_') && c.uid !== card.uid);
+                const armorCards = positives.filter((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id));
+                const characterCards = positives.filter((c: any) => c.id.startsWith('char_'));
+                
+                // Find target: armor first, then character (ONLY ONE CARD)
+                let targetIdx = -1;
+                if (armorCards.length > 0) {
+                  targetIdx = player.activeCards.findIndex((c: any) => ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'].includes(c.id) && c.uid !== card.uid);
+                } else if (characterCards.length > 0) {
+                  targetIdx = player.activeCards.findIndex((c: any) => c.id.startsWith('char_') && c.uid !== card.uid);
+                }
+                
+                // Remove Anxiety card itself
+                const anxietyIdx = player.activeCards.findIndex((c: any) => c.uid === anxietyCard.uid);
+                
+                if (targetIdx !== -1) {
+                  // Discard the target card (armor or character) and Anxiety
+                  const discardedCard = player.activeCards.splice(targetIdx, 1)[0];
+                  
+                  // Always remove Anxiety from activeCards (use filter to be safe)
+                  const removedAnxiety = player.activeCards.find((c: any) => c.id === 'trial_anxiety' || c.title === 'Anxiety');
+                  if (removedAnxiety) {
+                    // Remove Anxiety from activeCards
+                    player.activeCards = player.activeCards.filter((c: any) => c.id !== 'trial_anxiety' && c.title !== 'Anxiety');
+                    setDiscardPile(prev => [discardedCard, removedAnxiety, ...prev]);
+                    showNotification(`Anxiety discarded ${discardedCard.title}!`, "red");
+                  } else {
+                    // Anxiety not found in activeCards (shouldn't happen, but safety check)
+                    setDiscardPile(prev => [discardedCard, ...prev]);
+                    showNotification(`Anxiety discarded ${discardedCard.title}!`, "red");
+                  }
+                  // Card being added will still be added to activeCards (below)
+                } else {
+                  // No armor/character found - discard the card being played and Anxiety
+                  // Always remove Anxiety from activeCards (use filter to be safe)
+                  const removedAnxiety = player.activeCards.find((c: any) => c.id === 'trial_anxiety' || c.title === 'Anxiety');
+                  if (removedAnxiety) {
+                    // Remove Anxiety from activeCards
+                    player.activeCards = player.activeCards.filter((c: any) => c.id !== 'trial_anxiety' && c.title !== 'Anxiety');
+                    setDiscardPile(prev => [card, removedAnxiety, ...prev]);
+                    showNotification(`Anxiety: No armor/character to discard. Card discarded.`, "zinc");
+                    // Don't add the card to activeCards - it's discarded
+                    return updatedPlayers;
+                  } else {
+                    // Anxiety not found (shouldn't happen if we found it earlier, but safety check)
+                    setDiscardPile(prev => [card, ...prev]);
+                    return updatedPlayers;
+                  }
+                }
+              }
             }
             
             // Handle character replacement if needed
@@ -1071,6 +1163,8 @@ export default function LampstandFinal() {
             // Remove it if it somehow got added (shouldn't happen, but safety check)
             setDiscardPile(prev => prev.filter((c: any) => c.uid !== card.uid));
             
+            // IMPORTANT: ensure player object identity changes (PlayerZone is memoized)
+            updatedPlayers[targetPlayerIndex] = { ...player };
             return updatedPlayers;
           });
           
@@ -1758,14 +1852,13 @@ export default function LampstandFinal() {
           setStumblingPlayerId(null);
           // Reset all hands to normal state
           setOpenHandIndices(new Set(players.map((_, idx) => idx)));
-          // Set turnIndex to the stumbling player's index before ending turn
-          const stumblingPlayerIdx = players.findIndex((p: any) => p.id === currentStumblingPlayerId);
-          if (stumblingPlayerIdx !== -1) {
-            setTurnIndex(stumblingPlayerIdx);
-          }
-          // After Faith defuses the stumble, respect remaining required draws (e.g., Esther)
+          // After Faith defuses the stumble, end the current player's turn and move to next qualified player
+          // Pass ownerIdx directly to nextTurn to avoid state update timing issues
+          // This works for all player counts (1-6) as nextTurn() handles finding the next qualified player
           setTimeout(() => {
-            checkTurnEnd();
+            // Call nextTurn directly with ownerIdx to ensure correct turn advancement
+            // This calculates the next player from ownerIdx: (ownerIdx + 1) % players.length
+            nextTurn(false, ownerIdx);
           }, 100);
        }
        else if (card.id === 'encouragement') {
@@ -2248,7 +2341,8 @@ export default function LampstandFinal() {
         showNotification("THE LAST STUMBLE VANQUISHED! The Lampstand Shines Eternal!", "emerald");
         // Check win condition after a brief delay
         setTimeout(() => {
-          if (deck.length === 0 || (unity >= 2 && players.every((p: any) => !p.isOut))) {
+          const maxUnity = players.length - 1;
+          if (deck.length === 0 || (unity >= maxUnity && players.every((p: any) => !p.isOut))) {
             setGameState('won');
             showNotification("VICTORY! Unity has triumphed over all darkness!", "emerald");
           }
@@ -2538,12 +2632,14 @@ export default function LampstandFinal() {
     let position: number;
     if (totalPlayers === 2) {
       position = playerIndex === 0 ? 0 : 2; // bottom, top
+    } else if (totalPlayers === 3) {
+      position = playerIndex === 0 ? 0 : playerIndex === 1 ? 5 : 6; // bottom (6 o'clock), top-left (10-11 o'clock), top-right (1-2 o'clock)
     } else if (totalPlayers === 5) {
       position = playerIndex === 0 ? 0 : playerIndex === 1 ? 4 : playerIndex === 2 ? 5 : playerIndex === 3 ? 6 : 7;
     } else if (totalPlayers === 6) {
       position = playerIndex === 0 ? 0 : playerIndex === 1 ? 4 : playerIndex === 2 ? 5 : playerIndex === 3 ? 2 : playerIndex === 4 ? 6 : 7;
     } else {
-      position = playerIndex; // 3-4 players use index directly
+      position = playerIndex; // 4 players use index directly
     }
 
     // Calculate X and Y offsets based on position
@@ -2566,6 +2662,19 @@ export default function LampstandFinal() {
     setNotification({ msg, color });
     setTimeout(() => setNotification(null), 3000);
   };
+
+  // Auto-hide topbar after 10 seconds when game is playing
+  useEffect(() => {
+    if (gameState === 'playing' && activeTab === 'game') {
+      setTopbarVisible(true);
+      const timer = setTimeout(() => {
+        setTopbarVisible(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    } else {
+      setTopbarVisible(true);
+    }
+  }, [gameState, activeTab]);
 
   const currentPlayer = players[turnIndex] || { name: 'Loading', hand: [], activeCards: [] };
   const isStumbling = gameState === 'stumbling';
@@ -2609,16 +2718,42 @@ export default function LampstandFinal() {
   }
 
   return (
-    <div className={`h-screen w-screen fixed inset-0 relative overflow-hidden font-sans select-none transition-colors duration-700 ${isStumbling ? 'bg-red-950' : 'bg-slate-950'}`}>
+    <div
+      className={`w-screen fixed inset-0 relative overflow-hidden font-sans select-none transition-colors duration-700 ${
+        isStumbling ? 'bg-red-950' : 'bg-slate-950'
+      }`}
+      style={{
+        backgroundColor: isStumbling ? '#7f1d1d' : '#020617',
+        height: '100%',
+        minHeight: 'calc(100% + 20px)', // Add extra height to ensure full coverage
+      }}
+    >
       
+      {/* Arrow button to show topbar when hidden */}
+      {!topbarVisible && activeTab === 'game' && (
+        <button
+          onClick={() => setTopbarVisible(true)}
+          className="absolute top-0 left-0 z-[101] m-2 p-2 bg-black/80 backdrop-blur rounded-full border border-zinc-700 hover:bg-zinc-800 transition-colors pointer-events-auto"
+          style={{ top: 'calc(env(safe-area-inset-top) + 0.25rem)' }}
+        >
+          <ChevronDown size={16} className="text-zinc-300" />
+        </button>
+      )}
+
       {/* TABS */}
-      <div className="absolute top-0 left-0 right-0 z-[100] flex justify-between items-center bg-black/80 backdrop-blur border-b border-zinc-800 p-2">
-         <Link href="/" className="ml-4 pointer-events-auto">
-           <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase bg-zinc-700 hover:bg-zinc-600 text-zinc-300 hover:text-white transition-colors">
-             <Home size={14} /> Home
-           </button>
-         </Link>
+      <div 
+        className={`absolute top-0 left-0 right-0 z-[100] flex justify-between items-center bg-black/80 backdrop-blur border-b border-zinc-800 transition-transform duration-300 ${
+          topbarVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+        style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))', paddingBottom: '0.5rem', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
+      >
+         <h1 className="font-black text-amber-500 uppercase tracking-tighter text-lg">Lampstand</h1>
          <div className="bg-zinc-800 rounded-full p-1 flex gap-1 pointer-events-auto">
+            <Link href="/" className="pointer-events-auto">
+              <button className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase bg-zinc-700 hover:bg-zinc-600 text-zinc-300 hover:text-white transition-colors">
+                <Home size={14} /> Home
+              </button>
+            </Link>
             <button onClick={() => setActiveTab('game')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'game' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-white'}`}><Gamepad2 size={14} /> Game</button>
             <button onClick={() => setActiveTab('manual')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'manual' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-white'}`}><Info size={14} /> Manual</button>
             <button onClick={() => setActiveTab('cards')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase ${activeTab === 'cards' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'}`}><BookOpen size={14} /> Cards</button>
@@ -2652,27 +2787,14 @@ export default function LampstandFinal() {
         </div>
       )}
 
-      {/* HUD */}
-      <div className={`absolute top-12 w-full p-4 flex justify-between items-center z-40 pointer-events-none ${activeTab === 'game' ? 'block' : 'hidden'}`}>
-         <div className="flex flex-col items-start gap-2">
-           <div className="bg-black/50 backdrop-blur px-6 py-2 rounded-full border border-white/10 flex items-center gap-4">
-              <h1 className="font-black text-amber-500 uppercase tracking-tighter">Lampstand</h1>
-              <div className="w-px h-6 bg-white/20"></div>
-              <span className="text-white font-bold text-sm">
-                 {isStumbling ? `${victim?.name} is Stumbling!` : `${currentPlayer.name}'s Turn`}
-              </span>
-              <span className="text-[10px] bg-slate-700 px-2 rounded">Draws Needed: {drawsRequired}</span>
-           </div>
-           {/* Unity Level - Below LAMPSTAND text */}
-           <div className="bg-black/50 backdrop-blur px-6 py-2 rounded-full border border-white/10 flex items-center gap-2 pointer-events-auto" title="Help Range" onClick={() => setShowUnityHelp(true)}>
-              <span className="text-[10px] text-zinc-400 font-bold uppercase">Unity Level</span>
-              <span className="text-emerald-400 font-black text-lg">{unity}</span>
-           </div>
-         </div>
-      </div>
 
       {/* CENTER AREA */}
-      <div className={`absolute inset-0 flex items-center justify-center z-10 ${activeTab === 'game' ? 'block' : 'hidden'}`}>
+      <div
+        className={`absolute left-0 right-0 flex items-center justify-center z-10 ${
+          activeTab === 'game' ? 'block' : 'hidden'
+        }`}
+        style={{ top: 'calc(env(safe-area-inset-top) + 4rem)', bottom: 0 }}
+      >
          
          {isStumbling && !vanquishActive ? (() => {
             const victimIdx = victim ? players.findIndex(p => p.id === victim.id) : -1;
@@ -2880,15 +3002,18 @@ export default function LampstandFinal() {
            position={
              players.length === 2
                ? (i === 0 ? 0 : 2) // For 2 players: player 1 bottom, player 2 top (opposite side)
+               : players.length === 3
+               ? (i === 0 ? 0 : i === 1 ? 5 : 6) // 3 players: bottom (6 o'clock), top-left (10-11 o'clock), top-right (1-2 o'clock)
                : players.length === 5
                ? (i === 0 ? 0 : i === 1 ? 4 : i === 2 ? 5 : i === 3 ? 6 : 7) // 5 players: bottom, bottom-left, top-left, top-right, bottom-right
                : players.length === 6
                ? (i === 0 ? 0 : i === 1 ? 4 : i === 2 ? 5 : i === 3 ? 2 : i === 4 ? 6 : 7) // 6 players: bottom, bottom-left, top-left, top, top-right, bottom-right
-               : i                 // For 3–4 players: keep existing seat mapping
+               : i                 // For 4 players: keep existing seat mapping
            } 
            isActive={i === turnIndex} 
            isOpen={openHandIndices.has(i)}
            isStumbling={p.id === stumblingPlayerId}
+           totalPlayers={players.length}
            toggleHand={(e: any) => { 
              e.stopPropagation(); 
              setOpenHandIndices(prev => {
@@ -3216,22 +3341,7 @@ export default function LampstandFinal() {
            style={{
              top: '50%',
              left: '50%',
-             transform: `translate(-50%, -50%) translateY(${
-               turnIndex === 0 ? '-120px' :
-               turnIndex === 1 ? '0px' :
-               turnIndex === 2 ? '120px' :
-               '0px'
-             }) translateX(${
-               turnIndex === 0 ? '0px' :
-               turnIndex === 1 ? '-200px' :
-               turnIndex === 2 ? '0px' :
-               '200px'
-             }) rotate(${
-               turnIndex === 0 ? '0deg' :
-               turnIndex === 1 ? '90deg' :
-               turnIndex === 2 ? '180deg' :
-               '-90deg'
-             })`
+             transform: `translate(-50%, -50%) ${getModalRotation(turnIndex, players.length)}`
            }}
          >
            {notification.msg}
@@ -3241,12 +3351,52 @@ export default function LampstandFinal() {
       {(gameState === 'won' || gameState === 'lost') && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
           {gameState === 'won' ? (
-            <div className="relative w-96 h-96">
-              <div className="absolute inset-0 border-4 border-amber-500 rounded-full bg-slate-900 shadow-2xl animate-spin-slow"></div>
-              <div className="relative w-full h-full flex flex-col items-center justify-center p-12 text-center">
-                <Flame size={80} className="text-amber-500 mx-auto mb-4 animate-bounce" />
-                <h2 className="text-5xl font-black text-white mb-4 uppercase">Victory!</h2>
-                <button onClick={() => setGameState('setup')} className="bg-white text-slate-900 font-black uppercase tracking-widest py-4 px-12 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto">
+            <div className="relative max-w-2xl w-full p-8">
+              {/* Paradise-themed background with gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-amber-500/20 to-sky-500/20 rounded-3xl border-4 border-emerald-400/50 shadow-2xl"></div>
+              
+              {/* Animated sparkles */}
+              <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                <Sparkles size={24} className="absolute top-10 left-10 text-yellow-300 animate-pulse" style={{ animationDelay: '0s' }} />
+                <Sparkles size={20} className="absolute top-20 right-20 text-amber-300 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <Sparkles size={18} className="absolute bottom-20 left-20 text-emerald-300 animate-pulse" style={{ animationDelay: '1s' }} />
+                <Sparkles size={22} className="absolute bottom-10 right-10 text-sky-300 animate-pulse" style={{ animationDelay: '1.5s' }} />
+              </div>
+              
+              <div className="relative flex flex-col items-center justify-center text-center space-y-6">
+                {/* Sun icon */}
+                <div className="relative">
+                  <Sun size={100} className="text-amber-400 mx-auto mb-4 animate-spin-slow drop-shadow-2xl" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Flame size={60} className="text-emerald-400 animate-pulse" />
+                  </div>
+                </div>
+                
+                {/* Victory text */}
+                <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-amber-400 to-sky-400 uppercase tracking-tight drop-shadow-lg">
+                  Victory!
+                </h2>
+                
+                {/* Scripture */}
+                <div className="bg-emerald-900/50 backdrop-blur-sm border-2 border-emerald-400/50 rounded-2xl p-6 max-w-lg">
+                  <p className="text-emerald-100 text-lg italic leading-relaxed mb-2">
+                    "But the one who has endured to the end will be saved."
+                  </p>
+                  <p className="text-emerald-300 text-sm font-semibold">
+                    — Matthew 24:13 NWT
+                  </p>
+                </div>
+                
+                {/* Subtitle */}
+                <p className="text-emerald-200 text-xl font-bold">
+                  The Lampstand Shines Eternal!
+                </p>
+                
+                {/* Play Again button */}
+                <button 
+                  onClick={() => setGameState('setup')} 
+                  className="bg-gradient-to-r from-emerald-500 to-amber-500 text-white font-black uppercase tracking-widest py-4 px-12 rounded-full hover:scale-105 transition-transform flex items-center gap-2 mx-auto shadow-xl border-2 border-emerald-300/50"
+                >
                   <RefreshCcw size={20} /> Play Again
                 </button>
               </div>

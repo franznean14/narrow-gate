@@ -22,6 +22,7 @@ interface PlayerZoneProps {
   isStumbleMode?: boolean; // When true, filter cards and disable toggle if can't help
   unity?: number; // Unity level to display
   isWithinRange?: boolean; // Whether player is within help range (even if they don't have help cards)
+  totalPlayers?: number; // Total number of players in the game
 }
 
 export const PlayerZone = React.memo(({ 
@@ -36,7 +37,8 @@ export const PlayerZone = React.memo(({
   canHelp,
   isStumbleMode = false,
   unity,
-  isWithinRange = false
+  isWithinRange = false,
+  totalPlayers = 4
 }: PlayerZoneProps) => {
   const [isHandHovered, setIsHandHovered] = useState(false);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
@@ -147,19 +149,19 @@ export const PlayerZone = React.memo(({
   let contentClass = "flex flex-col items-center transition-transform duration-500";
   
   if (position === 0) { 
-    // Bottom player - move up when closed
+    // Bottom player - move up when closed, account for safe area
     const bottomOffset = isOpen ? 30 : 50;
-    containerStyle = { bottom: bottomOffset, left: '50%', transform: 'translateX(-50%)' };
-    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]'; 
+    containerStyle = { bottom: `calc(${bottomOffset}px + env(safe-area-inset-bottom))`, left: '50%', transform: 'translateX(-50%)' };
+    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   } else if (position === 1) { 
     // Left player - move right when closed
     const leftOffset = isOpen ? 0 : 20;
     containerStyle = { top: '50%', left: leftOffset, transformOrigin: 'top left', transform: 'rotate(90deg) translateX(-50%)' };
     contentClass += isOpen ? ' -translate-y-full' : ' -translate-y-[60px]'; 
   } else if (position === 2) { 
-    // Top player - move down when closed
+    // Top player - move down when closed, account for topbar padding
     const topOffset = isOpen ? 50 : 70;
-    containerStyle = { top: topOffset, left: '50%', transform: 'translateX(-50%) rotate(180deg)' };
+    containerStyle = { top: `calc(${topOffset}px + 0.5rem + env(safe-area-inset-top))`, left: '50%', transform: 'translateX(-50%) rotate(180deg)' };
     contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   } else if (position === 3) { 
     // Right player - move left when closed
@@ -167,33 +169,33 @@ export const PlayerZone = React.memo(({
     containerStyle = { top: '50%', right: rightOffset, transformOrigin: 'top right', transform: 'rotate(-90deg) translateX(50%)' };
     contentClass += isOpen ? ' -translate-y-full' : ' -translate-y-[60px]';
   } else if (position === 4) {
-    // Bottom-left diagonal (7-8 o'clock) - moved slightly inward toward center
+    // Bottom-left diagonal (7-8 o'clock) - moved slightly inward toward center, account for safe area
     const bottomOffset = isOpen ? 100 : 100;
     const leftOffset = isOpen ? '20%' : '20%';
-    containerStyle = { bottom: bottomOffset, left: leftOffset, transform: 'translateX(-50%) rotate(45deg)' };
+    containerStyle = { bottom: `calc(${bottomOffset}px + env(safe-area-inset-bottom))`, left: leftOffset, transform: 'translateX(-50%) rotate(45deg)' };
     contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   } else if (position === 5) {
-    // Top-left diagonal (10 o'clock) - moved slightly inward toward center
+    // Top-left diagonal (10 o'clock) - moved slightly inward toward center, account for topbar padding
     const topOffset = isOpen ? 130 : 130;
     const leftOffset = isOpen ? '20%' : '20%';
-    containerStyle = { top: topOffset, left: leftOffset, transform: 'translateX(-50%) rotate(135deg)' };
+    containerStyle = { top: `calc(${topOffset}px + 0.5rem + env(safe-area-inset-top))`, left: leftOffset, transform: 'translateX(-50%) rotate(135deg)' };
     contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   } else if (position === 6) {
-    // Top-right diagonal (2 o'clock) - moved slightly inward toward center
+    // Top-right diagonal (2 o'clock) - moved slightly inward toward center, account for topbar padding
     const topOffset = isOpen ? 130 : 130;
     const rightOffset = isOpen ? '20%' : '20%';
-    containerStyle = { top: topOffset, right: rightOffset, transform: 'translateX(50%) rotate(-135deg)' };
+    containerStyle = { top: `calc(${topOffset}px + 0.5rem + env(safe-area-inset-top))`, right: rightOffset, transform: 'translateX(50%) rotate(-135deg)' };
     contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   } else if (position === 7) {
-    // Bottom-right diagonal (4-5 o'clock) - moved slightly inward toward center
+    // Bottom-right diagonal (4-5 o'clock) - moved slightly inward toward center, account for safe area
     const bottomOffset = isOpen ? 100 : 100;
     const rightOffset = isOpen ? '20%' : '20%';
-    containerStyle = { bottom: bottomOffset, right: rightOffset, transform: 'translateX(50%) rotate(-45deg)' };
+    containerStyle = { bottom: `calc(${bottomOffset}px + env(safe-area-inset-bottom))`, right: rightOffset, transform: 'translateX(50%) rotate(-45deg)' };
     contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   }
 
   return (
-    <div style={containerStyle} className="absolute w-[340px] z-40">
+    <div style={containerStyle} className="absolute w-[340px] z-40 overflow-visible">
       <div className={contentClass}>
         {/* Active Cards Area */}
         <div 
@@ -355,7 +357,7 @@ export const PlayerZone = React.memo(({
         <motion.div 
           ref={handContainerRef}
           data-card-hand="true"
-          className={`pointer-events-auto ${isStumbleMode ? 'bg-slate-900/20' : 'bg-slate-900/95'} ${isStumbleMode ? 'backdrop-blur-sm' : 'backdrop-blur-xl'} border-x border-b ${isStumbleMode ? 'border-white/5' : 'border-white/20'} p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px]`}
+          className={`pointer-events-auto ${isStumbleMode ? 'bg-slate-900/20' : 'bg-slate-900/95'} ${isStumbleMode ? 'backdrop-blur-sm' : 'backdrop-blur-xl'} border-x border-b ${isStumbleMode ? 'border-white/5' : 'border-white/20'} p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px] overflow-visible`}
           onMouseEnter={() => setIsHandHovered(true)}
           onMouseLeave={() => {
             setIsHandHovered(false);
@@ -433,9 +435,11 @@ export const PlayerZone = React.memo(({
               
               const restSpacing = totalCards > 0 ? getRestSpacing() : '-space-x-12';
               
-              // Only use 2-row layout in expanded state when >= 8 cards
-              // Divide cards equally across rows, with remainder always on top row
-              if (isExpanded && totalCards >= 8) {
+              // Only use 2-row layout in expanded state
+              // For 5+ player games, use 2-row layout when >= 5 cards
+              // For 4 or fewer players, use 2-row layout when >= 8 cards
+              const multiRowThreshold = totalPlayers >= 5 ? 5 : 8;
+              if (isExpanded && totalCards >= multiRowThreshold) {
                 // For 2 rows, divide equally with remainder on top
                 const topRowCount = Math.ceil(totalCards / 2);
                 const bottomRowCount = totalCards - topRowCount;

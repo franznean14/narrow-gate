@@ -74,7 +74,17 @@ export const getModalRotation = (activePlayerIndex: number, totalPlayers: number
     return rotations[activePlayerIndex] || rotations[0];
   }
   
-  // Default 3-4 players: existing rotation
+  // 3 players: bottom (6 o'clock), top-left (10-11 o'clock), top-right (1-2 o'clock)
+  if (totalPlayers === 3) {
+    const rotations: Record<number, string> = {
+      0: 'rotate(0deg)',      // bottom (6 o'clock)
+      1: 'rotate(135deg)',    // top-left (10-11 o'clock)
+      2: 'rotate(-135deg)'    // top-right (1-2 o'clock)
+    };
+    return rotations[activePlayerIndex] || rotations[0];
+  }
+  
+  // Default 4 players: existing rotation
   const rotations: Record<number, string> = {
     0: 'rotate(0deg)',
     1: 'rotate(90deg)',

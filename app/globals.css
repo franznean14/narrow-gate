@@ -5,23 +5,23 @@
 /* Prevent scrolling on touch devices for game pages */
 @layer base {
   html {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
     height: 100%;
-    touch-action: none;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: none;
+    min-height: 100%;
+    width: 100%;
+    /* Remove overflow restrictions that interfere with iOS viewport calculations */
+    position: relative;
+    background-color: #020617; /* slate-950 to prevent white bar */
   }
   
   body {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
     height: 100%;
-    touch-action: none;
+    min-height: calc(100% + 20px); /* Add extra height to ensure full coverage */
+    width: 100%;
+    overflow: hidden; /* Prevent body scrolling - game handles its own scrolling */
+    position: relative; /* Helps with positioning fixed elements */
+    touch-action: pan-x pan-y; /* Allow touch gestures but prevent zoom */
     overscroll-behavior: none;
-    -webkit-overflow-scrolling: none;
+    background-color: #020617; /* slate-950 to prevent white bar */
   }
   
   /* Allow scrolling within specific scrollable containers */

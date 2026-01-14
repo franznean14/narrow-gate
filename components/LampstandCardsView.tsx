@@ -99,26 +99,26 @@ type FilterOption = 'all' | 'Character' | 'Action' | 'Hazard' | 'Trial' | 'Armor
 
 // Function to calculate card quantity based on game setup logic
 const getCardQuantity = (cardId: string, cardType: string, fruits: string[], loveTraits: string[], charactersDb: any[]): string => {
-  // Action cards: floor(numPlayers * 1.0) (for 2-4 players = 2-4 copies)
+  // Action cards: floor(numPlayers * 1.0) (2-6 players = 2-6 copies)
   const actionIds = ['insight', 'guidance', 'patience', 'kindness', 'encouragement', 'modesty', 'imitate', 'wisdom', 'prayer', 'minister', 'vigilance', 'discernment'];
   if (actionIds.includes(cardId)) {
-    return '2-4 (floor(players × 1.0))';
+    return '2-6 (floor(players × 1.0))';
   }
   
-  // Faith: floor(numPlayers * 1.75) (for 2-4 players = 3-7 copies)
+  // Faith: floor(numPlayers * 1.75) - numPlayers (2-6 players = 1-4 extra copies, +1 in starter hand each)
   if (cardId === 'faith') {
-    return '3-7 (floor(players × 1.75))';
+    return '3-10 total (floor(players × 1.75), includes starter hands)';
   }
   
-  // Resurrection: floor(numPlayers / 2) (for 2-4 players = 1-2 copies)
+  // Resurrection: floor(numPlayers / 2) (2-6 players = 1-3 copies)
   if (cardId === 'resurrection') {
-    return '1-2 (floor(players/2))';
+    return '1-3 (floor(players/2))';
   }
   
-  // Armor: 1 copy each (reduced from floor(players/2))
+  // Armor: 1 each for 2-4 players, 2 each for 5-6 players
   const armorIds = ['belt', 'breastplate', 'sandals', 'shield_equip', 'helmet', 'sword'];
   if (armorIds.includes(cardId)) {
-    return '1';
+    return '1 (2-4p) / 2 (5-6p)';
   }
   
   // Characters: 1 copy each
@@ -131,29 +131,29 @@ const getCardQuantity = (cardId: string, cardType: string, fruits: string[], lov
     return '1';
   }
   
-  // Fruits: All fruits (one of each)
+  // Fruits: 9 for 2-4 players, 11 for 5 players, 12 for 6 players
   if (cardId === 'fruit') {
-    return `${fruits.length} (one of each)`;
+    return '9 (2-4p) / 11 (5p) / 12 (6p)';
   }
   
-  // Love: All love traits (one of each)
+  // Love: 9 for 2-4 players, 11 for 5 players, 12 for 6 players
   if (cardId === 'love') {
-    return `${loveTraits.length} (one of each)`;
+    return '9 (2-4p) / 11 (5p) / 12 (6p)';
   }
   
-  // Trials: 2 copies each (reduced from 3)
+  // Trials: 2 each for 2-4 players, 3 each for 5-6 players
   if (cardId.startsWith('trial_')) {
-    return '2';
+    return '2 (2-4p) / 3 (5-6p)';
   }
   
-  // Stumble: 6 copies (reduced from 8)
+  // Stumble: Scales with player count (4-9 copies)
   if (cardId === 'stumble') {
-    return '6';
+    return '4 (2p) / 5 (3p) / 6 (4p) / 8 (5p) / 9 (6p)';
   }
   
-  // Division: 4 copies
+  // Division: Scales with player count (2-6 copies)
   if (cardId === 'discord') {
-    return '4';
+    return '2 (2p) / 3 (3p) / 4 (4p) / 5 (5p) / 6 (6p)';
   }
   
   // Events: 1 copy

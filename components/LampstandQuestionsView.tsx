@@ -150,85 +150,85 @@ export default function LampstandQuestionsView() {
         {/* Existing Questions */}
         <div className="mb-12">
           <h2 className="text-2xl font-black text-emerald-400 uppercase mb-4">Questions in Game</h2>
-          
-          {/* Easy Questions */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleDifficulty('easy')}
-              className="w-full bg-emerald-900/50 border-2 border-emerald-600 rounded-lg p-4 flex items-center justify-between hover:bg-emerald-900/70 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-black text-emerald-400">Easy</span>
+
+        {/* Easy Questions */}
+        <div className="mb-6">
+          <button
+            onClick={() => toggleDifficulty('easy')}
+            className="w-full bg-emerald-900/50 border-2 border-emerald-600 rounded-lg p-4 flex items-center justify-between hover:bg-emerald-900/70 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-black text-emerald-400">Easy</span>
                 <span className="text-sm text-zinc-400">({TRIVIA_DB.EASY.length} questions)</span>
-              </div>
-              {expandedDifficulty.has('easy') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {expandedDifficulty.has('easy') && (
-              <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
-                <div className="grid gap-4">
+            </div>
+            {expandedDifficulty.has('easy') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+          {expandedDifficulty.has('easy') && (
+            <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
+              <div className="grid gap-4">
                   {TRIVIA_DB.EASY.map((q, i) => (
-                    <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-                      <div className="text-sm font-bold text-emerald-400 mb-2">Q{i + 1}</div>
+                  <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+                    <div className="text-sm font-bold text-emerald-400 mb-2">Q{i + 1}</div>
                       <p className="text-white mb-2">{q.q}</p>
                       <div className="text-xs text-zinc-400">
-                        <span className="font-bold">Answer: </span>
+                      <span className="font-bold">Answer: </span>
                         <span className="text-zinc-300">{q.a}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Medium Questions */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleDifficulty('medium')}
+        {/* Medium Questions */}
+        <div className="mb-6">
+          <button
+            onClick={() => toggleDifficulty('medium')}
               className="w-full bg-amber-900/50 border-2 border-amber-600 rounded-lg p-4 flex items-center justify-between hover:bg-amber-900/70 transition-colors"
-            >
-              <div className="flex items-center gap-3">
+          >
+            <div className="flex items-center gap-3">
                 <span className="text-2xl font-black text-amber-400">Medium</span>
                 <span className="text-sm text-zinc-400">({TRIVIA_DB.MEDIUM.length} questions)</span>
-              </div>
-              {expandedDifficulty.has('medium') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {expandedDifficulty.has('medium') && (
-              <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
-                <div className="grid gap-4">
+            </div>
+            {expandedDifficulty.has('medium') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+          {expandedDifficulty.has('medium') && (
+            <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
+              <div className="grid gap-4">
                   {TRIVIA_DB.MEDIUM.map((q, i) => (
-                    <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+                  <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
                       <div className="text-sm font-bold text-amber-400 mb-2">Q{i + 1}</div>
                       <p className="text-white mb-2">{q.q}</p>
                       <div className="text-xs text-zinc-400">
-                        <span className="font-bold">Answer: </span>
+                      <span className="font-bold">Answer: </span>
                         <span className="text-zinc-300">{q.a}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Hard Questions */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleDifficulty('hard')}
-              className="w-full bg-red-900/50 border-2 border-red-600 rounded-lg p-4 flex items-center justify-between hover:bg-red-900/70 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-black text-red-400">Hard</span>
+        {/* Hard Questions */}
+        <div className="mb-6">
+          <button
+            onClick={() => toggleDifficulty('hard')}
+            className="w-full bg-red-900/50 border-2 border-red-600 rounded-lg p-4 flex items-center justify-between hover:bg-red-900/70 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-black text-red-400">Hard</span>
                 <span className="text-sm text-zinc-400">({TRIVIA_DB.HARD.length} questions)</span>
-              </div>
-              {expandedDifficulty.has('hard') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-            {expandedDifficulty.has('hard') && (
-              <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
-                <div className="grid gap-4">
+            </div>
+            {expandedDifficulty.has('hard') ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </button>
+          {expandedDifficulty.has('hard') && (
+            <div className="mt-4 bg-zinc-900/50 rounded-lg p-6 border border-zinc-700">
+              <div className="grid gap-4">
                   {TRIVIA_DB.HARD.map((q, i) => (
-                    <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-                      <div className="text-sm font-bold text-red-400 mb-2">Q{i + 1}</div>
+                  <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+                    <div className="text-sm font-bold text-red-400 mb-2">Q{i + 1}</div>
                       <p className="text-white mb-2">{q.q}</p>
                       <div className="text-xs text-zinc-400">
                         <span className="font-bold">Answer: </span>
@@ -267,10 +267,10 @@ export default function LampstandQuestionsView() {
                   {TEMP_EASY_QUESTIONS.map((q, i) => (
                     <div key={i} className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
                       <div className="text-sm font-bold text-purple-400 mb-2">Temp Q{i + 1}</div>
-                      <p className="text-white mb-2">{q.question}</p>
+                    <p className="text-white mb-2">{q.question}</p>
                       <div className="text-xs text-zinc-400">
-                        <span className="font-bold">Answer: </span>
-                        <span className="text-zinc-300">{q.answer}</span>
+                      <span className="font-bold">Answer: </span>
+                      <span className="text-zinc-300">{q.answer}</span>
                       </div>
                     </div>
                   ))}
@@ -302,12 +302,12 @@ export default function LampstandQuestionsView() {
                         <span className="font-bold">Answer: </span>
                         <span className="text-zinc-300">{q.answer}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
           {/* Temp Hard Questions */}
           <div className="mb-6">

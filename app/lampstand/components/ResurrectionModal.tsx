@@ -14,7 +14,7 @@ interface ResurrectionModalProps {
 export const ResurrectionModal = React.memo(({ players, onClose, onConfirm, activePlayerIndex = 0 }: ResurrectionModalProps) => {
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    // Filter to only show knocked out players
    const knockedOutPlayers = players.filter((p: any) => p.isOut);

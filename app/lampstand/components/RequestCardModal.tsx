@@ -18,7 +18,7 @@ export const RequestCardModal = React.memo(({ requester, players, unity, onClose
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    // Find requester index - handle both object and index cases
    const requesterIdx = typeof requester === 'object' && requester !== null 

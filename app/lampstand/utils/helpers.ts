@@ -29,36 +29,52 @@ export const getDistance = (helperIdx: number, victimIdx: number, totalPlayers: 
   return dist;
 };
 
-// Get modal positioning styles based on active player position
+// Get modal positioning styles - always centered, rotation only
 export const getModalPosition = (activePlayerIndex: number): React.CSSProperties => {
-  const positions: Record<number, React.CSSProperties> = {
-    0: { // Bottom (center)
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      paddingBottom: '120px'
-    },
-    1: { // Left (Player 2) - too high, move down
-      justifyContent: 'flex-start',
-      alignItems: 'center', // Changed from center to flex-end to move down
-      paddingLeft: '120px',
-    },
-    2: { // Top (Player 3) - too low, move up
-      justifyContent: 'center',
-      alignItems: 'flex-start',
-      paddingTop: '120px' // Reduced to move it up
-    },
-    3: { // Right (Player 4) - too high, move down
-      justifyContent: 'flex-end',
-      alignItems: 'center', // Changed from center to flex-end to move down
-      paddingRight: '120px',
-    }
+  // Always center modals on screen, no translation - only rotation will orient them
+  return {
+    justifyContent: 'center',
+    alignItems: 'center'
   };
-  
-  return positions[activePlayerIndex] || positions[0];
 };
 
-// Get modal content rotation based on active player position
-export const getModalRotation = (activePlayerIndex: number): string => {
+// Get modal content rotation based on active player position and total players
+export const getModalRotation = (activePlayerIndex: number, totalPlayers: number = 4): string => {
+  // 2 players: Player 0 (bottom) = 0deg, Player 1 (top) = 180deg
+  if (totalPlayers === 2) {
+    const rotations: Record<number, string> = {
+      0: 'rotate(0deg)',
+      1: 'rotate(180deg)'
+    };
+    return rotations[activePlayerIndex] || rotations[0];
+  }
+  
+  // 5 players: bottom, bottom-left, top-left, top-right, bottom-right
+  if (totalPlayers === 5) {
+    const rotations: Record<number, string> = {
+      0: 'rotate(0deg)',      // bottom
+      1: 'rotate(45deg)',     // bottom-left
+      2: 'rotate(135deg)',    // top-left
+      3: 'rotate(-135deg)',   // top-right
+      4: 'rotate(-45deg)'     // bottom-right
+    };
+    return rotations[activePlayerIndex] || rotations[0];
+  }
+  
+  // 6 players: bottom, bottom-left, top-left, top, top-right, bottom-right
+  if (totalPlayers === 6) {
+    const rotations: Record<number, string> = {
+      0: 'rotate(0deg)',      // bottom
+      1: 'rotate(45deg)',     // bottom-left
+      2: 'rotate(135deg)',    // top-left
+      3: 'rotate(180deg)',    // top
+      4: 'rotate(-135deg)',   // top-right
+      5: 'rotate(-45deg)'     // bottom-right
+    };
+    return rotations[activePlayerIndex] || rotations[0];
+  }
+  
+  // Default 3-4 players: existing rotation
   const rotations: Record<number, string> = {
     0: 'rotate(0deg)',
     1: 'rotate(90deg)',
@@ -69,3 +85,7 @@ export const getModalRotation = (activePlayerIndex: number): string => {
   return rotations[activePlayerIndex] || rotations[0];
 };
 
+// Get center pile rotation (draw pile, discard pile, questions deck) based on turn index and total players
+export const getCenterPileRotation = (turnIndex: number, totalPlayers: number = 4): string => {
+  return getModalRotation(turnIndex, totalPlayers);
+};

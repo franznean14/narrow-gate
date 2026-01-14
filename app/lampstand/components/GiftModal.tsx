@@ -23,7 +23,7 @@ export const GiftModal = React.memo(({ giver, players, unity, onClose, onConfirm
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    // Find giver index
    const giverIdx = players.findIndex((p: any) => p.id === giver.id);

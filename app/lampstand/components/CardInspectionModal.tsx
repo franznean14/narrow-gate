@@ -11,6 +11,7 @@ interface CardInspectionModalProps {
   canPlay: boolean;
   isPlayerTurn: boolean;
   activePlayerIndex: number;
+  totalPlayers?: number;
 }
 
 export const CardInspectionModal = React.memo(({ 
@@ -19,10 +20,11 @@ export const CardInspectionModal = React.memo(({
   onPlay, 
   canPlay, 
   isPlayerTurn, 
-  activePlayerIndex 
+  activePlayerIndex,
+  totalPlayers = 4
 }: CardInspectionModalProps) => {
   const modalPosition = getModalPosition(activePlayerIndex);
-  const modalRotation = getModalRotation(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex, totalPlayers);
 
   return (
     <div className="fixed inset-0 z-[200] flex bg-black/90 backdrop-blur-md p-8 animate-in fade-in" style={modalPosition} onClick={onClose}>

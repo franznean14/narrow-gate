@@ -19,7 +19,7 @@ interface VanquishModalProps {
 export const VanquishModal = React.memo(({ players, onClose, onConfirm, requiredCards = 3, activePlayerIndex = 0, stumblingPlayerId, unity = 1, getDistance }: VanquishModalProps) => {
    const [selected, setSelected] = useState<{ playerId: string, cardUid: string }[]>([]);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    // Filter players who can help (within unity range)
    const getPlayersWhoCanHelp = () => {

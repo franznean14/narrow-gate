@@ -22,7 +22,7 @@ export const MinisterModal = React.memo(({ minister, players, unity, ministerCar
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    const ministerIdx = players.findIndex((p: any) => p.id === minister.id);
    const targets = players.filter((p: any, idx: number) => {

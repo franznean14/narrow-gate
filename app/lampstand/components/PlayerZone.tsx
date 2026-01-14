@@ -166,6 +166,30 @@ export const PlayerZone = React.memo(({
     const rightOffset = isOpen ? 0 : 20;
     containerStyle = { top: '50%', right: rightOffset, transformOrigin: 'top right', transform: 'rotate(-90deg) translateX(50%)' };
     contentClass += isOpen ? ' -translate-y-full' : ' -translate-y-[60px]';
+  } else if (position === 4) {
+    // Bottom-left diagonal (7-8 o'clock) - moved slightly inward toward center
+    const bottomOffset = isOpen ? 100 : 100;
+    const leftOffset = isOpen ? '20%' : '20%';
+    containerStyle = { bottom: bottomOffset, left: leftOffset, transform: 'translateX(-50%) rotate(45deg)' };
+    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
+  } else if (position === 5) {
+    // Top-left diagonal (10 o'clock) - moved slightly inward toward center
+    const topOffset = isOpen ? 130 : 130;
+    const leftOffset = isOpen ? '20%' : '20%';
+    containerStyle = { top: topOffset, left: leftOffset, transform: 'translateX(-50%) rotate(135deg)' };
+    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
+  } else if (position === 6) {
+    // Top-right diagonal (2 o'clock) - moved slightly inward toward center
+    const topOffset = isOpen ? 130 : 130;
+    const rightOffset = isOpen ? '20%' : '20%';
+    containerStyle = { top: topOffset, right: rightOffset, transform: 'translateX(50%) rotate(-135deg)' };
+    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
+  } else if (position === 7) {
+    // Bottom-right diagonal (4-5 o'clock) - moved slightly inward toward center
+    const bottomOffset = isOpen ? 100 : 100;
+    const rightOffset = isOpen ? '20%' : '20%';
+    containerStyle = { bottom: bottomOffset, right: rightOffset, transform: 'translateX(50%) rotate(-45deg)' };
+    contentClass += isOpen ? ' translate-y-0' : ' translate-y-[calc(100%-60px)]';
   }
 
   return (
@@ -173,7 +197,7 @@ export const PlayerZone = React.memo(({
       <div className={contentClass}>
         {/* Active Cards Area */}
         <div 
-          className={`bg-black/60 p-2 rounded-2xl backdrop-blur-md mb-6 transform -translate-y-full absolute top-0 flex min-w-[80px] justify-center border border-white/20 shadow-xl pointer-events-auto transition-all duration-300 ${
+          className={`${isStumbleMode ? 'bg-black/30' : 'bg-black/60'} p-2 rounded-2xl backdrop-blur-md mb-6 transform -translate-y-full absolute top-0 flex min-w-[80px] justify-center ${isStumbleMode ? 'border-white/10' : 'border-white/20'} shadow-xl pointer-events-auto transition-all duration-300 ${
             isActiveCardsHovered ? 'gap-2' : '-space-x-8'
           }`}
           onMouseEnter={() => setIsActiveCardsHovered(true)}
@@ -301,22 +325,22 @@ export const PlayerZone = React.memo(({
              toggleHand(e);
            }}
            disabled={isStumbleMode && !canHelp && !isStumbling}
-           className={`pointer-events-auto w-full h-[60px] rounded-t-xl font-bold shadow-2xl border-t border-x border-white/20 bg-slate-900 text-white flex items-center justify-between px-6 transition-colors mt-4
+           className={`pointer-events-auto w-full h-[60px] rounded-t-xl font-bold shadow-2xl border-t border-x ${isStumbleMode ? 'border-white/5' : 'border-white/20'} ${isStumbleMode ? 'bg-slate-900/20' : 'bg-slate-900'} ${isStumbleMode ? 'text-white/50' : 'text-white'} flex items-center justify-between px-6 transition-colors mt-4
               ${isStumbleMode && !canHelp && !isStumbling ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               ${isActive ? 'ring-2 ring-amber-500 text-amber-500 bg-slate-800' : isStumbling ? 'ring-2 ring-red-500 text-red-500 animate-pulse' : canHelp ? 'ring-2 ring-emerald-500 text-emerald-400 bg-emerald-950 animate-pulse' : 'text-slate-400 hover:text-white hover:bg-slate-800'}
            `}
         >
-           <span className="truncate flex items-center gap-2 text-lg">
+           <span className={`truncate flex items-center gap-2 text-lg ${isStumbleMode ? 'opacity-60' : ''}`}>
              {isActive && <Zap size={16} className="fill-current" />}
              {isStumbling && <AlertTriangle size={16} className="fill-current animate-bounce" />}
              {player.name}
              {unity !== undefined && (
-               <span className="text-emerald-400 font-black text-base ml-1 px-1.5 py-0.5 bg-emerald-900/50 rounded border border-emerald-500/50">
+               <span className={`text-emerald-400 font-black text-base ml-1 px-1.5 py-0.5 ${isStumbleMode ? 'bg-emerald-900/30' : 'bg-emerald-900/50'} rounded ${isStumbleMode ? 'border-emerald-500/30' : 'border-emerald-500/50'}`}>
                  {unity}
                </span>
              )}
            </span>
-           <div className="flex items-center gap-2">
+           <div className={`flex items-center gap-2 ${isStumbleMode ? 'opacity-60' : ''}`}>
              {canHelp && <span className="text-[8px] font-bold bg-emerald-600 px-2 py-0.5 rounded-full">CAN HELP</span>}
              {!isStumbleMode && (
                <span className="text-xs bg-slate-700 px-2 py-0.5 rounded-full">
@@ -331,7 +355,7 @@ export const PlayerZone = React.memo(({
         <motion.div 
           ref={handContainerRef}
           data-card-hand="true"
-          className="pointer-events-auto bg-slate-900/95 backdrop-blur-xl border-x border-b border-white/20 p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px]"
+          className={`pointer-events-auto ${isStumbleMode ? 'bg-slate-900/20' : 'bg-slate-900/95'} ${isStumbleMode ? 'backdrop-blur-sm' : 'backdrop-blur-xl'} border-x border-b ${isStumbleMode ? 'border-white/5' : 'border-white/20'} p-4 pb-12 rounded-b-2xl shadow-2xl w-full flex justify-center min-h-[180px]`}
           onMouseEnter={() => setIsHandHovered(true)}
           onMouseLeave={() => {
             setIsHandHovered(false);

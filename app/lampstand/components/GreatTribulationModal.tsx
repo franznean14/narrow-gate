@@ -17,7 +17,7 @@ export const GreatTribulationModal = React.memo(({ players, startingPlayerIndex,
   
   const currentPlayer = players[currentPlayerIndex];
   const modalPosition = getModalPosition(currentPlayerIndex);
-  const modalRotation = getModalRotation(currentPlayerIndex);
+  const modalRotation = getModalRotation(currentPlayerIndex, players.length);
   
   const handleCardSelect = (cardUid: string) => {
     const newSelections = new Map(selections);

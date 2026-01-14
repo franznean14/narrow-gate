@@ -24,7 +24,7 @@ const ManualView = lazy(() => import('./components/ManualView').then(m => ({ def
 import CARD_TYPES_MODULE, { FRUITS, LOVE_TRAITS } from './constants/cards';
 import { CHARACTERS_DB } from './constants/characters';
 import { TRIVIA_DB } from './constants/trivia';
-import { shuffle, getRandomTrivia, getDistance, getModalPosition, getModalRotation } from './utils/helpers';
+import { shuffle, getRandomTrivia, getDistance, getModalPosition, getModalRotation, getCenterPileRotation } from './utils/helpers';
 
 const CARD_TYPES = CARD_TYPES_MODULE as any;
 
@@ -2528,6 +2528,40 @@ export default function LampstandFinal() {
      }
   };
 
+  // Helper function to get slide target position for card animation
+  const getSlideTargetPosition = (playerIndex: number, totalPlayers: number, targetType: string) => {
+    if (targetType === 'discard' || targetType === 'deck') {
+      return { x: 0, y: 0 };
+    }
+
+    // Map player index to position based on total players
+    let position: number;
+    if (totalPlayers === 2) {
+      position = playerIndex === 0 ? 0 : 2; // bottom, top
+    } else if (totalPlayers === 5) {
+      position = playerIndex === 0 ? 0 : playerIndex === 1 ? 4 : playerIndex === 2 ? 5 : playerIndex === 3 ? 6 : 7;
+    } else if (totalPlayers === 6) {
+      position = playerIndex === 0 ? 0 : playerIndex === 1 ? 4 : playerIndex === 2 ? 5 : playerIndex === 3 ? 2 : playerIndex === 4 ? 6 : 7;
+    } else {
+      position = playerIndex; // 3-4 players use index directly
+    }
+
+    // Calculate X and Y offsets based on position
+    // These values approximate where each player zone is on screen
+    const positions: Record<number, { x: number; y: number }> = {
+      0: { x: 0, y: targetType === 'active' ? 250 : 350 },      // bottom center
+      1: { x: -450, y: 0 },                                      // left
+      2: { x: 0, y: targetType === 'active' ? -250 : -350 },     // top center
+      3: { x: 450, y: 0 },                                       // right
+      4: { x: -320, y: targetType === 'active' ? 180 : 250 },  // bottom-left diagonal
+      5: { x: -320, y: targetType === 'active' ? -180 : -250 }, // top-left diagonal
+      6: { x: 320, y: targetType === 'active' ? -180 : -250 }, // top-right diagonal
+      7: { x: 320, y: targetType === 'active' ? 180 : 250 }    // bottom-right diagonal
+    };
+
+    return positions[position] || positions[0];
+  };
+
   const showNotification = (msg: string, color: string) => {
     setNotification({ msg, color });
     setTimeout(() => setNotification(null), 3000);
@@ -2558,8 +2592,16 @@ export default function LampstandFinal() {
             </label>
           </div>
           
-          <div className="flex gap-4 justify-center">
-            {[2, 3, 4].map(n => <button key={n} onClick={() => initGame(n, testMode)} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg">{n} Players</button>)}
+          <div className="flex gap-4 justify-center flex-wrap">
+            {[2, 3, 4, 5, 6].map(n => (
+              <button
+                key={n}
+                onClick={() => initGame(n, testMode)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg"
+              >
+                {n} Players
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -2634,7 +2676,7 @@ export default function LampstandFinal() {
          
          {isStumbling && !vanquishActive ? (() => {
             const victimIdx = victim ? players.findIndex(p => p.id === victim.id) : -1;
-            const modalRotation = victimIdx !== -1 ? getModalRotation(victimIdx) : '';
+            const modalRotation = victimIdx !== -1 ? getModalRotation(victimIdx, players.length) : '';
             return (
             <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in zoom-in duration-300">
                <div className="text-center space-y-3" style={{ transform: modalRotation }}>
@@ -2723,15 +2765,7 @@ export default function LampstandFinal() {
                       : ''
                   }`}
                   style={{
-                     transform: (() => {
-                        const rotation = {
-                           0: 'rotate(0deg)',
-                           1: 'rotate(90deg)',
-                           2: 'rotate(180deg)',
-                           3: 'rotate(-90deg)'
-                        }[turnIndex] || 'rotate(0deg)';
-                        return rotation;
-                     })()
+                     transform: getCenterPileRotation(turnIndex, players.length)
                   }}
                >
                   {/* Show next card face up if Sword effect is active */}
@@ -2799,15 +2833,7 @@ export default function LampstandFinal() {
                    }} 
                    className={`w-48 h-72 bg-indigo-900 border-4 ${!currentQuestion ? 'border-indigo-400 animate-pulse' : 'border-indigo-700'} rounded-3xl flex flex-col items-center justify-center shadow-2xl cursor-pointer hover:scale-105 hover:border-indigo-400 transition-all group`}
                    style={{
-                     transform: (() => {
-                       const rotation = {
-                         0: 'rotate(0deg)',
-                         1: 'rotate(90deg)',
-                         2: 'rotate(180deg)',
-                         3: 'rotate(-90deg)'
-                       }[turnIndex] || 'rotate(0deg)';
-                       return rotation;
-                     })()
+                     transform: getCenterPileRotation(turnIndex, players.length)
                    }}
                  >
                     <BookOpen size={64} className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors mb-4" />
@@ -2822,11 +2848,21 @@ export default function LampstandFinal() {
                  </div>
                )}
                {pendingCard && trivia && !vanquishActive && (
-                 <div className="w-48 h-72 border-4 border-lime-500 rounded-3xl flex items-center justify-center relative bg-black/60 backdrop-blur-md">
+                 <div 
+                   className="w-48 h-72 border-4 border-lime-500 rounded-3xl flex items-center justify-center relative bg-black/60 backdrop-blur-md"
+                   style={{
+                     transform: getCenterPileRotation(turnIndex, players.length)
+                   }}
+                 >
                    <Card data={pendingCard} isPlayable={false} size="lg" />
                  </div>
                )}
-               <div className="w-48 h-72 border-4 border-dashed border-slate-700 rounded-3xl flex items-center justify-center relative">
+               <div 
+                  className="w-48 h-72 border-4 border-dashed border-slate-700 rounded-3xl flex items-center justify-center relative"
+                  style={{
+                    transform: getCenterPileRotation(turnIndex, players.length)
+                  }}
+               >
                   {discardPile.length > 0 ? (
                     <div className="absolute inset-0 p-2"><Card data={discardPile[0]} isPlayable={false} size="lg" /></div>
                   ) : <span className="font-bold text-slate-700 uppercase">Discard</span>}
@@ -2844,6 +2880,10 @@ export default function LampstandFinal() {
            position={
              players.length === 2
                ? (i === 0 ? 0 : 2) // For 2 players: player 1 bottom, player 2 top (opposite side)
+               : players.length === 5
+               ? (i === 0 ? 0 : i === 1 ? 4 : i === 2 ? 5 : i === 3 ? 6 : 7) // 5 players: bottom, bottom-left, top-left, top-right, bottom-right
+               : players.length === 6
+               ? (i === 0 ? 0 : i === 1 ? 4 : i === 2 ? 5 : i === 3 ? 2 : i === 4 ? 6 : 7) // 6 players: bottom, bottom-left, top-left, top, top-right, bottom-right
                : i                 // For 3–4 players: keep existing seat mapping
            } 
            isActive={i === turnIndex} 
@@ -2893,6 +2933,7 @@ export default function LampstandFinal() {
             }
             isPlayerTurn={true} 
             activePlayerIndex={cardOwnerIdx !== -1 ? cardOwnerIdx : turnIndex}
+            totalPlayers={players.length}
          />
          );
       })()}
@@ -3093,7 +3134,7 @@ export default function LampstandFinal() {
 
       {peekCards && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)} onClick={() => setPeekCards(null)}>
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex) }} onClick={(e) => e.stopPropagation()}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-indigo-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex, players.length) }} onClick={(e) => e.stopPropagation()}>
              <h3 className="text-xl font-bold text-indigo-400 mb-6 flex gap-2"><Eye /> Future Sight</h3>
              <div className="flex gap-4">
                 {peekCards.map((c, i) => <div key={i} className="scale-100"><Card data={c} isPlayable={false} /></div>)}
@@ -3105,13 +3146,14 @@ export default function LampstandFinal() {
 
       {wisdomCards && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)} onClick={(e) => e.stopPropagation()}>
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-violet-500 max-w-5xl transition-transform duration-500" style={{ transform: getModalRotation(turnIndex) }} onClick={(e) => e.stopPropagation()}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-violet-500 max-w-5xl transition-transform duration-500" style={{ transform: getModalRotation(turnIndex, players.length) }} onClick={(e) => e.stopPropagation()}>
              <h3 className="text-xl font-bold text-violet-400 mb-6 flex gap-2">Wisdom: Rearrange {unity} cards</h3>
              <WisdomRearrangeModal 
                cards={wisdomCards} 
                rearrangeCount={unity}
                onConfirm={handleWisdomRearrange}
                activePlayerIndex={turnIndex}
+               totalPlayers={players.length}
              />
                </div>
         </div>
@@ -3119,7 +3161,7 @@ export default function LampstandFinal() {
 
       {vigilanceCards && vigilanceHazards && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex p-4 animate-in fade-in" style={getModalPosition(turnIndex)}>
-           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-purple-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex) }}>
+           <div className="bg-slate-900 p-8 rounded-2xl border-2 border-purple-500 transition-transform duration-500" style={{ transform: getModalRotation(turnIndex, players.length) }}>
              <h3 className="text-xl font-bold text-purple-400 mb-6 flex gap-2">Vigilance: Select burden to discard</h3>
              <div className="flex gap-4 mb-6">
                 {vigilanceCards.map((c, i) => (
@@ -3153,6 +3195,7 @@ export default function LampstandFinal() {
           onAnswer={handleQuestionAnswer}
           isActive={currentQuestion.playerId === players[turnIndex]?.id || (pendingCard && trivia && !vanquishActive)}
           activePlayerIndex={players.findIndex((p: any) => p.id === currentQuestion.playerId)}
+          totalPlayers={players.length}
         />
       )}
       
@@ -3221,7 +3264,15 @@ export default function LampstandFinal() {
       )}
 
       {/* Animated Card Draw */}
-      {animatingCard && (
+      {animatingCard && (() => {
+        // Calculate slide target position for animation
+        const slidePos = getSlideTargetPosition(
+          animatingCard.targetPlayerIndex || 0,
+          players.length,
+          animatingCard.targetType || 'hand'
+        );
+        
+        return (
         <div className="fixed inset-0 z-[300] pointer-events-none">
           <div 
             className="absolute"
@@ -3244,15 +3295,7 @@ export default function LampstandFinal() {
                 setSkipEntireAnimation(true);
               }}
               style={{
-                transform: (() => {
-                  const rotation = {
-                    0: 'rotate(0deg)',
-                    1: 'rotate(90deg)',
-                    2: 'rotate(180deg)',
-                    3: 'rotate(-90deg)'
-                  }[turnIndex] || 'rotate(0deg)';
-                  return rotation;
-                })()
+                transform: getCenterPileRotation(turnIndex, players.length)
               }}
             >
               <Card 
@@ -3323,39 +3366,14 @@ export default function LampstandFinal() {
                 opacity: 1;
               }
               100% {
-                transform: translate(-50%, -50%) translateX(${
-                  animatingCard.targetType === 'discard' ? '0px' :
-                  animatingCard.targetType === 'deck' ? '0px' :
-                  animatingCard.targetType === 'active' ? (
-                    animatingCard.targetPlayerIndex === 0 ? '0px' :
-                    animatingCard.targetPlayerIndex === 1 ? '-450px' :
-                    animatingCard.targetPlayerIndex === 2 ? '0px' :
-                    '450px'
-                  ) :
-                  animatingCard.targetPlayerIndex === 0 ? '0px' :
-                  animatingCard.targetPlayerIndex === 1 ? '-450px' :
-                  animatingCard.targetPlayerIndex === 2 ? '0px' :
-                  '450px'
-                }) translateY(${
-                  animatingCard.targetType === 'discard' ? '0px' :
-                  animatingCard.targetType === 'deck' ? '0px' :
-                  animatingCard.targetType === 'active' ? (
-                    animatingCard.targetPlayerIndex === 0 ? '250px' :
-                    animatingCard.targetPlayerIndex === 1 ? '0px' :
-                    animatingCard.targetPlayerIndex === 2 ? '-250px' :
-                    '0px'
-                  ) :
-                  animatingCard.targetPlayerIndex === 0 ? '350px' :
-                  animatingCard.targetPlayerIndex === 1 ? '0px' :
-                  animatingCard.targetPlayerIndex === 2 ? '-350px' :
-                  '0px'
-                }) scale(0.7);
+                transform: translate(-50%, -50%) translateX(${slidePos.x}px) translateY(${slidePos.y}px) scale(0.7);
                 opacity: 0;
               }
             }
           `}</style>
         </div>
-      )}
+        );
+      })()}
 
       {/* PWA Install Prompt */}
       <PWAInstaller />

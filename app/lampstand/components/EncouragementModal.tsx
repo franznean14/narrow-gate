@@ -18,7 +18,7 @@ interface EncouragementModalProps {
 export const EncouragementModal = React.memo(({ encourager, players, unity, isStumbling, stumblingPlayerId, onClose, onConfirm, activePlayerIndex = 0 }: EncouragementModalProps) => {
    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    
    const encouragerIdx = players.findIndex((p: any) => p.id === encourager.id);
    if (encouragerIdx === -1) return null;

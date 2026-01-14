@@ -10,14 +10,15 @@ interface QuestionCardProps {
   onAnswer: (isCorrect: boolean) => void;
   isActive: boolean;
   activePlayerIndex?: number;
+  totalPlayers?: number;
 }
 
-export const QuestionCard = React.memo(({ question, onAnswer, isActive, activePlayerIndex = 0 }: QuestionCardProps) => {
+export const QuestionCard = React.memo(({ question, onAnswer, isActive, activePlayerIndex = 0, totalPlayers = 4 }: QuestionCardProps) => {
   if (!question) return null;
   
   const isHard = question.difficulty === 'HARD';
   const modalPosition = getModalPosition(activePlayerIndex);
-  const modalRotation = getModalRotation(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex, totalPlayers);
   
   // Parse rotation from CSS string (e.g., "rotate(90deg)" -> 90)
   const rotationMatch = modalRotation.match(/rotate\((-?\d+)deg\)/);

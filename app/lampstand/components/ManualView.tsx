@@ -251,7 +251,7 @@ export const ManualView = React.memo(() => (
             </p>
             <ul className="space-y-2 text-sm text-zinc-300 ml-4">
               <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">✓</span>
+            <span className="text-amber-400 font-bold">✓</span>
                 <span><strong className="text-amber-300">Victory Requirements (ALL must be true):</strong></span>
               </li>
               <li className="ml-6">• Unity Level is at maximum (Players - 1)</li>
@@ -271,14 +271,14 @@ export const ManualView = React.memo(() => (
               <li className="flex items-start gap-2">
                 <span className="text-red-400 font-bold">✗</span>
                 <span><strong className="text-red-300">All Players Knocked Out:</strong> If all players are knocked out at any point, the game is immediately lost.</span>
-              </li>
+          </li>
               <li className="flex items-start gap-2">
-                <span className="text-red-400 font-bold">✗</span>
+            <span className="text-red-400 font-bold">✗</span>
                 <span><strong className="text-red-300">Armageddon Drawn with Defeat Conditions:</strong> When Armageddon is drawn, you lose if:</span>
-              </li>
+          </li>
               <li className="ml-6">• Unity Level is less than maximum (Players - 1), OR</li>
               <li className="ml-6">• At least one player is knocked out</li>
-            </ul>
+        </ul>
           </div>
         </div>
       </section>

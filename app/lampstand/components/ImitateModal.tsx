@@ -17,7 +17,7 @@ export const ImitateModal = React.memo(({ giver, players, onClose, onConfirm, ac
    const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
    const [selectedCard, setSelectedCard] = useState<any | null>(null);
    const modalPosition = getModalPosition(activePlayerIndex);
-   const modalRotation = getModalRotation(activePlayerIndex);
+   const modalRotation = getModalRotation(activePlayerIndex, players.length);
    const targets = players.filter((p: any) => p.id !== giver.id && !p.isOut && p.activeCards.filter((c: any) => !c.id.startsWith('trial_')).length > 0);
    const getPositiveCards = (p: any) => p.activeCards.filter((c: any) => !c.id.startsWith('trial_'));
 

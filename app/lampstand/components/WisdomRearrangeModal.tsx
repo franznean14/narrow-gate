@@ -13,15 +13,16 @@ interface WisdomRearrangeModalProps {
   onConfirm: (reorderedCards: any[]) => void;
   onCancel?: () => void; // Optional, modal is uncancellable
   activePlayerIndex?: number;
+  totalPlayers?: number;
 }
 
-export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCancel, activePlayerIndex = 0 }: WisdomRearrangeModalProps) => {
+export const WisdomRearrangeModal = ({ cards, rearrangeCount, onConfirm, onCancel, activePlayerIndex = 0, totalPlayers = 4 }: WisdomRearrangeModalProps) => {
   const [reorderedCards, setReorderedCards] = useState<any[]>([]);
   const [draggedCard, setDraggedCard] = useState<any | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
   const modalPosition = getModalPosition(activePlayerIndex);
-  const modalRotation = getModalRotation(activePlayerIndex);
+  const modalRotation = getModalRotation(activePlayerIndex, totalPlayers);
   
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const reorderCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());

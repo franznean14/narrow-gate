@@ -2841,7 +2841,11 @@ export default function LampstandFinal() {
          <PlayerZone 
            key={p.id} 
            player={p} 
-           position={i} 
+           position={
+             players.length === 2
+               ? (i === 0 ? 0 : 2) // For 2 players: player 1 bottom, player 2 top (opposite side)
+               : i                 // For 3–4 players: keep existing seat mapping
+           } 
            isActive={i === turnIndex} 
            isOpen={openHandIndices.has(i)}
            isStumbling={p.id === stumblingPlayerId}

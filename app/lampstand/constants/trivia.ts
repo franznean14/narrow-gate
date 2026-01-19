@@ -34,7 +34,7 @@ export const TRIVIA_DB = {
     { q: "What was the name of the tree in the middle of the garden of Eden?", a: "Tree of the knowledge of good and bad", options: ["Tree of the knowledge of good and bad", "Tree of life", "Tree of wisdom"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=tree%20of%20the%20knowledge%20of%20good%20and%20bad%20Genesis%202%3A9" },
     { q: "How many years did the Israelites wander in the wilderness?", a: "Forty", options: ["Forty", "Thirty", "Fifty"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=forty%20years%20wilderness%20Numbers%2014%3A33" },
     { q: "What was the name of the man who helped Jesus carry his torture stake?", a: "Simon", options: ["Simon", "Peter", "John"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Simon%20of%20Cyrene%20carried%20torture%20stake%20Matthew%2027%3A32" },
-    { q: "Which prophet was taken to heaven in a chariot of fire?", a: "Elijah", options: ["Elijah", "Elisha", "Isaiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=chariot%20of%20fire%20Elijah%202%20Kings%202%3A11" },
+    { q: "Which prophet ascended to the heavens in a chariot of fire?", a: "Elijah", options: ["Elijah", "Elisha", "Isaiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=chariot%20of%20fire%20Elijah%202%20Kings%202%3A11" },
     { q: "How many days did it take God to create the heavens and the earth?", a: "Six", options: ["Six", "Seven", "Five"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=six%20days%20created%20heavens%20earth%20Exodus%2020%3A11" },
     // Additional 20 questions
     { q: "What was the name of the first woman?", a: "Eve", options: ["Eve", "Sarah", "Rebecca"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Eve%20first%20woman%20Genesis%203%3A20" },
@@ -56,7 +56,10 @@ export const TRIVIA_DB = {
     { q: "Who was the king who built the first temple in Jerusalem?", a: "Solomon", options: ["Solomon", "David", "Hezekiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Solomon%20built%20temple%201%20Kings%206%3A1" },
     { q: "What was the name of the man who was thrown into a well by his brothers?", a: "Joseph", options: ["Joseph", "Benjamin", "Reuben"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Joseph%20thrown%20well%20Genesis%2037%3A24" },
     { q: "Who was the prophet who was fed by ravens?", a: "Elijah", options: ["Elijah", "Elisha", "Isaiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Elijah%20fed%20by%20ravens%201%20Kings%2017%3A6" },
-    { q: "What was the name of the woman who was turned into a pillar of salt?", a: "Lot's wife", options: ["Lot's wife", "Sarah", "Rebekah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Lot%27s%20wife%20pillar%20salt%20Genesis%2019%3A26" }
+    { q: "What was the name of the woman who was turned into a pillar of salt?", a: "Lot's wife", options: ["Lot's wife", "Sarah", "Rebekah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Lot%27s%20wife%20pillar%20salt%20Genesis%2019%3A26" },
+    { q: "Who performed the first resurrection in the Bible?", a: "Elijah", options: ["Elijah", "Elisha", "Jesus"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Elijah%20first%20resurrection%201%20Kings%2017%3A22" },
+    { q: "Where was the apostle John exiled?", a: "Patmos", options: ["Patmos", "Rome", "Ephesus"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=John%20exiled%20Patmos%20Revelation%201%3A9" },
+    { q: "What was Sarah's former name?", a: "Sarai", options: ["Sarai", "Sarah", "Rebekah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Sarai%20Sarah%20former%20name%20Genesis%2017%3A15" }
   ],
   MEDIUM: [
     { q: "What was the name of the river that divided the Promised Land?", a: "Jordan", options: ["Jordan", "Nile", "Euphrates"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jordan%20river%20Promised%20Land%20Joshua%203%3A17" },
@@ -64,25 +67,26 @@ export const TRIVIA_DB = {
     { q: "What was the name of the man who was sold into slavery by his brothers?", a: "Joseph", options: ["Joseph", "Benjamin", "Reuben"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Joseph%20sold%20slavery%20Genesis%2037%3A28" },
     { q: "Which prophet was called from the sheep pens?", a: "Amos", options: ["Amos", "Hosea", "Micah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Amos%20called%20sheep%20pens%20Amos%207%3A14" },
     { q: "What was the name of the king who had the three Hebrews thrown into the fiery furnace?", a: "Nebuchadnezzar", options: ["Nebuchadnezzar", "Darius", "Belshazzar"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Nebuchadnezzar%20fiery%20furnace%20Daniel%203%3A19" },
-    { q: "Who was the prophet who was taken to heaven without dying?", a: "Enoch", options: ["Enoch", "Elijah", "Elisha"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Enoch%20taken%20heaven%20Genesis%205%3A24" },
+    { q: "Who was the prophet who was put under a trance-like state and did not see death?", a: "Enoch", options: ["Enoch", "Elijah", "Elisha"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Enoch%20taken%20heaven%20Genesis%205%3A24" },
     { q: "Who was the prophet who anointed both Saul and David as kings?", a: "Samuel", options: ["Samuel", "Nathan", "Gad"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Samuel%20anointed%20Saul%20David%20kings%201%20Samuel%2010%3A1" },
     { q: "What was the name of the woman who anointed Jesus' feet with perfumed oil?", a: "Mary", options: ["Mary", "Martha", "Lydia"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Mary%20anointed%20Jesus%20feet%20John%2012%3A3" },
     { q: "Which apostle was known as the Zealot?", a: "Simon", options: ["Simon", "Judas", "Thomas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Simon%20Zealot%20apostle%20Luke%206%3A15" },
     { q: "What was the name of the woman who was the mother of John the Baptist?", a: "Elizabeth", options: ["Elizabeth", "Anna", "Mary"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Elizabeth%20mother%20John%20Baptist%20Luke%201%3A5" },
     { q: "Who was the king who ordered the killing of all baby boys in Bethlehem?", a: "Herod", options: ["Herod", "Pilate", "Caesar"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Herod%20killed%20baby%20boys%20Bethlehem%20Matthew%202%3A16" },
     { q: "What was the name of the disciple who was a tax collector before following Jesus?", a: "Matthew", options: ["Matthew", "Simon", "Judas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Matthew%20tax%20collector%20Matthew%209%3A9" },
-    { q: "Who was the prophet who was killed by being sawn in two?", a: "Isaiah", options: ["Isaiah", "Jeremiah", "Ezekiel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Isaiah%20sawn%20two%20Hebrews%2011%3A37" },
     { q: "What was the name of the woman who was raised from the dead by Peter?", a: "Tabitha", options: ["Tabitha", "Lazarus", "Eutychus"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Tabitha%20raised%20Peter%20Acts%209%3A40" },
     { q: "Which prophet was told to eat a scroll?", a: "Ezekiel", options: ["Ezekiel", "Jeremiah", "Daniel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Ezekiel%20eat%20scroll%20Ezekiel%203%3A1" },
     { q: "What was the name of the man who was struck blind on the road to Damascus?", a: "Saul", options: ["Saul", "Barnabas", "Silas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Saul%20struck%20blind%20Damascus%20Acts%209%3A3" },
-    { q: "Who was the prophet who was thrown into a pit and rescued by Ebed-melech?", a: "Jeremiah", options: ["Jeremiah", "Ezekiel", "Daniel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jeremiah%20pit%20Ebed-melech%20Jeremiah%2038%3A7" },
-    { q: "What was the name of the place where Jesus was transfigured before Peter, James, and John?", a: "Mount of Transfiguration", options: ["Mount of Transfiguration", "Mount Sinai", "Mount Zion"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jesus%20transfigured%20Matthew%2017%3A1" },
-    { q: "What was the name of the man who was struck dead for lying about his contribution with his wife?", a: "Ananias", options: ["Ananias", "Sapphira", "Judas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Ananias%20Sapphira%20lied%20contribution%20Acts%205%3A1" }
+    { q: "Who was the prophet who was thrown into a cistern and rescued by Ebed-melech?", a: "Jeremiah", options: ["Jeremiah", "Ezekiel", "Daniel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jeremiah%20pit%20Ebed-melech%20Jeremiah%2038%3A7" },
+    { q: "What was the name of the man who was struck dead for lying about his contribution with his wife?", a: "Ananias", options: ["Ananias", "Sapphira", "Judas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Ananias%20Sapphira%20lied%20contribution%20Acts%205%3A1" },
+    { q: "Who wasn't a king and yet was buried with kings?", a: "Jehoiada", options: ["Jehoiada", "Zadok", "Abiathar"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jehoiada%20buried%20kings%202%20Chronicles%2024%3A16" },
+    { q: "Aside from David, who else killed a giant and a lion?", a: "Benaiah", options: ["Benaiah", "Joab", "Abishai"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Benaiah%20killed%20giant%20lion%202%20Samuel%2023%3A20" },
+    { q: "What was Jonathan's weapon?", a: "A bow", options: ["A bow", "A sling", "A sword"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jonathan%20bow%201%20Samuel%2018%3A4" }
   ],
   HARD: [
     { q: "Who was the father of Methuselah?", a: "Enoch", options: ["Lamech", "Enoch", "Jared"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Enoch%20father%20Methuselah%20Genesis%205%3A21" },
     { q: "Where did Paul experience a shipwreck?", a: "Malta", options: ["Crete", "Cyprus", "Malta"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Paul%20shipwreck%20Malta%20Acts%2028%3A1" },
-    { q: "Name of the copper serpent Moses made?", a: "Nehushtan", options: ["Nehushtan", "Leviathan", "Behemoth"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=copper%20serpent%20Nehushtan%20Numbers%2021%3A9" },
+    { q: "Name of the copper serpent Moses made?", a: "Copper serpent-idol", options: ["Copper serpent-idol", "Leviathan", "Behemoth"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=copper%20serpent%20Nehushtan%20Numbers%2021%3A9" },
     { q: "Who was the first martyr?", a: "Stephen", options: ["Peter", "James", "Stephen"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Stephen%20first%20martyr%20Acts%207%3A59" },
     { q: "What was the name of the king who had Daniel thrown into the lions' den?", a: "Darius", options: ["Darius", "Nebuchadnezzar", "Belshazzar"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Darius%20Daniel%20lions%27%20den%20Daniel%206%3A16" },
     { q: "What was the name of the high priest who questioned Jesus?", a: "Caiaphas", options: ["Caiaphas", "Annas", "Pilate"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Caiaphas%20high%20priest%20questioned%20Jesus%20Matthew%2026%3A57" },
@@ -96,10 +100,12 @@ export const TRIVIA_DB = {
     { q: "What was the name of the city where Paul was born?", a: "Tarsus", options: ["Tarsus", "Antioch", "Damascus"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Paul%20born%20in%20Tarsus%20Acts%2021%3A39" },
     { q: "What was the name of the man who replaced Judas as an apostle?", a: "Matthias", options: ["Matthias", "Barnabas", "Silas"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Matthias%20replaced%20Judas%20Acts%201%3A26" },
     { q: "What was the name of the mountain where Abraham was told to sacrifice Isaac?", a: "Moriah", options: ["Moriah", "Sinai", "Zion"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=land%20of%20Moriah%20Genesis%2022%3A2" },
-    { q: "Which prophet was told to marry a prostitute as a sign?", a: "Hosea", options: ["Hosea", "Amos", "Micah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Hosea%20marry%20prostitute%20Hosea%201%3A2" },
+    { q: "Which prophet was told to marry a woman who would become a prostitute?", a: "Hosea", options: ["Hosea", "Amos", "Micah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Hosea%20marry%20prostitute%20Hosea%201%3A2" },
     { q: "What was the name of the Roman centurion who said 'Truly this was God's Son'?", a: "Centurion", options: ["Centurion", "Pilate", "Herod"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=centurion%20Truly%20this%20was%20God%27s%20Son%20Matthew%2027%3A54" },
-    { q: "Who was the prophet who was thrown into a cistern?", a: "Jeremiah", options: ["Jeremiah", "Ezekiel", "Daniel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Jeremiah%20thrown%20cistern%20Jeremiah%2038%3A6" },
-    { q: "What was the name of the place where the Israelites crossed the Jordan River?", a: "Gilgal", options: ["Gilgal", "Jericho", "Bethel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Gilgal%20crossed%20Jordan%20Joshua%204%3A19" }
+    { q: "What was the name of the place where the Israelites crossed the Jordan River?", a: "Gilgal", options: ["Gilgal", "Jericho", "Bethel"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Gilgal%20crossed%20Jordan%20Joshua%204%3A19" },
+    { q: "Which place was called the City of Bloodshed?", a: "Nineveh", options: ["Nineveh", "Babylon", "Sodom"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Nineveh%20City%20of%20Bloodshed%20Nahum%203%3A1" },
+    { q: "Which prophet was possibly the great-great-great grandson of King Hezekiah?", a: "Zephaniah", options: ["Zephaniah", "Jeremiah", "Isaiah"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Zephaniah%20Hezekiah%20Zephaniah%201%3A1" },
+    { q: "What was the age gap between Joseph and Reuben?", a: "7 years", options: ["7 years", "5 years", "10 years"], source: "https://wol.jw.org/en/wol/s/r1/lp-e?q=Joseph%20Reuben%20age%20gap%20Genesis%2037%3A2" }
   ]
 };
 
